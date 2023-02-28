@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from .models import Card, Template
+from .models import Card, Template, Category
 import hashlib
 from faker import Faker
 
@@ -21,6 +21,18 @@ class TemplateModelTests(TestCase):
             body=self.body
         )
 
+    def test_uuids(self):
+        """Check if doesn't duplicate uuids, which could happen
+        if function for creating uuid is passed wrong: ie
+        value returned from the function is passed instead
+        of a callable function object.
+        """
+        for i in range(3):
+            Template.objects.create(
+                title=fake.text(15),
+                description=fake.text(20),
+                body=fake.text(20)
+            )
     def test_template_hashing(self):
         template_hash = hashlib.sha256(
             bytes(self.template_title + self.description + self.body, "utf-8")
@@ -51,6 +63,14 @@ class CardModelTests(TestCase):
             front=self.front,
             back=self.back
         )
+
+    def test_uuids(self):
+        for i in range(3):
+            Template.objects.create(
+                title=fake.text(15),
+                description=fake.text(20),
+                body=fake.text(20)
+            )
 
     def test_new_card_hashing(self):
         card_hash = hashlib.sha256(
@@ -89,6 +109,12 @@ class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
         self.assertTrue(card.template is template)
         self.assertTrue(card.template_id == template.id)
 
+    def test_card_related_name(self):
+        card, template = self._get_tested_objects()
+        card_from_template = template.cards.first()
+
+        self.assertEqual(card_from_template.front, card.front)
+
     def _get_tested_objects(self):
         card = Card.objects.first()
         template = Template.objects.first()
@@ -118,3 +144,56 @@ class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
         self.assertRaises(
             ObjectDoesNotExist,
             lambda: Template.objects.get(title=self.template_title))
+
+
+class CategoryTests(TestCase):
+    def setUp(self):
+        CATEGORY_NAME_LEN = 20
+        self.first_category_name = fake.text(CATEGORY_NAME_LEN)
+        self.second_category_name = fake.text(CATEGORY_NAME_LEN)
+        self.third_category_name = fake.text(CATEGORY_NAME_LEN)
+
+        first_category = Category.objects.create(
+                name=self.first_category_name
+        )
+        Category.objects.create(
+            name=self.second_category_name,
+            parent=first_category
+        )
+        Category.objects.create(
+            parent=first_category,
+            name=self.third_category_name
+        )
+
+    @staticmethod
+    def test_uuids():
+        for i in range(3):
+            Category.objects.create(
+                name=fake.text(15),
+            )
+
+    def test_serialization(self):
+        category = Category.objects.first()
+        expected_serialization = f"<{category.name}>"
+
+        self.assertEqual(expected_serialization, str(category))
+
+    def test_self_reference(self):
+        NUMBER_OF_SUB_CATEGORIES = 2
+        first_category = Category.objects.get(name=self.first_category_name)
+        second_category = Category.objects.get(name=self.second_category_name)
+
+        self.assertEqual(len(first_category.sub_categories.all()),
+                         NUMBER_OF_SUB_CATEGORIES)
+        self.assertEqual(second_category.parent.name,
+                         self.first_category_name)
+
+    def test_deleting_categories(self):
+        # model should allow for deleting categories with subcategories
+        # check if deleting subcategory doesn't remove parent category
+        pass
+
+    def test_same_named_categories(self):
+        # two cat. with the same name and with the same parent category
+        # ... with different parent category
+        pass
