@@ -2,3 +2,4 @@ django==4.1.5
 psycopg2-binary==2.9.5
 djangorestframework==3.14.0
 Faker==17.0.0
+django-treebeard==4.6.1

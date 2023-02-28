@@ -4,6 +4,7 @@ from django.test import TestCase
 from .models import Card, Template, Category
 import hashlib
 from faker import Faker
+from .utils.helpers import hash_sha256
 
 fake = Faker()
 
@@ -22,7 +23,7 @@ class TemplateModelTests(TestCase):
         )
 
     def test_uuids(self):
-        """Check if doesn't duplicate uuids, which could happen
+        """Check if constructor doesn't duplicate uuids, which could happen
         if function for creating uuid is passed wrong: ie
         value returned from the function is passed instead
         of a callable function object.
@@ -33,6 +34,7 @@ class TemplateModelTests(TestCase):
                 description=fake.text(20),
                 body=fake.text(20)
             )
+
     def test_template_hashing(self):
         template_hash = hashlib.sha256(
             bytes(self.template_title + self.description + self.body, "utf-8")
@@ -154,7 +156,7 @@ class CategoryTests(TestCase):
         self.third_category_name = fake.text(CATEGORY_NAME_LEN)
 
         first_category = Category.objects.create(
-                name=self.first_category_name
+            name=self.first_category_name
         )
         Category.objects.create(
             name=self.second_category_name,
@@ -168,9 +170,7 @@ class CategoryTests(TestCase):
     @staticmethod
     def test_uuids():
         for i in range(3):
-            Category.objects.create(
-                name=fake.text(15),
-            )
+            Category.objects.create(name=fake.text(15))
 
     def test_serialization(self):
         category = Category.objects.first()
@@ -180,20 +180,72 @@ class CategoryTests(TestCase):
 
     def test_self_reference(self):
         NUMBER_OF_SUB_CATEGORIES = 2
-        first_category = Category.objects.get(name=self.first_category_name)
-        second_category = Category.objects.get(name=self.second_category_name)
+        first_category = self.get_category(self.first_category_name)
+        second_category = self.get_category(self.second_category_name)
 
         self.assertEqual(len(first_category.sub_categories.all()),
                          NUMBER_OF_SUB_CATEGORIES)
         self.assertEqual(second_category.parent.name,
                          self.first_category_name)
 
-    def test_deleting_categories(self):
-        # model should allow for deleting categories with subcategories
-        # check if deleting subcategory doesn't remove parent category
-        pass
+    def test_deleting_empty_subcategory(self):
+        first_category = self.get_category(self.first_category_name)
+        for sub_category in first_category.sub_categories.all():
+            sub_category.delete()
+
+        self.assertRaises(
+            ObjectDoesNotExist,
+            lambda: self.get_category(self.second_category_name))
+
+        # as stated in the documentation, treebeard relies on SQL expressions
+        # to manage model, so after applying changes model requires re-fetch
+        # from the database in order to stay up-to-date
+        self.assertTrue(self.get_category(self.first_category_name))
+
+    def test_deleting_non_empty_top_category(self):
+        first_category = self.get_category(self.first_category_name)
+
+        self.assertRaises(ProtectedError, first_category.delete)
+
+    def test_emptying_and_deleting(self):
+        """Test deleting top category after clearing subcategories.
+        """
+        first_category = self.get_category(self.first_category_name)
+        first_category.sub_categories.set([])
+        first_category.save()
+
+        self.assertTrue(first_category.delete())
+        self.assertTrue(all([self.get_category(self.second_category_name),
+                             self.get_category(self.third_category_name)]))
 
     def test_same_named_categories(self):
-        # two cat. with the same name and with the same parent category
-        # ... with different parent category
-        pass
+        parent_category = self.get_category(self.first_category_name)
+
+        new_category = Category(name=self.second_category_name)
+        new_category.save()
+
+        # this should fail
+        parent_category.sub_categories.add(new_category)
+        parent_category.save()
+
+    def test_category_hashing(self):
+        # category with no parents:
+        first_category = self.get_category(self.first_category_name)
+        first_category_string_for_hashing = (first_category.name
+                                             + str(first_category.parent_id))
+        hash_first_cat = hash_sha256(first_category_string_for_hashing)
+
+        # category with a single parent:
+        second_category = self.get_category(self.second_category_name)
+        second_category_string_for_hashing = (
+                second_category.name
+                + str(second_category.parent_id))
+        hash_second_cat = hash_sha256(second_category_string_for_hashing)
+
+        self.assertEqual(first_category.hash, hash_first_cat)
+        self.assertEqual(second_category.hash, hash_second_cat)
+
+
+    @staticmethod
+    def get_category(name: str):
+        return Category.objects.get(name=name)

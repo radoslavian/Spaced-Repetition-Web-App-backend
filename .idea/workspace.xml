@@ -4,25 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added foreign key from Card to Template and improved Card serialization (__str__ method).">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added adjacency list to Category.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0007_alter_category_parent.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0008_remove_card_hash.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0009_remove_card_last_modified.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0010_category_hash_category_last_modified.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/utils/helpers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0002_card_last_modified_alter_card_card_hash_and_more.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0003_template_rename_card_hash_card_hash_alter_card_id_and_more.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0004_card_template_alter_card_id_alter_template_id.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/utils/model_mixins.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/model_mixins.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0002_alter_user_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0003_alter_user_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0004_alter_user_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0005_alter_user_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0006_alter_user_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0007_alter_user_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0008_alter_user_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,14 +45,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/model_mixins.py&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/helpers.py",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/backend/cards" />
@@ -111,8 +103,8 @@
     </configuration>
     <list>
       <item itemvalue="Python tests.Test cards" />
-      <item itemvalue="Python tests.Python tests for cards.tests.TemplateModelTests" />
       <item itemvalue="Python tests.Python tests for cards.tests.CardModelTests.test_serialization" />
+      <item itemvalue="Python tests.Python tests for cards.tests.TemplateModelTests" />
     </list>
     <recent_temporary>
       <list>
@@ -165,7 +157,21 @@
       <option name="project" value="LOCAL" />
       <updated>1677520520721</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Added adjacency list to Category.">
+      <created>1677547699674</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1677547699674</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Added adjacency list to Category.">
+      <created>1677547720733</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1677547720733</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -184,6 +190,7 @@
     <MESSAGE value="Added the &quot;user&quot; app." />
     <MESSAGE value="Started working on database models (added Card and Template)." />
     <MESSAGE value="Added foreign key from Card to Template and improved Card serialization (__str__ method)." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added foreign key from Card to Template and improved Card serialization (__str__ method)." />
+    <MESSAGE value="Added adjacency list to Category." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added adjacency list to Category." />
   </component>
 </project>
