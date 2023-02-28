@@ -1,10 +1,9 @@
+import django.db.utils
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 from .models import Card, Template, Category
-import hashlib
 from faker import Faker
-from .utils.helpers import hash_sha256
 
 fake = Faker()
 
@@ -22,6 +21,16 @@ class TemplateModelTests(TestCase):
             body=self.body
         )
 
+    def test_duplicate_template(self):
+        def duplicate_template():
+            template = Template.objects.create(
+                title=self.template_title,
+                description=self.description,
+                body=self.body
+            )
+            template.save()
+        self.assertRaises(django.db.utils.IntegrityError, duplicate_template)
+
     def test_uuids(self):
         """Check if constructor doesn't duplicate uuids, which could happen
         if function for creating uuid is passed wrong: ie
@@ -34,12 +43,6 @@ class TemplateModelTests(TestCase):
                 description=fake.text(20),
                 body=fake.text(20)
             )
-
-    def test_template_hashing(self):
-        template_hash = hashlib.sha256(
-            bytes(self.template_title + self.description + self.body, "utf-8")
-        ).hexdigest()
-        self.assertEqual(template_hash, self.template.hash)
 
     def test_last_modified_update(self):
         """Test if last_modified attribute changes when modified.
@@ -66,6 +69,14 @@ class CardModelTests(TestCase):
             back=self.back
         )
 
+    def test_duplicate_card(self):
+        def duplicate_card():
+            card = Card.objects.create(
+                front=self.front,
+                back=self.back
+            )
+        self.assertRaises(django.db.utils.IntegrityError, duplicate_card)
+
     def test_uuids(self):
         for i in range(3):
             Template.objects.create(
@@ -73,11 +84,6 @@ class CardModelTests(TestCase):
                 description=fake.text(20),
                 body=fake.text(20)
             )
-
-    def test_new_card_hashing(self):
-        card_hash = hashlib.sha256(
-            bytes(self.front + self.back, "utf-8")).hexdigest()
-        self.assertEqual(card_hash, self.card.hash)
 
     def test_last_modified_update(self):
         """Test if last_modified attribute changes when modified.
@@ -197,9 +203,9 @@ class CategoryTests(TestCase):
             ObjectDoesNotExist,
             lambda: self.get_category(self.second_category_name))
 
-        # as stated in the documentation, treebeard relies on SQL expressions
-        # to manage model, so after applying changes model requires re-fetch
-        # from the database in order to stay up-to-date
+        # as stated in the documentation, treebeard relies on raw
+        # SQL expressions to manage model, so after applying changes model
+        # requires re-fetch from the database in order to stay up-to-date
         self.assertTrue(self.get_category(self.first_category_name))
 
     def test_deleting_non_empty_top_category(self):
@@ -218,33 +224,17 @@ class CategoryTests(TestCase):
         self.assertTrue(all([self.get_category(self.second_category_name),
                              self.get_category(self.third_category_name)]))
 
-    def test_same_named_categories(self):
+    def test_duplicate_category(self):
+        """Attempt to add same-named sibling category.
+        """
         parent_category = self.get_category(self.first_category_name)
-
         new_category = Category(name=self.second_category_name)
         new_category.save()
 
-        # this should fail
-        parent_category.sub_categories.add(new_category)
-        parent_category.save()
-
-    def test_category_hashing(self):
-        # category with no parents:
-        first_category = self.get_category(self.first_category_name)
-        first_category_string_for_hashing = (first_category.name
-                                             + str(first_category.parent_id))
-        hash_first_cat = hash_sha256(first_category_string_for_hashing)
-
-        # category with a single parent:
-        second_category = self.get_category(self.second_category_name)
-        second_category_string_for_hashing = (
-                second_category.name
-                + str(second_category.parent_id))
-        hash_second_cat = hash_sha256(second_category_string_for_hashing)
-
-        self.assertEqual(first_category.hash, hash_first_cat)
-        self.assertEqual(second_category.hash, hash_second_cat)
-
+        def duplicate_category():
+            parent_category.sub_categories.add(new_category)
+            parent_category.save()
+        self.assertRaises(django.db.utils.IntegrityError, duplicate_category)
 
     @staticmethod
     def get_category(name: str):

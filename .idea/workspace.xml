@@ -4,17 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added adjacency list to Category.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0007_alter_category_parent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0008_remove_card_hash.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0009_remove_card_last_modified.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0010_category_hash_category_last_modified.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/utils/helpers.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added constraints against duplication to models.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/utils/model_mixins.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/model_mixins.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -171,7 +163,28 @@
       <option name="project" value="LOCAL" />
       <updated>1677547720733</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin.">
+      <created>1677616625361</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1677616625361</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Added constraints against duplication to models.">
+      <created>1677618001299</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1677618001299</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Added constraints against duplication to models.">
+      <created>1677619216729</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1677619216729</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -191,6 +204,8 @@
     <MESSAGE value="Started working on database models (added Card and Template)." />
     <MESSAGE value="Added foreign key from Card to Template and improved Card serialization (__str__ method)." />
     <MESSAGE value="Added adjacency list to Category." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added adjacency list to Category." />
+    <MESSAGE value="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin." />
+    <MESSAGE value="Added constraints against duplication to models." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added constraints against duplication to models." />
   </component>
 </project>

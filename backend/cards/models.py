@@ -1,26 +1,24 @@
 import uuid
-from abc import ABC
-from functools import reduce
-
 from django.db import models
 from treebeard.al_tree import AL_Node
 
 from .apps import CardsConfig
-from .utils.model_mixins import TriggeredUpdatesMixin
+from .utils.model_mixins import TriggeredLastModifiedUpdateMixin
 
 encoding = CardsConfig.default_encoding
 
 
-class Template(models.Model, TriggeredUpdatesMixin):
-    __hashed_fields__ = ("title", "description", "body",)
-
+class Template(models.Model, TriggeredLastModifiedUpdateMixin):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False
     )
+
+    class Meta:
+        unique_together = ("title", "description", "body",)
+
     last_modified = models.DateTimeField(auto_now=True)
-    hash = models.CharField(max_length=64, unique=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
 
@@ -32,20 +30,20 @@ class Template(models.Model, TriggeredUpdatesMixin):
         return f"<{self.title}>"
 
 
-class Card(models.Model, TriggeredUpdatesMixin):
-    __hashed_fields__ = ("front", "back",)
-
+class Card(models.Model, TriggeredLastModifiedUpdateMixin):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False
     )
-    hash = models.CharField(max_length=64, unique=True)
     last_modified = models.DateTimeField(auto_now=True)
     front = models.TextField()
     back = models.TextField()
     template = models.ForeignKey(Template, on_delete=models.PROTECT,
                                  null=True, related_name="cards")
+
+    class Meta:
+        unique_together = ("front", "back",)
 
     def __str__(self):
         MAX_LEN = 50
@@ -56,12 +54,7 @@ class Card(models.Model, TriggeredUpdatesMixin):
         return serialized
 
 
-class Category(AL_Node, TriggeredUpdatesMixin):
-    __hashed_fields__ = ("name", "parent_id",)
-
-    hash = models.CharField(max_length=64, unique=True)
-    last_modified = models.DateTimeField(auto_now=True)
-
+class Category(AL_Node):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -76,6 +69,9 @@ class Category(AL_Node, TriggeredUpdatesMixin):
         null=True
     )
     node_order_by = ["name"]
+
+    class Meta:
+        unique_together = ("name", "parent")
 
     def __str__(self):
         return f"<{self.name}>"
