@@ -10,6 +10,9 @@ services:
       - 8000:8000
     depends_on:
       - db
+    environment:
+     - DEBUG=1
+     - ENVIRONMENT=development
   db:
     image: postgres:15
     environment:
@@ -21,6 +24,6 @@ services:
     ports:
       - "5432:5432"
 
-volumes:
-  postgres_data:
-    driver: local
+# volumes:
+#   postgres_data:
+#     driver: local

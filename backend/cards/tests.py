@@ -1,4 +1,5 @@
 import django.db.utils
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
@@ -29,6 +30,7 @@ class TemplateModelTests(TestCase):
                 body=self.body
             )
             template.save()
+
         self.assertRaises(django.db.utils.IntegrityError, duplicate_template)
 
     def test_uuids(self):
@@ -75,6 +77,7 @@ class CardModelTests(TestCase):
                 front=self.front,
                 back=self.back
             )
+
         self.assertRaises(django.db.utils.IntegrityError, duplicate_card)
 
     def test_uuids(self):
@@ -234,8 +237,36 @@ class CategoryTests(TestCase):
         def duplicate_category():
             parent_category.sub_categories.add(new_category)
             parent_category.save()
+
         self.assertRaises(django.db.utils.IntegrityError, duplicate_category)
 
     @staticmethod
     def get_category(name: str):
         return Category.objects.get(name=name)
+
+
+class InactiveCategoriesTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.username = fake.text(6)
+        user_model.objects.create_user(
+            username=self.username,
+            password=fake.text(10),
+            email=fake.email()
+        )
+        category = Category(name="Parent category")
+        Category(
+            name="first subcategory",
+            parent=category
+        ).save()
+        category.save()
+
+    def test_inactive_categories(self):
+        user = get_user_model().objects.get(username=self.username)
+        first_subcategory = Category.objects.get(name="first subcategory")
+        user.skipped_categories.add(first_subcategory)
+
+        self.assertEqual(first_subcategory.skipping_users.first().username,
+                         user.username)
+        self.assertEqual(user.skipped_categories.first().name,
+                         first_subcategory.name)
