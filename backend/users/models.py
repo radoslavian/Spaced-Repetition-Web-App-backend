@@ -14,3 +14,7 @@ class User(AbstractUser):
     skipped_categories = models.ManyToManyField(
         "cards.Category",
         related_name="skipping_users")
+    ignored_cards = models.ManyToManyField(
+        "cards.Card",
+        related_name="ignoring_users"
+    )

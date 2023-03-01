@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added constraints against duplication to models.">
-      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0002_user_inactive_categories.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added skipped card categories to the User model.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0002_alter_card_template.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0003_alter_card_template.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0003_user_ignored_cards_alter_user_skipped_categories.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/docker-compose.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/wsra/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -196,7 +195,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677619352073</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Added skipped card categories to the User model.">
+      <created>1677703131019</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1677703131019</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -218,6 +224,7 @@
     <MESSAGE value="Added adjacency list to Category." />
     <MESSAGE value="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin." />
     <MESSAGE value="Added constraints against duplication to models." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added constraints against duplication to models." />
+    <MESSAGE value="Added skipped card categories to the User model." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added skipped card categories to the User model." />
   </component>
 </project>
