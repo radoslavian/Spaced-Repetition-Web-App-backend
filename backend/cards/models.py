@@ -1,4 +1,6 @@
 import uuid
+
+from django.contrib.auth import get_user_model
 from django.db import models
 from treebeard.al_tree import AL_Node
 
@@ -6,6 +8,7 @@ from .apps import CardsConfig
 from .utils.model_mixins import TriggeredLastModifiedUpdateMixin
 
 encoding = CardsConfig.default_encoding
+max_comment_len = CardsConfig.max_comment_len
 
 
 class Template(models.Model, TriggeredLastModifiedUpdateMixin):
@@ -41,6 +44,8 @@ class Card(models.Model, TriggeredLastModifiedUpdateMixin):
     back = models.TextField()
     template = models.ForeignKey(Template, on_delete=models.PROTECT,
                                  null=True, related_name="cards")
+    commenting_users = models.ManyToManyField(
+        get_user_model(), through="CardComment")
 
     class Meta:
         unique_together = ("front", "back",)
@@ -52,6 +57,20 @@ class Card(models.Model, TriggeredLastModifiedUpdateMixin):
             serialized = serialized[:MAX_LEN] + " ..."
 
         return serialized
+
+
+class CardComment(models.Model):
+    card = models.ForeignKey(Card, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    text = models.CharField(max_length=max_comment_len)
+
+    class Meta:
+        unique_together = ("card", "user")
+
+
+class RepetitionDataSM2(models.Model):
+    # start here
+    pass
 
 
 class Category(AL_Node):
@@ -75,3 +94,4 @@ class Category(AL_Node):
 
     def __str__(self):
         return f"<{self.name}>"
+

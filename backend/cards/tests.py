@@ -1,9 +1,10 @@
+from random import randint
 import django.db.utils
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from .models import Card, Template, Category
+from .models import Card, Template, Category, CardComment
 from faker import Faker
 
 fake = Faker()
@@ -33,7 +34,8 @@ class TemplateModelTests(TestCase):
 
         self.assertRaises(django.db.utils.IntegrityError, duplicate_template)
 
-    def test_uuids(self):
+    @staticmethod
+    def test_uuids():
         """Check if constructor doesn't duplicate uuids, which could happen
         if function for creating uuid is passed wrong: ie
         value returned from the function is passed instead
@@ -77,10 +79,12 @@ class CardModelTests(TestCase):
                 front=self.front,
                 back=self.back
             )
+            card.save()
 
         self.assertRaises(django.db.utils.IntegrityError, duplicate_card)
 
-    def test_uuids(self):
+    @staticmethod
+    def test_uuids():
         for i in range(3):
             Template.objects.create(
                 title=fake.text(15),
@@ -126,7 +130,8 @@ class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
 
         self.assertEqual(card_from_template.front, card.front)
 
-    def _get_tested_objects(self):
+    @staticmethod
+    def _get_tested_objects():
         card = Card.objects.first()
         template = Template.objects.first()
 
@@ -279,3 +284,142 @@ class CategoryJoinsTests(TestCase):
                          card.front)
         self.assertEqual(card.ignoring_users.first().username,
                          user.username)
+
+
+class FakeUsersCards(TestCase):
+    user_model = get_user_model()
+
+    def setUp(self):
+        self.add_fake_users()
+        self.add_fake_cards()
+
+    def get_cards(self):
+        card_1 = Card.objects.get(front=self.cards_data["first"]["front"])
+        card_2 = Card.objects.get(front=self.cards_data["second"]["front"])
+        card_3 = Card.objects.get(front=self.cards_data["third"]["front"])
+        return card_1, card_2, card_3
+
+    @staticmethod
+    def get_users():
+        user_1 = CramQueueTests.user_model.objects.get(username="first_user")
+        user_2 = CramQueueTests.user_model.objects.get(username="second_user")
+        return user_1, user_2
+
+    @classmethod
+    def add_fake_users(cls):
+        user_1 = cls.user_model(username="first_user")
+        user_2 = cls.user_model(username="second_user")
+        user_1.save()
+        user_2.save()
+
+    def add_fake_cards(self):
+        self.cards_data = {
+            "first": self.fake_card_data(),
+            "second": self.fake_card_data(),
+            "third": self.fake_card_data()
+        }
+        for key in self.cards_data:
+            Card(**self.cards_data[key]).save()
+
+    @staticmethod
+    def fake_card_data():
+        fake_text_len = (30, 100,)
+        return {
+            "front": fake.text(randint(*fake_text_len)),
+            "back": fake.text(randint(*fake_text_len))
+        }
+
+
+class CramQueueTests(FakeUsersCards):
+    def test_add_card_to_cram(self):
+        user_1, user_2 = self.get_users()
+        card_1, card_2, card_3 = self.get_cards()
+
+        user_1.cram_queue.add(card_1, card_2)
+        user_2.cram_queue.add(card_3, card_2)
+
+        self.assertEqual(len(card_1.cramming_users.all()), 1)
+        self.assertEqual(len(card_2.cramming_users.all()), 2)
+
+        # check users of the 2nd card:
+        card_2_cramming_users = card_2.cramming_users.all()
+        card_2_cramming_users_names = [user.username
+                                       for user in card_2_cramming_users]
+        self.assertTrue(user_1.username in card_2_cramming_users_names)
+        self.assertTrue(user_2.username in card_2_cramming_users_names)
+
+    def test_remove_card_from_cram(self):
+        user_1, user_2 = self.get_users()
+        card_1, card_2, card_3 = self.get_cards()
+
+        user_1.cram_queue.add(card_1, card_2)
+        user_2.cram_queue.add(card_3, card_2)
+
+        # switch set([]) to clear()
+        card_3.cramming_users.set([])
+        card_3.save()
+
+        self.assertEqual(len(user_2.cram_queue.all()), 1)
+        self.assertEqual(user_2.cram_queue.first().front, card_2.front)
+
+
+class CardCommentsTests(FakeUsersCards):
+    def setUp(self):
+        super().setUp()
+        self.fake_comment_len = randint(10, 100)
+        self.comment1_text = fake.text(self.fake_comment_len)
+        self.comment2_text = fake.text(self.fake_comment_len)
+
+    def test_add_comment(self):
+        card, user_1, user_2 = self.get_card_users()
+        card_comment = CardComment.objects.get(card=card, user=user_2)
+
+        self.assertEqual(card_comment.text, self.comment2_text)
+        self.assertEqual(len(user_1.commented_cards.all()), 1)
+        self.assertEqual(len(card.commenting_users.all()), 2)
+        self.assertEqual(user_2.cardcomment_set.get(card=card).text,
+                         self.comment2_text)
+
+    def test_remove_comment(self):
+        card, user_1, user_2 = self.get_card_users()
+
+        self.assertEqual(len(user_1.commented_cards.all()), 1)
+        card.commenting_users.clear()
+        self.assertEqual(len(user_1.commented_cards.all()), 0)
+        self.assertTrue(all([card.id, user_1.id, user_2.id]))
+        self.assertRaises(ObjectDoesNotExist,
+                          lambda: CardComment.objects.get(
+                              user=user_1, card=card))
+
+    def test_uniqueness(self):
+        """Test for uniqueness of user/card pair.
+        """
+        card, user_1, _ = self.get_card_users()
+        self.assertRaises(django.db.utils.IntegrityError,
+                          CardComment(card=card, user=user_1).save)
+
+    def test_update_comment(self):
+        card, user_1, user_2 = self.get_card_users()
+        card_comment = CardComment.objects.get(user=user_1,
+                                               card=card)
+        card_comment.text = "new text"
+        card_comment.save()
+
+        self.assertEqual(user_1.cardcomment_set.get(card=card).text,
+                         card_comment.text)
+        self.assertNotEqual(user_2.cardcomment_set.get(card=card).text,
+                            card_comment.text)
+
+    def get_card_users(self):
+        user_1, user_2 = self.get_users()
+        card = self.get_cards()[0]
+        self.add_comments(card, user_1, user_2)
+        return card, user_1, user_2
+
+    def add_comments(self, card, user_1, user_2):
+        CardComment(user=user_1,
+                    text=self.comment1_text,
+                    card=card).save()
+        CardComment(user=user_2,
+                    text=self.comment2_text,
+                    card=card).save()

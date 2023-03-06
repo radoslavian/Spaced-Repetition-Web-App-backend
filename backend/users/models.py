@@ -16,5 +16,10 @@ class User(AbstractUser):
         related_name="skipping_users")
     ignored_cards = models.ManyToManyField(
         "cards.Card",
-        related_name="ignoring_users"
-    )
+        related_name="ignoring_users")
+    cram_queue = models.ManyToManyField(
+        "cards.Card",
+        related_name="cramming_users")
+    commented_cards = models.ManyToManyField(
+        "cards.Card",
+        through="cards.CardComment")
