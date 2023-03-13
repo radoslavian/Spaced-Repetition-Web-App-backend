@@ -4,16 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added fields for cards ignored/disabled from reviews by users.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0004_comment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0005_rename_comment_cardcomment_text_card_comment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0006_alter_cardcomment_unique_together.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0004_user_cram_queue.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0005_user_commented_cards.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added database model: for comments (CardComment) and for queueing cards for cramming.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0002_alter_card_template.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0003_alter_card_template.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0004_comment.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0005_rename_comment_cardcomment_text_card_comment.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0006_alter_cardcomment_unique_together.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/utils/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/helpers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/utils/model_mixins.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0002_user_inactive_categories.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0003_user_ignored_cards_alter_user_skipped_categories.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0004_user_cram_queue.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0005_user_commented_cards.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -58,8 +65,8 @@
       <recent name="$PROJECT_DIR$/backend/cards" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests for cards.tests.TemplateModelTests">
-    <configuration name="Python tests for cards.tests.CardModelTests.test_serialization" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python tests.Python tests for cards.tests.CardCommentsTests">
+    <configuration name="Python tests for cards.tests.CardCommentsTests" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="web_spaced_repetition_app" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -69,7 +76,49 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;cards.tests.CardModelTests.test_serialization&quot;" />
+      <option name="_new_target" value="&quot;cards.tests.CardCommentsTests&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for cards.tests.CramQueueTests" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="web_spaced_repetition_app" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/backend" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;cards.tests.CramQueueTests&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="web_spaced_repetition_app" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/backend" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;cards.tests.CramQueueTests.test_add_card_to_cram&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="web_spaced_repetition_app" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/backend" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
@@ -103,13 +152,19 @@
     </configuration>
     <list>
       <item itemvalue="Python tests.Test cards" />
-      <item itemvalue="Python tests.Python tests for cards.tests.CardModelTests.test_serialization" />
+      <item itemvalue="Python tests.Python tests for cards.tests.CardCommentsTests" />
+      <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests" />
+      <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" />
+      <item itemvalue="Python tests.Python tests for cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table" />
       <item itemvalue="Python tests.Python tests for cards.tests.TemplateModelTests" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Python tests for cards.tests.CardCommentsTests" />
+        <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests" />
+        <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" />
+        <item itemvalue="Python tests.Python tests for cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table" />
         <item itemvalue="Python tests.Python tests for cards.tests.TemplateModelTests" />
-        <item itemvalue="Python tests.Python tests for cards.tests.CardModelTests.test_serialization" />
       </list>
     </recent_temporary>
   </component>
@@ -213,7 +268,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677707637743</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Added database model: for comments (CardComment) and for queueing cards for cramming.">
+      <created>1678133803736</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1678133803736</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -237,6 +299,7 @@
     <MESSAGE value="Added constraints against duplication to models." />
     <MESSAGE value="Added skipped card categories to the User model." />
     <MESSAGE value="Added fields for cards ignored/disabled from reviews by users." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added fields for cards ignored/disabled from reviews by users." />
+    <MESSAGE value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
   </component>
 </project>

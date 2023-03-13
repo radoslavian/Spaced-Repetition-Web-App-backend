@@ -2,10 +2,13 @@ from random import randint
 import django.db.utils
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from .models import Card, Template, Category, CardComment
+from .models import Card, Template, Category, CardComment, ReviewDataSM2
 from faker import Faker
+
+from .utils.helpers import today
 
 fake = Faker()
 
@@ -197,7 +200,7 @@ class CategoryTests(TestCase):
         first_category = self.get_category(self.first_category_name)
         second_category = self.get_category(self.second_category_name)
 
-        self.assertEqual(len(first_category.sub_categories.all()),
+        self.assertEqual(first_category.sub_categories.count(),
                          NUMBER_OF_SUB_CATEGORIES)
         self.assertEqual(second_category.parent.name,
                          self.first_category_name)
@@ -338,8 +341,8 @@ class CramQueueTests(FakeUsersCards):
         user_1.cram_queue.add(card_1, card_2)
         user_2.cram_queue.add(card_3, card_2)
 
-        self.assertEqual(len(card_1.cramming_users.all()), 1)
-        self.assertEqual(len(card_2.cramming_users.all()), 2)
+        self.assertEqual(card_1.cramming_users.count(), 1)
+        self.assertEqual(card_2.cramming_users.count(), 2)
 
         # check users of the 2nd card:
         card_2_cramming_users = card_2.cramming_users.all()
@@ -359,7 +362,7 @@ class CramQueueTests(FakeUsersCards):
         card_3.cramming_users.set([])
         card_3.save()
 
-        self.assertEqual(len(user_2.cram_queue.all()), 1)
+        self.assertEqual(user_2.cram_queue.count(), 1)
         self.assertEqual(user_2.cram_queue.first().front, card_2.front)
 
 
@@ -375,17 +378,17 @@ class CardCommentsTests(FakeUsersCards):
         card_comment = CardComment.objects.get(card=card, user=user_2)
 
         self.assertEqual(card_comment.text, self.comment2_text)
-        self.assertEqual(len(user_1.commented_cards.all()), 1)
-        self.assertEqual(len(card.commenting_users.all()), 2)
+        self.assertEqual(user_1.commented_cards.count(), 1)
+        self.assertEqual(card.commenting_users.count(), 2)
         self.assertEqual(user_2.cardcomment_set.get(card=card).text,
                          self.comment2_text)
 
     def test_remove_comment(self):
         card, user_1, user_2 = self.get_card_users()
 
-        self.assertEqual(len(user_1.commented_cards.all()), 1)
+        self.assertEqual(user_1.commented_cards.count(), 1)
         card.commenting_users.clear()
-        self.assertEqual(len(user_1.commented_cards.all()), 0)
+        self.assertEqual(user_1.commented_cards.count(), 0)
         self.assertTrue(all([card.id, user_1.id, user_2.id]))
         self.assertRaises(ObjectDoesNotExist,
                           lambda: CardComment.objects.get(
@@ -423,3 +426,110 @@ class CardCommentsTests(FakeUsersCards):
         CardComment(user=user_2,
                     text=self.comment2_text,
                     card=card).save()
+
+
+class RepetitionDataTests(FakeUsersCards):
+    def test_no_user_foreign_keys_in_join_table(self):
+        card, *_ = self.get_cards()
+        self.assertRaises(django.db.utils.IntegrityError,
+                          lambda: self.raise_error(
+                              ReviewDataSM2.objects.create(card=card).save))
+
+    def test_no_card_foreign_key_in_join_table(self):
+        user, _ = self.get_users()
+        self.assertRaises(django.db.utils.IntegrityError,
+                          lambda: self.raise_error(
+                              ReviewDataSM2.objects.create(user=user).save))
+
+    @staticmethod
+    def raise_error(failing_transaction):
+        """The reason for adding this method is explained here:
+        TransactionManagementError "You can't execute queries until
+        the end of the 'atomic' block" while using signals, but only during
+        Unit Testing
+        https://stackoverflow.com/questions/21458387/ ...
+        """
+        with transaction.atomic():
+            failing_transaction()
+
+    def test_uniqueness(self):
+        card, user = self.get_user_card()
+        ReviewDataSM2(card=card, user=user).save()
+
+        self.assertRaises(django.db.utils.IntegrityError,
+                          ReviewDataSM2(card=card, user=user).save)
+
+    def test_backrefs(self):
+        card, *_ = self.get_cards()
+        user1, user2 = self.get_users()
+        ReviewDataSM2(card=card, user=user1).save()
+        ReviewDataSM2(card=card, user=user2).save()
+
+        self.assertEqual(card.reviewing_users.get(id=user1.id).username,
+                         user1.username)
+        self.assertEqual(user2.cards_review_data.get(id=card.id).front,
+                         card.front)
+        self.assertEqual(card.reviewing_users.count(), 2)
+        self.assertEqual(user1.cards_review_data.count(), 1)
+        self.assertEqual(user1.cards_review_data.first().front,
+                         card.front)
+
+    def test_deleting_reviews_data(self):
+        card, *_ = self.get_cards()
+        user1, user2 = self.get_users()
+        ReviewDataSM2(card=card, user=user1).save()
+        ReviewDataSM2.objects.get(card=card, user=user1).delete()
+
+        self.assertTrue(all([user1.id, card.id]))
+        self.assertEqual(ReviewDataSM2.objects.count(), 0)
+
+    def test_deleting_users_cards(self):
+        card, user = self.get_user_card()
+        ReviewDataSM2(card=card, user=user).save()
+
+        user.delete()
+        self.assertFalse(ReviewDataSM2.objects.first())
+        self.assertTrue(card.id)
+
+    def test_introduced_on_field(self):
+        card, user = self.get_user_card()
+        review_data = ReviewDataSM2(card=card, user=user)
+        review_data.save()
+
+        self.assertEqual(review_data.introduced_on, today())
+
+    def test_last_reviewed_default(self):
+        card, user = self.get_user_card()
+        ReviewDataSM2(card=card, user=user).save()
+
+        # the field shall be updated on introduction and on each review
+        self.assertEqual(ReviewDataSM2.objects.first().last_reviewed,
+                         today())
+
+    def test_last_computed_interval_default(self):
+        card, user = self.get_user_card()
+        review_data = ReviewDataSM2(card=card, user=user)
+
+        self.assertEqual(review_data.last_computed_interval, 0)
+
+    def test_last_real_interval_default(self):
+        card, user = self.get_user_card()
+        review_data = ReviewDataSM2(card=card, user=user)
+
+        self.assertEqual(review_data.last_real_interval, 0)
+
+    def test_memorize_card(self):
+        card, user = self.get_user_card()
+        grade = 4
+        easiness_factor = 2.5
+        card.memorize(user, grade=grade)
+        review_data = ReviewDataSM2.objects.get(card=card, user=user)
+
+        self.assertTrue(review_data)
+        self.assertEqual(review_data.grade, grade)
+        self.assertEqual(review_data.easiness_factor, easiness_factor)
+
+    def get_user_card(self):
+        card, *_ = self.get_cards()
+        user, _ = self.get_users()
+        return card, user

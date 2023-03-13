@@ -23,3 +23,7 @@ class User(AbstractUser):
     commented_cards = models.ManyToManyField(
         "cards.Card",
         through="cards.CardComment")
+    cards_review_data = models.ManyToManyField(
+        "cards.Card",
+        through="cards.ReviewDataSM2",
+        related_name="reviewing_users")
