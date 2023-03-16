@@ -21,7 +21,6 @@ class ExceptionTests(TestCase):
     def test_CardReviewDataExists_message(self):
         expected_message = ("Review data for a given user/data pair "
                             + "already exists.")
-
         self.assertEqual(CardReviewDataExists().message, expected_message)
 
 
@@ -518,11 +517,11 @@ class RepetitionDataTests(FakeUsersCards):
 
     def test_last_computed_interval_default(self):
         review_data = self.get_review_data()
-        self.assertEqual(review_data.last_computed_interval, 0)
+        self.assertEqual(review_data.computed_interval, 0)
 
-    def test_last_real_interval_default(self):
+    def test_current_real_interval_default(self):
         review_data = self.get_review_data()
-        self.assertEqual(review_data.last_real_interval, 0)
+        self.assertEqual(review_data.current_real_interval, 0)
 
     def test_review_date_default(self):
         review_data = self.get_review_data()
@@ -580,8 +579,8 @@ class RepetitionDataTests(FakeUsersCards):
         first_review_obtained_data = {
             "easiness": first_review.easiness_factor,
             "last_reviewed": first_review.last_reviewed,
-            "last_comp_interval": first_review.last_computed_interval,
-            "last_real_interval": first_review.last_real_interval,
+            "last_comp_interval": first_review.computed_interval,
+            "current_real_interval": first_review.current_real_interval,
             "repetitions": first_review.repetitions,
             "next_review": first_review.review_date
         }
@@ -589,7 +588,7 @@ class RepetitionDataTests(FakeUsersCards):
             "easiness": 2.5,
             "last_reviewed": today(),
             "last_comp_interval": 1,
-            "last_real_interval": 0,
+            "current_real_interval": 0,
             "repetitions": 1,
             "next_review": today() + timedelta(1)
         }
@@ -602,19 +601,21 @@ class RepetitionDataTests(FakeUsersCards):
         1st and any subsequent.
         """
         days_delta = 7
-        travel_date = datetime.today() + timedelta(days_delta)
+        destination_date = datetime.today() + timedelta(days_delta)
         card, user = self.get_card_user()
-        card.memorize(user, grade=4)
+        first_review = card.memorize(user, grade=4)
 
-        with time_machine.travel(travel_date):
+        with time_machine.travel(destination_date):
+            self.assertEqual(first_review.current_real_interval,
+                             days_delta)
+
             second_review = card.review(user=user, grade=3)
             second_review_obtained_data = {
                 "introduced_on": second_review.introduced_on,
                 "easiness": second_review.easiness_factor,
                 "last_reviewed": second_review.last_reviewed,
                 "grade": second_review.grade,
-                "last_comp_interval": second_review.last_computed_interval,
-                "last_real_interval": second_review.last_real_interval,
+                "last_comp_interval": second_review.computed_interval,
                 "repetitions": second_review.repetitions,
                 "next_review": second_review.review_date
             }
@@ -624,7 +625,6 @@ class RepetitionDataTests(FakeUsersCards):
                 "last_reviewed": date.today(),
                 "grade": 3,
                 "last_comp_interval": 6,
-                "last_real_interval": days_delta,
                 "repetitions": 2,
                 "next_review": (today() + timedelta(6))
             }
@@ -634,9 +634,23 @@ class RepetitionDataTests(FakeUsersCards):
 
     def test_third_review(self):
         """Test 3rd review, since this one and any onwards are calculated
-        similarly.
+        similarly (but differently than 1st and 2nd).
         """
-        self.assertTrue(False)
+        card, user = self.get_card_user()
+        # keys shall be used as timedeltas in days
+        grades = (3, 4, 5, 1, 5, 2, 3, 4, 5)
+
+        review = card.memorize(user=user, grade=4)
+        next_review_date = review.review_date
+        i = 0
+        for grade in grades:
+            print(i)
+            i += 1
+            with time_machine.travel(next_review_date):
+                review_data = card.review(
+                    user=user, grade=grade)
+                next_review_date = (review_data.review_date
+                                    + timedelta(days=10))
 
     def get_card_user(self):
         card, *_ = self.get_cards()

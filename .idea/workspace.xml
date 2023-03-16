@@ -4,14 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on ReviewDataSM2, memorizing and reviewing cards.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/utils/exceptions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/utils/supermemo2.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on ReviewDataSM2 - reviewing cards.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0009_rename_current_real_interval_reviewdatasm2_last_real_interval_and_more.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0010_rename_last_real_interval_reviewdatasm2_current_real_interval.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0011_remove_reviewdatasm2_current_real_interval.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0012_reviewdatasm2_last_real_interval.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0013_remove_reviewdatasm2_last_real_interval.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0014_rename_last_computed_interval_reviewdatasm2_computed_interval.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0005_reviewdatasm2_last_real_interval.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/migrations/0005_reviewdatasm2_last_real_interval.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/utils/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/helpers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,19 +40,22 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2Lguq4ZagfbOh6xZfIROPijxzmM" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/helpers.py&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/helpers.py",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/backend/cards" />
@@ -279,7 +285,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678749740950</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Working on ReviewDataSM2 - reviewing cards.">
+      <created>1678925960385</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1678925960385</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -294,6 +307,7 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Initial commit." />
     <MESSAGE value="Added the &quot;user&quot; app." />
     <MESSAGE value="Started working on database models (added Card and Template)." />
@@ -305,6 +319,7 @@
     <MESSAGE value="Added fields for cards ignored/disabled from reviews by users." />
     <MESSAGE value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
     <MESSAGE value="Working on ReviewDataSM2, memorizing and reviewing cards." />
-    <option name="LAST_COMMIT_MESSAGE" value="Working on ReviewDataSM2, memorizing and reviewing cards." />
+    <MESSAGE value="Working on ReviewDataSM2 - reviewing cards." />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on ReviewDataSM2 - reviewing cards." />
   </component>
 </project>

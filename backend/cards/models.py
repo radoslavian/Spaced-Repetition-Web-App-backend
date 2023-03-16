@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, date
+from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -38,14 +38,20 @@ class Template(models.Model):
 
 
 class ReviewDataSM2(models.Model):
+    def get_real_interval(self):
+        if not self.last_reviewed:
+            return 0
+        real_interval = (date.today() - self.last_reviewed).days
+        return real_interval
+
     card = models.ForeignKey("Card", on_delete=models.CASCADE)
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 
-    introduced_on = models.DateField(auto_now_add=True)
+    current_real_interval = property(fget=get_real_interval)
     last_reviewed = models.DateField(auto_now=True)
+    introduced_on = models.DateField(auto_now_add=True)
     review_date = models.DateField(default=today)
-    last_computed_interval = models.IntegerField(default=0)
-    last_real_interval = models.IntegerField(default=0)
+    computed_interval = models.IntegerField(default=0)
     grade = models.IntegerField(default=4)
     repetitions = models.IntegerField(default=1)
     easiness_factor = models.FloatField(default=2.5)
@@ -59,7 +65,7 @@ class Card(models.Model):
         primary_key=True,
         default=uuid.uuid4,
         editable=False)
-    # auto_now - automatically sets the field to now every time
+    # auto_now - automatically sets the field to now each time
     # the object is saved
     last_modified = models.DateTimeField(auto_now=True)
     front = models.TextField()
@@ -81,7 +87,7 @@ class Card(models.Model):
             card=self,
             user=user,
             easiness_factor=first_review.easiness,
-            last_computed_interval=first_review.interval,
+            computed_interval=first_review.interval,
             repetitions=first_review.repetitions,
             grade=grade,
             review_date=first_review.review_date)
@@ -97,18 +103,28 @@ class Card(models.Model):
         """Update ReviewDataSM2 with current review data.
         """
         review_data = get_object_or_404(ReviewDataSM2, user=user, card=self)
-        last_reviewed = review_data.last_reviewed
         new_review = SM2(review_data.easiness_factor,
-                         review_data.last_real_interval,
+                         review_data.current_real_interval,
                          review_data.repetitions).review(grade)
+
+        print("Previous review:")
+        print(f"{review_data.current_real_interval=}")
+        print(f"""{review_data.computed_interval=},
+{review_data.review_date=}
+{review_data.grade=}\n""")  # debug
 
         review_data.review_date = new_review.review_date
         review_data.grade = grade
         review_data.easiness_factor = new_review.easiness
-        review_data.last_computed_interval = new_review.interval
-        review_data.last_real_interval = (date.today() - last_reviewed).days
+        review_data.computed_interval = new_review.interval
         review_data.repetitions = new_review.repetitions
         review_data.save()
+
+        print("New review:")
+        print(f"{review_data.current_real_interval=}")
+        print(f"""{review_data.computed_interval=},
+{review_data.review_date=}
+{grade=}\n\n""")  # debug
 
         return review_data
 
