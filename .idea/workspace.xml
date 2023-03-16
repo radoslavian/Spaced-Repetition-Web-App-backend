@@ -4,15 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on ReviewDataSM2 - reviewing cards.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0009_rename_current_real_interval_reviewdatasm2_last_real_interval_and_more.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0010_rename_last_real_interval_reviewdatasm2_current_real_interval.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0011_remove_reviewdatasm2_current_real_interval.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0012_reviewdatasm2_last_real_interval.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0013_remove_reviewdatasm2_last_real_interval.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0014_rename_last_computed_interval_reviewdatasm2_computed_interval.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on card reviews: test_third_review and Card.review print additional information for testing purposes.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0005_reviewdatasm2_last_real_interval.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/migrations/0005_reviewdatasm2_last_real_interval.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
     </list>
@@ -292,7 +285,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678925960385</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Working on card reviews: test_third_review and Card.review print additional information for testing purposes.">
+      <created>1678983703761</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1678983703761</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -320,6 +320,7 @@
     <MESSAGE value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
     <MESSAGE value="Working on ReviewDataSM2, memorizing and reviewing cards." />
     <MESSAGE value="Working on ReviewDataSM2 - reviewing cards." />
-    <option name="LAST_COMMIT_MESSAGE" value="Working on ReviewDataSM2 - reviewing cards." />
+    <MESSAGE value="Working on card reviews: test_third_review and Card.review print additional information for testing purposes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on card reviews: test_third_review and Card.review print additional information for testing purposes." />
   </component>
 </project>

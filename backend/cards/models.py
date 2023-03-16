@@ -59,6 +59,10 @@ class ReviewDataSM2(models.Model):
     class Meta:
         unique_together = ("card", "user",)
 
+    def __str__(self):
+        return f"ReviewDataSM2(user='{str(self.user)}' " \
+               f"card='{str(self.card)}')"
+
 
 class Card(models.Model):
     id = models.UUIDField(
@@ -107,12 +111,6 @@ class Card(models.Model):
                          review_data.current_real_interval,
                          review_data.repetitions).review(grade)
 
-        print("Previous review:")
-        print(f"{review_data.current_real_interval=}")
-        print(f"""{review_data.computed_interval=},
-{review_data.review_date=}
-{review_data.grade=}\n""")  # debug
-
         review_data.review_date = new_review.review_date
         review_data.grade = grade
         review_data.easiness_factor = new_review.easiness
@@ -120,19 +118,20 @@ class Card(models.Model):
         review_data.repetitions = new_review.repetitions
         review_data.save()
 
-        print("New review:")
-        print(f"{review_data.current_real_interval=}")
-        print(f"""{review_data.computed_interval=},
-{review_data.review_date=}
-{grade=}\n\n""")  # debug
-
         return review_data
 
+    def forget(self, user):
+        ReviewDataSM2.objects.get(card=self, user=user).delete()
+
     def __str__(self):
-        MAX_LEN = 50
-        serialized = f"Q: {self.front}; A: {self.back}"
-        if len(serialized) > MAX_LEN:
-            serialized = serialized[:MAX_LEN] + " ..."
+        MAX_LEN = (25, 25,)  # for question and answer
+        question = (self.front[:MAX_LEN[0]] + " ..."
+                    if len(self.front) > MAX_LEN[0]
+                    else self.front)
+        answer = (self.back[:MAX_LEN[0]] + " ..."
+                  if len(self.back) > MAX_LEN[1]
+                  else self.back)
+        serialized = f"Card(Q: {question}; A: {answer})"
 
         return serialized
 

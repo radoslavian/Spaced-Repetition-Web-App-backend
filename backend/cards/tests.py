@@ -115,8 +115,8 @@ class CardModelTests(TestCase):
         self.assertNotEqual(self.card.last_modified, prev_last_modified)
 
     def test_serialization(self):
-        expected_serialization = ("Q: Test card's question.; A: Test card's"
-                                  + " answer.")
+        expected_serialization = "Card(Q: Test card's question.; " \
+                                 "A: Test card's answer.)"
         actual_serialization = str(self.card)
         self.assertEqual(actual_serialization, expected_serialization)
 
@@ -307,6 +307,8 @@ class FakeUsersCards(TestCase):
         self.add_fake_cards()
 
     def get_cards(self):
+        """Returns three example cards.
+        """
         card_1 = Card.objects.get(front=self.cards_data["first"]["front"])
         card_2 = Card.objects.get(front=self.cards_data["second"]["front"])
         card_3 = Card.objects.get(front=self.cards_data["third"]["front"])
@@ -314,6 +316,8 @@ class FakeUsersCards(TestCase):
 
     @staticmethod
     def get_users():
+        """Returns two example users.
+        """
         user_1 = CramQueueTests.user_model.objects.get(username="first_user")
         user_2 = CramQueueTests.user_model.objects.get(username="second_user")
         return user_1, user_2
@@ -632,25 +636,52 @@ class RepetitionDataTests(FakeUsersCards):
         self.assertDictEqual(second_review_obtained_data,
                              second_review_expected_data)
 
-    def test_third_review(self):
-        """Test 3rd review, since this one and any onwards are calculated
-        similarly (but differently than 1st and 2nd).
-        """
+    def test_subsequent_reviews(self):
         card, user = self.get_card_user()
-        # keys shall be used as timedeltas in days
-        grades = (3, 4, 5, 1, 5, 2, 3, 4, 5)
+        grades = (3, 4, 5, 3, 2, 4,)
+        expected_comp_intervals = (6, 38, 114, 306, 1, 1,)
 
         review = card.memorize(user=user, grade=4)
         next_review_date = review.review_date
         i = 0
         for grade in grades:
-            print(i)
-            i += 1
             with time_machine.travel(next_review_date):
                 review_data = card.review(
                     user=user, grade=grade)
                 next_review_date = (review_data.review_date
                                     + timedelta(days=10))
+                self.assertEqual(expected_comp_intervals[i],
+                                 review_data.computed_interval)
+            i += 1
+
+    def test_card_forgetting_success(self):
+        card, user = self.get_card_user()
+        card.memorize(user, grade=4)
+        card.forget(user)
+
+        self.assertRaises(
+            ObjectDoesNotExist,
+            lambda: ReviewDataSM2.objects.get(user=user, card=card))
+
+    def test_forgetting_non_existent_relationship(self):
+        """Attempt to forget (remove from the learning process)
+        non-existent card/user combination.
+        """
+        user_1, user_2 = self.get_users()
+        card, *_ = self.get_cards()
+        card.memorize(user_1)
+
+        self.assertRaises(ObjectDoesNotExist, lambda: card.forget(user_2))
+
+    def test_ReviewDataSM2_serialization(self):
+        card, user = self.get_card_user()
+        card.memorize(user)
+        review_data = ReviewDataSM2.objects.get(user=user, card=card)
+        expected_rdsm2_serialization = \
+            f"ReviewDataSM2(user='{str(user)}' card='{str(card)}')"
+
+        self.assertEqual(expected_rdsm2_serialization,
+                         str(review_data))
 
     def get_card_user(self):
         card, *_ = self.get_cards()
