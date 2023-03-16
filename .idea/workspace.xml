@@ -4,24 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added database model: for comments (CardComment) and for queueing cards for cramming.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on ReviewDataSM2, memorizing and reviewing cards.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/utils/exceptions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/utils/supermemo2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0002_alter_card_template.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0003_alter_card_template.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0004_comment.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0005_rename_comment_cardcomment_text_card_comment.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0006_alter_cardcomment_unique_together.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/utils/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/helpers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/utils/model_mixins.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0002_user_inactive_categories.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0003_user_ignored_cards_alter_user_skipped_categories.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0004_user_cram_queue.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0005_user_commented_cards.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -275,7 +265,21 @@
       <option name="project" value="LOCAL" />
       <updated>1678133803736</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Working on ReviewDataSM2, memorizing and reviewing cards.">
+      <created>1678749723160</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1678749723160</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Working on ReviewDataSM2, memorizing and reviewing cards.">
+      <created>1678749740950</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1678749740950</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -300,6 +304,7 @@
     <MESSAGE value="Added skipped card categories to the User model." />
     <MESSAGE value="Added fields for cards ignored/disabled from reviews by users." />
     <MESSAGE value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
+    <MESSAGE value="Working on ReviewDataSM2, memorizing and reviewing cards." />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on ReviewDataSM2, memorizing and reviewing cards." />
   </component>
 </project>

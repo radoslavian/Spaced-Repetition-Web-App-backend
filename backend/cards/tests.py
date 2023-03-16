@@ -1,5 +1,7 @@
+from datetime import timedelta, date, datetime
 from random import randint
 import django.db.utils
+import time_machine
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -7,13 +9,22 @@ from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 from .models import Card, Template, Category, CardComment, ReviewDataSM2
 from faker import Faker
-
+from .utils.exceptions import CardReviewDataExists
 from .utils.helpers import today
 
 fake = Faker()
 
 
 # Create your tests here.
+
+class ExceptionTests(TestCase):
+    def test_CardReviewDataExists_message(self):
+        expected_message = ("Review data for a given user/data pair "
+                            + "already exists.")
+
+        self.assertEqual(CardReviewDataExists().message, expected_message)
+
+
 class TemplateModelTests(TestCase):
     def setUp(self):
         self.template_title = fake.text(60)
@@ -453,7 +464,7 @@ class RepetitionDataTests(FakeUsersCards):
             failing_transaction()
 
     def test_uniqueness(self):
-        card, user = self.get_user_card()
+        card, user = self.get_card_user()
         ReviewDataSM2(card=card, user=user).save()
 
         self.assertRaises(django.db.utils.IntegrityError,
@@ -484,22 +495,21 @@ class RepetitionDataTests(FakeUsersCards):
         self.assertEqual(ReviewDataSM2.objects.count(), 0)
 
     def test_deleting_users_cards(self):
-        card, user = self.get_user_card()
+        card, user = self.get_card_user()
         ReviewDataSM2(card=card, user=user).save()
-
         user.delete()
+
         self.assertFalse(ReviewDataSM2.objects.first())
         self.assertTrue(card.id)
 
     def test_introduced_on_field(self):
-        card, user = self.get_user_card()
-        review_data = ReviewDataSM2(card=card, user=user)
+        review_data = self.get_review_data()
         review_data.save()
 
         self.assertEqual(review_data.introduced_on, today())
 
     def test_last_reviewed_default(self):
-        card, user = self.get_user_card()
+        card, user = self.get_card_user()
         ReviewDataSM2(card=card, user=user).save()
 
         # the field shall be updated on introduction and on each review
@@ -507,29 +517,128 @@ class RepetitionDataTests(FakeUsersCards):
                          today())
 
     def test_last_computed_interval_default(self):
-        card, user = self.get_user_card()
-        review_data = ReviewDataSM2(card=card, user=user)
-
+        review_data = self.get_review_data()
         self.assertEqual(review_data.last_computed_interval, 0)
 
     def test_last_real_interval_default(self):
-        card, user = self.get_user_card()
-        review_data = ReviewDataSM2(card=card, user=user)
-
+        review_data = self.get_review_data()
         self.assertEqual(review_data.last_real_interval, 0)
 
+    def test_review_date_default(self):
+        review_data = self.get_review_data()
+        self.assertEqual(review_data.review_date, today())
+
+    def test_review_date_is_nullable(self):
+        # looks like Django's db fields are non-nullable by default
+        review_data = self.get_review_data()
+        review_data.review_date = None
+
+        self.assertRaises(django.db.utils.IntegrityError, review_data.save)
+
+    def test_repetitions_default(self):
+        review_data = self.get_review_data()
+        self.assertEqual(review_data.repetitions, 1)
+
+    def test_default_grade(self):
+        review_data = self.get_review_data()
+        default_grade = 4
+
+        self.assertEqual(review_data.grade, default_grade)
+
+    def get_review_data(self):
+        card, user = self.get_card_user()
+        review_data = ReviewDataSM2(card=card, user=user)
+        return review_data
+
     def test_memorize_card(self):
-        card, user = self.get_user_card()
+        card, user = self.get_card_user()
         grade = 4
         easiness_factor = 2.5
-        card.memorize(user, grade=grade)
+        review_data_from_return = card.memorize(user, grade=grade)
         review_data = ReviewDataSM2.objects.get(card=card, user=user)
 
-        self.assertTrue(review_data)
+        self.assertEqual(review_data_from_return, review_data)
+        self.assertEqual(review_data.repetitions, 1)
+        self.assertEqual(review_data.review_date, today() + timedelta(1))
         self.assertEqual(review_data.grade, grade)
         self.assertEqual(review_data.easiness_factor, easiness_factor)
 
-    def get_user_card(self):
+    def test_already_memorized(self):
+        """Expected behaviour for subsequent attempt to memorize a card.
+        """
+        card, user = self.get_card_user()
+        card.memorize(user)
+
+        # subsequent calls to Card.memorize() shall raise exception
+        self.assertRaises(CardReviewDataExists, lambda: card.memorize(user))
+
+    def test_first_review(self):
+        """Test for initial card review (card memorization).
+        """
+        card, user = self.get_card_user()
+        first_review = card.memorize(user, grade=4)
+        first_review_obtained_data = {
+            "easiness": first_review.easiness_factor,
+            "last_reviewed": first_review.last_reviewed,
+            "last_comp_interval": first_review.last_computed_interval,
+            "last_real_interval": first_review.last_real_interval,
+            "repetitions": first_review.repetitions,
+            "next_review": first_review.review_date
+        }
+        first_review_expected_data = {
+            "easiness": 2.5,
+            "last_reviewed": today(),
+            "last_comp_interval": 1,
+            "last_real_interval": 0,
+            "repetitions": 1,
+            "next_review": today() + timedelta(1)
+        }
+
+        self.assertDictEqual(first_review_obtained_data,
+                             first_review_expected_data)
+
+    def test_second_review(self):
+        """Test for 2nd review, since it is calculated differently than
+        1st and any subsequent.
+        """
+        days_delta = 7
+        travel_date = datetime.today() + timedelta(days_delta)
+        card, user = self.get_card_user()
+        card.memorize(user, grade=4)
+
+        with time_machine.travel(travel_date):
+            second_review = card.review(user=user, grade=3)
+            second_review_obtained_data = {
+                "introduced_on": second_review.introduced_on,
+                "easiness": second_review.easiness_factor,
+                "last_reviewed": second_review.last_reviewed,
+                "grade": second_review.grade,
+                "last_comp_interval": second_review.last_computed_interval,
+                "last_real_interval": second_review.last_real_interval,
+                "repetitions": second_review.repetitions,
+                "next_review": second_review.review_date
+            }
+            second_review_expected_data = {
+                "introduced_on": today() - timedelta(days_delta),
+                "easiness": 2.36,
+                "last_reviewed": date.today(),
+                "grade": 3,
+                "last_comp_interval": 6,
+                "last_real_interval": days_delta,
+                "repetitions": 2,
+                "next_review": (today() + timedelta(6))
+            }
+
+        self.assertDictEqual(second_review_obtained_data,
+                             second_review_expected_data)
+
+    def test_third_review(self):
+        """Test 3rd review, since this one and any onwards are calculated
+        similarly.
+        """
+        self.assertTrue(False)
+
+    def get_card_user(self):
         card, *_ = self.get_cards()
         user, _ = self.get_users()
         return card, user

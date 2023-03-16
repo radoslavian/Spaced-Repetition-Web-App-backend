@@ -1,9 +1,15 @@
 import uuid
+from datetime import datetime, timedelta, date
+
 from django.contrib.auth import get_user_model
 from django.db import models
+from rest_framework.generics import get_object_or_404
 from treebeard.al_tree import AL_Node
+from django.db.utils import IntegrityError
 from .apps import CardsConfig
+from .utils.exceptions import CardReviewDataExists
 from .utils.helpers import today
+from .utils.supermemo2 import SM2
 
 encoding = CardsConfig.default_encoding
 max_comment_len = CardsConfig.max_comment_len
@@ -31,12 +37,28 @@ class Template(models.Model):
         return f"<{self.title}>"
 
 
+class ReviewDataSM2(models.Model):
+    card = models.ForeignKey("Card", on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+
+    introduced_on = models.DateField(auto_now_add=True)
+    last_reviewed = models.DateField(auto_now=True)
+    review_date = models.DateField(default=today)
+    last_computed_interval = models.IntegerField(default=0)
+    last_real_interval = models.IntegerField(default=0)
+    grade = models.IntegerField(default=4)
+    repetitions = models.IntegerField(default=1)
+    easiness_factor = models.FloatField(default=2.5)
+
+    class Meta:
+        unique_together = ("card", "user",)
+
+
 class Card(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
-        editable=False
-    )
+        editable=False)
     # auto_now - automatically sets the field to now every time
     # the object is saved
     last_modified = models.DateTimeField(auto_now=True)
@@ -50,16 +72,45 @@ class Card(models.Model):
     class Meta:
         unique_together = ("front", "back",)
 
-    def memorize(self, user, grade=4):
-        """Generate review data for a particular user and (this) card
-        and put it into RepetitionDataSM2.
+    def memorize(self, user: get_user_model(), grade=4) -> ReviewDataSM2:
+        """Generate initial review data for a particular user and (this) card
+        and put it into ReviewDataSM2.
         """
-        pass
+        first_review = SM2.first_review(grade)
+        review_data = ReviewDataSM2(
+            card=self,
+            user=user,
+            easiness_factor=first_review.easiness,
+            last_computed_interval=first_review.interval,
+            repetitions=first_review.repetitions,
+            grade=grade,
+            review_date=first_review.review_date)
+        try:
+            review_data.save()
+        except IntegrityError:
+            raise CardReviewDataExists
+
+        # for convenience
+        return review_data
 
     def review(self, user, grade=4):
-        """Update RepetitionDataSM2 with current review data.
+        """Update ReviewDataSM2 with current review data.
         """
-        pass
+        review_data = get_object_or_404(ReviewDataSM2, user=user, card=self)
+        last_reviewed = review_data.last_reviewed
+        new_review = SM2(review_data.easiness_factor,
+                         review_data.last_real_interval,
+                         review_data.repetitions).review(grade)
+
+        review_data.review_date = new_review.review_date
+        review_data.grade = grade
+        review_data.easiness_factor = new_review.easiness
+        review_data.last_computed_interval = new_review.interval
+        review_data.last_real_interval = (date.today() - last_reviewed).days
+        review_data.repetitions = new_review.repetitions
+        review_data.save()
+
+        return review_data
 
     def __str__(self):
         MAX_LEN = 50
@@ -77,19 +128,6 @@ class CardComment(models.Model):
 
     class Meta:
         unique_together = ("card", "user")
-
-
-class ReviewDataSM2(models.Model):
-    card = models.ForeignKey(Card, on_delete=models.CASCADE)
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-
-    introduced_on = models.DateField(auto_now_add=True)
-    last_reviewed = models.DateField(default=today)
-    last_computed_interval = models.IntegerField(default=0)
-    last_real_interval = models.IntegerField(default=0)
-
-    class Meta:
-        unique_together = ("card", "user",)
 
 
 class Category(AL_Node):

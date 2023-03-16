@@ -6,8 +6,8 @@ from ..apps import CardsConfig
 encoding = CardsConfig.default_encoding
 
 
-def hash_sha256(hashed_string):
-    return hashlib.sha256(bytes(hashed_string, encoding)).hexdigest()
+def hash_sha256(string_for_hashing):
+    return hashlib.sha256(bytes(string_for_hashing, encoding)).hexdigest()
 
 
 def today():
