@@ -1,5 +1,5 @@
 from datetime import timedelta, date, datetime
-from random import randint
+from random import randint, choice
 import django.db.utils
 import time_machine
 from django.contrib.auth import get_user_model
@@ -562,7 +562,8 @@ class RepetitionDataTests(FakeUsersCards):
 
         self.assertEqual(review_data_from_return, review_data)
         self.assertEqual(review_data.repetitions, 1)
-        self.assertEqual(review_data.review_date, today() + timedelta(1))
+        self.assertEqual(review_data.review_date,
+                         date.today() + timedelta(days=1))
         self.assertEqual(review_data.grade, grade)
         self.assertEqual(review_data.easiness_factor, easiness_factor)
 
@@ -682,6 +683,48 @@ class RepetitionDataTests(FakeUsersCards):
 
         self.assertEqual(expected_rdsm2_serialization,
                          str(review_data))
+
+    def test_selecting_optimal_date_after_memorizing(self):
+        cards_number = 7
+        user, _ = self.get_users()
+        cards = [Card(**self.fake_card_data()) for i in range(cards_number)]
+        for card in cards:
+            card.save()
+            card.memorize(user)
+
+        first_day = ReviewDataSM2.objects.filter(
+            review_date=date.today() + timedelta(1)).count()
+        second_day = ReviewDataSM2.objects.filter(
+            review_date=date.today() + timedelta(2)).count()
+        third_day = ReviewDataSM2.objects.filter(
+            review_date=date.today() + timedelta(3)).count()
+        fourth_day = ReviewDataSM2.objects.filter(
+            review_date=date.today() + timedelta(4)).count()
+
+        # numbers won't be valid if distribution range != 3
+        self.assertEqual(first_day, 3)
+        self.assertEqual(second_day, 2)
+        self.assertEqual(third_day, 2)
+        self.assertEqual(fourth_day, 0)
+
+    def test_selecting_optimal_date_card_review(self):
+        cards_number = 10
+        user, _ = self.get_users()
+        cards = [Card(**self.fake_card_data()) for i in range(cards_number)]
+        reviews_number = 3
+
+        for card in cards:
+            card.save()
+            review_date = card.memorize(user).review_date
+            for i in range(reviews_number):
+                with time_machine.travel(review_date):
+                    review_date = card.review(user, 5).review_date
+
+        reviews_last_day = ReviewDataSM2.objects.filter(
+            user=user,
+            review_date=review_date).count()
+        self.assertLess(reviews_last_day, cards_number)
+        self.assertGreater(reviews_last_day, 0)
 
     def get_card_user(self):
         card, *_ = self.get_cards()

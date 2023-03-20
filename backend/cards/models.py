@@ -1,6 +1,6 @@
+import datetime
 import uuid
 from datetime import date
-
 from django.contrib.auth import get_user_model
 from django.db import models
 from rest_framework.generics import get_object_or_404
@@ -82,11 +82,31 @@ class Card(models.Model):
     class Meta:
         unique_together = ("front", "back",)
 
+    @staticmethod
+    def designate_date_for_review(user, review_date,
+                                  days_range=3) -> datetime.date:
+        """Selects date for card review with minimal reviews already assigned
+         so that reviews are more evenly distributed.
+        """
+        dates = [review_date + datetime.timedelta(days=days)
+                 for days in range(days_range)]
+        dates_reviews = {
+            date_review: ReviewDataSM2.objects.filter(
+                user=user, review_date=date_review).count()
+            for date_review in dates
+        }
+
+        return min(dates_reviews, key=dates_reviews.get)
+
     def memorize(self, user: get_user_model(), grade=4) -> ReviewDataSM2:
         """Generate initial review data for a particular user and (this) card
         and put it into ReviewDataSM2.
         """
         first_review = SM2.first_review(grade)
+        optimal_date = self.designate_date_for_review(
+            user=user,
+            review_date=first_review.review_date,
+            days_range=3)
         review_data = ReviewDataSM2(
             card=self,
             user=user,
@@ -94,7 +114,7 @@ class Card(models.Model):
             computed_interval=first_review.interval,
             repetitions=first_review.repetitions,
             grade=grade,
-            review_date=first_review.review_date)
+            review_date=optimal_date)
         try:
             review_data.save()
         except IntegrityError:
@@ -111,7 +131,20 @@ class Card(models.Model):
                          review_data.current_real_interval,
                          review_data.repetitions).review(grade)
 
-        review_data.review_date = new_review.review_date
+        # arbitrary thresholds:
+        # this if/elif/else has no coverage in tests!
+        if review_data.current_real_interval > 30 and grade > 2:
+            days_range = 7
+        elif 10 < review_data.current_real_interval < 30 and grade > 2:
+            days_range = 5
+        else:
+            days_range = 3
+
+        optimal_review_date = self.designate_date_for_review(
+            user=user,
+            review_date=new_review.review_date,
+            days_range=days_range)
+        review_data.review_date = optimal_review_date
         review_data.grade = grade
         review_data.easiness_factor = new_review.easiness
         review_data.computed_interval = new_review.interval
@@ -166,3 +199,12 @@ class Category(AL_Node):
 
     def __str__(self):
         return f"<{self.name}>"
+
+
+class Images:
+    image = models.ImageField(upload_to="images/")
+    description = models.CharField(max_length=1000)
+
+
+class Sounds:
+    pass
