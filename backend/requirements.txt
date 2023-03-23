@@ -5,3 +5,4 @@ Faker==17.0.0
 django-treebeard==4.6.1
 attrs==22.2.0
 time-machine==2.9.0
+pillow==9.4.0

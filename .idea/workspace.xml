@@ -4,11 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on Card and relationships: implementing methods for memorizing and reviewing cards.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added memorized cards review dates redistribution.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0015_image_cardimage.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0016_card_images_image_cards_and_more.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0017_cardimage_check_side.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0018_sound.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/wsra/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -300,7 +304,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679003512761</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="Added memorized cards review dates redistribution.">
+      <created>1679353611571</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1679353611571</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -330,6 +341,7 @@
     <MESSAGE value="Working on ReviewDataSM2 - reviewing cards." />
     <MESSAGE value="Working on card reviews: test_third_review and Card.review print additional information for testing purposes." />
     <MESSAGE value="Working on Card and relationships: implementing methods for memorizing and reviewing cards." />
-    <option name="LAST_COMMIT_MESSAGE" value="Working on Card and relationships: implementing methods for memorizing and reviewing cards." />
+    <MESSAGE value="Added memorized cards review dates redistribution." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added memorized cards review dates redistribution." />
   </component>
 </project>

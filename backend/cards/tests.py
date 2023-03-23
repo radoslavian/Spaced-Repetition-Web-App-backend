@@ -3,12 +3,14 @@ from random import randint, choice
 import django.db.utils
 import time_machine
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from .models import Card, Template, Category, CardComment, ReviewDataSM2
+from .models import (Card, Template, Category, CardComment, ReviewDataSM2,
+                     Image, CardImage)
 from faker import Faker
+from django.core.files.uploadedfile import SimpleUploadedFile
 from .utils.exceptions import CardReviewDataExists
 from .utils.helpers import today
 
@@ -346,6 +348,11 @@ class FakeUsersCards(TestCase):
             "back": fake.text(randint(*fake_text_len))
         }
 
+    def get_card_user(self):
+        card, *_ = self.get_cards()
+        user, _ = self.get_users()
+        return card, user
+
 
 class CramQueueTests(FakeUsersCards):
     def test_add_card_to_cram(self):
@@ -388,7 +395,7 @@ class CardCommentsTests(FakeUsersCards):
         self.comment2_text = fake.text(self.fake_comment_len)
 
     def test_add_comment(self):
-        card, user_1, user_2 = self.get_card_users()
+        card, user_1, user_2 = self.get_card_users_with_comments()
         card_comment = CardComment.objects.get(card=card, user=user_2)
 
         self.assertEqual(card_comment.text, self.comment2_text)
@@ -398,7 +405,7 @@ class CardCommentsTests(FakeUsersCards):
                          self.comment2_text)
 
     def test_remove_comment(self):
-        card, user_1, user_2 = self.get_card_users()
+        card, user_1, user_2 = self.get_card_users_with_comments()
 
         self.assertEqual(user_1.commented_cards.count(), 1)
         card.commenting_users.clear()
@@ -411,12 +418,12 @@ class CardCommentsTests(FakeUsersCards):
     def test_uniqueness(self):
         """Test for uniqueness of user/card pair.
         """
-        card, user_1, _ = self.get_card_users()
+        card, user_1, _ = self.get_card_users_with_comments()
         self.assertRaises(django.db.utils.IntegrityError,
                           CardComment(card=card, user=user_1).save)
 
     def test_update_comment(self):
-        card, user_1, user_2 = self.get_card_users()
+        card, user_1, user_2 = self.get_card_users_with_comments()
         card_comment = CardComment.objects.get(user=user_1,
                                                card=card)
         card_comment.text = "new text"
@@ -427,12 +434,6 @@ class CardCommentsTests(FakeUsersCards):
         self.assertNotEqual(user_2.cardcomment_set.get(card=card).text,
                             card_comment.text)
 
-    def get_card_users(self):
-        user_1, user_2 = self.get_users()
-        card = self.get_cards()[0]
-        self.add_comments(card, user_1, user_2)
-        return card, user_1, user_2
-
     def add_comments(self, card, user_1, user_2):
         CardComment(user=user_1,
                     text=self.comment1_text,
@@ -440,6 +441,12 @@ class CardCommentsTests(FakeUsersCards):
         CardComment(user=user_2,
                     text=self.comment2_text,
                     card=card).save()
+
+    def get_card_users_with_comments(self):
+        user_1, user_2 = self.get_users()
+        card = self.get_cards()[0]
+        self.add_comments(card, user_1, user_2)
+        return card, user_1, user_2
 
 
 class RepetitionDataTests(FakeUsersCards):
@@ -726,7 +733,97 @@ class RepetitionDataTests(FakeUsersCards):
         self.assertLess(reviews_last_day, cards_number)
         self.assertGreater(reviews_last_day, 0)
 
-    def get_card_user(self):
+
+class CardsImagesTests(FakeUsersCards):
+    def test_add_single_image_to_card(self):
         card, *_ = self.get_cards()
-        user, _ = self.get_users()
-        return card, user
+        image1_in_database = self.get_image_instance()
+        image2_in_database = self.get_image_instance()
+        card_front_image = CardImage(card=card,
+                                     image=image1_in_database,
+                                     side="front")
+        card_front_image.save()
+        self.assertEqual(card.images.count(), 1)
+        self.assertEqual(image1_in_database.cards.count(), 1)
+
+        card_back_image = CardImage(card=card,
+                                    image=image2_in_database,
+                                    side="back")
+        card_back_image.save()
+        self.assertEqual(card.images.count(), 2)
+
+        # card.front_images, card.back_images - properties
+        self.assertEqual(len(card.front_images), 1)
+        self.assertEqual(len(card.back_images), 1)
+
+    def test_remove_card_to_image(self):
+        """Test deleting image from the card, should keep image file entry
+         in the database.
+        """
+        card, *_ = self.get_cards()
+        image_in_database = self.get_image_instance()
+        card_image = CardImage(card=card,
+                               image=image_in_database,
+                               side="front")
+        card_image.save()
+        card_image.delete()
+
+        self.assertTrue(card.id)
+
+        card.delete()
+        self.assertFalse(card_image.id)
+        self.assertTrue(image_in_database.id)
+
+    def test_uniqueness_card_image_side(self):
+        card, *_ = self.get_cards()
+        image_in_database = self.get_image_instance()
+
+        def add_once(side):
+            card_image = CardImage(card=card,
+                                   image=image_in_database,
+                                   side=side)
+            card_image.save()
+
+        add_once("front")
+        self.assertRaises(django.db.utils.IntegrityError,
+                          lambda: add_once("front"))
+
+    def test_uniqueness_card_image(self):
+        """As opposite to test_uniqueness_card_image_side,
+        the test shouldn't raise exception after adding twice Card/Image
+        relationship, but with different 'side' value.
+        """
+        card, *_ = self.get_cards()
+        image_in_database = self.get_image_instance()
+
+        CardImage(card=card,
+                  image=image_in_database,
+                  side="front").save()
+        CardImage(card=card,
+                  image=image_in_database,
+                  side="back").save()
+
+    def test_side_check_constraint(self):
+        card, *_ = self.get_cards()
+        image_in_database = self.get_image_instance()
+
+        self.assertRaises(
+            django.db.utils.IntegrityError,
+            CardImage(card=card, image=image_in_database, side="fff").save)
+
+    @staticmethod
+    def get_image_instance():
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
+            b'\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
+            b'\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        image = SimpleUploadedFile(name=fake.file_name(extension="gif"),
+                                   content=small_gif,
+                                   content_type="image/gif")
+        image_in_database = Image(image=image,
+                                  description=fake.text(999))
+        image_in_database.save()
+        return image_in_database

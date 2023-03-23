@@ -3,6 +3,7 @@ import uuid
 from datetime import date
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import CheckConstraint, Q
 from rest_framework.generics import get_object_or_404
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
@@ -78,6 +79,22 @@ class Card(models.Model):
                                  null=True, related_name="cards")
     commenting_users = models.ManyToManyField(
         get_user_model(), through="CardComment")
+    images = models.ManyToManyField(
+        "Image", through="CardImage")
+
+    @staticmethod
+    def _images_getter(side: str):
+        if side not in ("front", "back",):
+            raise ValueError("The 'side' parameter must be either 'front' "
+                             "or 'back'.")
+
+        def getter(self):
+            return CardImage.objects.filter(card=self, side=side).all()
+
+        return getter
+
+    front_images = property(fget=_images_getter("front"))
+    back_images = property(fget=_images_getter("back"))
 
     class Meta:
         unique_together = ("front", "back",)
@@ -201,10 +218,39 @@ class Category(AL_Node):
         return f"<{self.name}>"
 
 
-class Images:
+class Image(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
     image = models.ImageField(upload_to="images/")
     description = models.CharField(max_length=1000)
+    cards = models.ManyToManyField("Card", through="CardImage")
 
 
-class Sounds:
-    pass
+class CardImage(models.Model):
+    card = models.ForeignKey(Card, on_delete=models.CASCADE)
+    image = models.ForeignKey(Image, on_delete=models.CASCADE)
+    side = models.CharField(max_length=5,
+                            default="front")
+
+    class Meta:
+        unique_together = ("card", "image", "side",)
+        constraints = [
+            CheckConstraint(
+                check=Q(side__in=("front", "back")),
+                name="check_side"
+            ),
+        ]
+
+
+# not tested !
+class Sound(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    sound = models.FileField(upload_to="sounds/")
+    description = models.CharField(max_length=1000)
