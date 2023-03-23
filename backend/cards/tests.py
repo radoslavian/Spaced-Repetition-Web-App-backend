@@ -449,7 +449,7 @@ class CardCommentsTests(FakeUsersCards):
         return card, user_1, user_2
 
 
-class RepetitionDataTests(FakeUsersCards):
+class CardReviewsTests(FakeUsersCards):
     def test_no_user_foreign_keys_in_join_table(self):
         card, *_ = self.get_cards()
         self.assertRaises(django.db.utils.IntegrityError,
@@ -575,7 +575,8 @@ class RepetitionDataTests(FakeUsersCards):
         self.assertEqual(review_data.easiness_factor, easiness_factor)
 
     def test_already_memorized(self):
-        """Expected behaviour for subsequent attempt to memorize a card.
+        """Expected behaviour for attempt to once again memorize already
+        memorized card.
         """
         card, user = self.get_card_user()
         card.memorize(user)
@@ -732,6 +733,22 @@ class RepetitionDataTests(FakeUsersCards):
             review_date=review_date).count()
         self.assertLess(reviews_last_day, cards_number)
         self.assertGreater(reviews_last_day, 0)
+
+    def test_invalid_grades_to_memorize(self):
+        card, user = self.get_card_user()
+
+        self.assertRaises(ValueError, lambda: card.memorize(user, grade=6))
+        self.assertRaises(ValueError, lambda: card.memorize(user, grade=-1))
+        self.assertRaises(ValueError, lambda: card.memorize(user, grade=3.5))
+
+    def test_invalid_grades_to_review(self):
+        card, user = self.get_card_user()
+        card.memorize(user)
+
+        self.assertRaises(ValueError, lambda: card.review(user, 6))
+        self.assertRaises(ValueError, lambda: card.review(user, -1))
+        self.assertRaises(ValueError, lambda: card.review(user, 3.5))
+
 
 
 class CardsImagesTests(FakeUsersCards):

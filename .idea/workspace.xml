@@ -4,15 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added memorized cards review dates redistribution.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0015_image_cardimage.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0016_card_images_image_cards_and_more.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0017_cardimage_check_side.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0018_sound.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added models for images and sounds.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,15 +40,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/helpers.py&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/helpers.py",
+    "settings.editor.selected.configurable": "preferences.keymap"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/backend/cards" />
@@ -311,7 +306,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679353611571</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Added models for images and sounds.">
+      <created>1679568200986</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1679568200986</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -342,6 +344,7 @@
     <MESSAGE value="Working on card reviews: test_third_review and Card.review print additional information for testing purposes." />
     <MESSAGE value="Working on Card and relationships: implementing methods for memorizing and reviewing cards." />
     <MESSAGE value="Added memorized cards review dates redistribution." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added memorized cards review dates redistribution." />
+    <MESSAGE value="Added models for images and sounds." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added models for images and sounds." />
   </component>
 </project>

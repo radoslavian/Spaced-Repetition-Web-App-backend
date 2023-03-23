@@ -82,6 +82,14 @@ class Card(models.Model):
     images = models.ManyToManyField(
         "Image", through="CardImage")
 
+    class Decorators:
+        def validate_grade(fn):
+            def wrapper(self, user, grade: int = 4):
+                if 0 > grade or grade > 5 or type(grade) is not int:
+                    raise ValueError("Grade should be 0-5 integer.")
+                return fn(self, user, grade)
+            return wrapper
+
     @staticmethod
     def _images_getter(side: str):
         if side not in ("front", "back",):
@@ -115,7 +123,8 @@ class Card(models.Model):
 
         return min(dates_reviews, key=dates_reviews.get)
 
-    def memorize(self, user: get_user_model(), grade=4) -> ReviewDataSM2:
+    @Decorators.validate_grade
+    def memorize(self, user, grade: int = 4) -> ReviewDataSM2:
         """Generate initial review data for a particular user and (this) card
         and put it into ReviewDataSM2.
         """
@@ -140,7 +149,8 @@ class Card(models.Model):
         # for convenience
         return review_data
 
-    def review(self, user, grade=4):
+    @Decorators.validate_grade
+    def review(self, user, grade: int = 4):
         """Update ReviewDataSM2 with current review data.
         """
         review_data = get_object_or_404(ReviewDataSM2, user=user, card=self)
