@@ -82,6 +82,9 @@ class Card(models.Model):
     images = models.ManyToManyField(
         "Image", through="CardImage")
 
+    class Meta:
+        unique_together = ("front", "back",)
+
     class Decorators:
         def validate_grade(fn):
             def wrapper(self, user, grade: int = 4):
@@ -104,12 +107,9 @@ class Card(models.Model):
     front_images = property(fget=_images_getter("front"))
     back_images = property(fget=_images_getter("back"))
 
-    class Meta:
-        unique_together = ("front", "back",)
-
     @staticmethod
-    def designate_date_for_review(user, review_date,
-                                  days_range=3) -> datetime.date:
+    def schedule_date_for_review(user, review_date,
+                                 days_range=3) -> datetime.date:
         """Selects date for card review with minimal reviews already assigned
          so that reviews are more evenly distributed.
         """
@@ -129,10 +129,8 @@ class Card(models.Model):
         and put it into ReviewDataSM2.
         """
         first_review = SM2.first_review(grade)
-        optimal_date = self.designate_date_for_review(
-            user=user,
-            review_date=first_review.review_date,
-            days_range=3)
+        optimal_date = self.schedule_date_for_review(
+            user=user, review_date=first_review.review_date, days_range=3)
         review_data = ReviewDataSM2(
             card=self,
             user=user,
@@ -167,7 +165,7 @@ class Card(models.Model):
         else:
             days_range = 3
 
-        optimal_review_date = self.designate_date_for_review(
+        optimal_review_date = self.schedule_date_for_review(
             user=user,
             review_date=new_review.review_date,
             days_range=days_range)
@@ -182,6 +180,32 @@ class Card(models.Model):
 
     def forget(self, user):
         ReviewDataSM2.objects.get(card=self, user=user).delete()
+
+    def simulate_reviews(self, user):
+        """Simulates reviews for all 0-5 grades. The next review date
+        (review_date) is approximate - does not take into account
+        daily burden (number of reviews already scheduled for a particular
+        day).
+        """
+        grades = range(6)  # 0-5
+        if (review_data := ReviewDataSM2.objects.filter(
+                user=user, card=self).first()) is None:
+            review_fn = SM2.first_review
+        else:
+            def review_fn(grade):
+                sm = SM2(review_data.easiness_factor,
+                         review_data.current_real_interval,
+                         review_data.repetitions)
+                return sm.review(grade)
+
+        simulation = {}
+        for grade in grades:
+            data = review_fn(grade)
+            simulation[grade] = dict(easiness=data.easiness,
+                                     interval=data.interval,
+                                     repetitions=data.repetitions,
+                                     review_date=data.review_date)
+        return simulation
 
     def __str__(self):
         MAX_LEN = (25, 25,)  # for question and answer

@@ -1,5 +1,5 @@
 from datetime import timedelta, date, datetime
-from random import randint, choice
+from random import randint
 import django.db.utils
 import time_machine
 from django.contrib.auth import get_user_model
@@ -13,6 +13,7 @@ from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .utils.exceptions import CardReviewDataExists
 from .utils.helpers import today
+import datetime
 
 fake = Faker()
 
@@ -614,7 +615,7 @@ class CardReviewsTests(FakeUsersCards):
         1st and any subsequent.
         """
         days_delta = 7
-        destination_date = datetime.today() + timedelta(days_delta)
+        destination_date = datetime.date.today() + timedelta(days_delta)
         card, user = self.get_card_user()
         first_review = card.memorize(user, grade=4)
 
@@ -749,6 +750,103 @@ class CardReviewsTests(FakeUsersCards):
         self.assertRaises(ValueError, lambda: card.review(user, -1))
         self.assertRaises(ValueError, lambda: card.review(user, 3.5))
 
+    def test_intervals_simulation_after_memorization(self):
+        card, user = self.get_card_user()
+        review_date = datetime.date.today() + datetime.timedelta(days=1)
+        expected_output = {
+            0: dict(
+                easiness=1.7000000000000002, interval=1, repetitions=0,
+                review_date=review_date
+            ),
+            1: dict(
+                easiness=1.96, interval=1, repetitions=0,
+                review_date=review_date
+            ),
+            2: dict(
+                easiness=2.1799999999999997, interval=1, repetitions=0,
+                review_date=review_date
+            ),
+            3: dict(
+                easiness=2.36, interval=1, repetitions=1,
+                review_date=review_date
+            ),
+            4: dict(
+                easiness=2.5, interval=1, repetitions=1,
+                review_date=review_date
+            ),
+            5: dict(
+                easiness=2.6, interval=1, repetitions=1,
+                review_date=review_date
+            )
+        }
+        simulation = card.simulate_reviews(user)
+
+        self.assertDictEqual(expected_output, simulation)
+
+    def test_intervals_simulation_after_second_review(self):
+        card, user = self.get_card_user()
+        card.memorize(user, grade=4)
+        next_review_failed = datetime.date.today() + timedelta(days=1)
+        next_review_success = datetime.date.today() + timedelta(days=6)
+        simulation = card.simulate_reviews(user)
+        expected_output = {
+            0: {'easiness': 1.7000000000000002, 'interval': 1,
+                'repetitions': 0, 'review_date': next_review_failed},
+            1: {'easiness': 1.96, 'interval': 1, 'repetitions': 0,
+                'review_date': next_review_failed},
+            2: {'easiness': 2.1799999999999997, 'interval': 1,
+                'repetitions': 0, 'review_date': next_review_failed},
+            3: {'easiness': 2.36, 'interval': 6, 'repetitions': 2,
+                'review_date': next_review_success},
+            4: {'easiness': 2.5, 'interval': 6, 'repetitions': 2,
+                'review_date': next_review_success},
+            5: {'easiness': 2.6, 'interval': 6, 'repetitions': 2,
+                'review_date': next_review_success}
+        }
+
+        self.assertDictEqual(expected_output, simulation)
+
+    def test_intervals_simulation_after_subsequent_review(self):
+        number_of_reviews = 4
+        card, user = self.get_card_user()
+        review_date = card.memorize(user, grade=4).review_date
+        grade = 3
+
+        for _ in range(number_of_reviews):
+            with time_machine.travel(review_date):
+                review = card.review(user, grade=grade)
+                review_date = review.review_date
+        with time_machine.travel(review_date):
+            simulation = card.simulate_reviews(user)
+        next_review_failed = review_date + timedelta(days=1)
+        next_review_success = review_date + timedelta(days=138)
+        expected_output = {
+            0: {'easiness': 1.3,
+                'interval': 1,
+                'repetitions': 0,
+                'review_date': next_review_failed},
+            1: {'easiness': 1.3999999999999997,
+                'interval': 1,
+                'repetitions': 0,
+                'review_date': next_review_failed},
+            2: {'easiness': 1.6199999999999997,
+                'interval': 1,
+                'repetitions': 0,
+                'review_date': next_review_failed},
+            3: {'easiness': 1.7999999999999998,
+                'interval': 138,
+                'repetitions': 6,
+                'review_date': next_review_success},
+            4: {'easiness': 1.9399999999999997,
+                'interval': 138,
+                'repetitions': 6,
+                'review_date': next_review_success},
+            5: {'easiness': 2.0399999999999996,
+                'interval': 138,
+                'repetitions': 6,
+                'review_date': next_review_success}}
+
+        self.assertDictEqual(expected_output, simulation)
 
 
 class CardsImagesTests(FakeUsersCards):

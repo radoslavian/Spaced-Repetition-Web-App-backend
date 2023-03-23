@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added models for images and sounds.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Grades for Card.memorize and Card.review are now validated.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
@@ -313,7 +313,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679568200986</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Grades for Card.memorize and Card.review are now validated.">
+      <created>1679574243376</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1679574243376</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -345,6 +352,7 @@
     <MESSAGE value="Working on Card and relationships: implementing methods for memorizing and reviewing cards." />
     <MESSAGE value="Added memorized cards review dates redistribution." />
     <MESSAGE value="Added models for images and sounds." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added models for images and sounds." />
+    <MESSAGE value="Grades for Card.memorize and Card.review are now validated." />
+    <option name="LAST_COMMIT_MESSAGE" value="Grades for Card.memorize and Card.review are now validated." />
   </component>
 </project>
