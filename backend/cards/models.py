@@ -3,7 +3,7 @@ import uuid
 from datetime import date
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import CheckConstraint, Q
+from django.db.models import CheckConstraint, Q, F
 from rest_framework.generics import get_object_or_404
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
@@ -39,20 +39,34 @@ class Template(models.Model):
 
 
 class ReviewDataSM2(models.Model):
+    def new_review(self, grade):
+        return SM2(self.easiness_factor,
+                   self.current_real_interval,
+                   self.repetitions).review(grade)
+
     def get_real_interval(self):
         if not self.last_reviewed:
             return 0
         real_interval = (date.today() - self.last_reviewed).days
         return real_interval
 
-    card = models.ForeignKey("Card", on_delete=models.CASCADE)
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-
+    card = models.ForeignKey("Card", on_delete=models.CASCADE,
+                             null=False)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,
+                             null=False)
+    computed_interval = models.IntegerField(default=0)
     current_real_interval = property(fget=get_real_interval)
+    lapses = models.IntegerField(default=0)
+
+    # all_repetitions - cumulative number of repetitions
+    # no matter if the review is failed or successful
+    # default == 1 - we assume that if the association is created,
+    # the user must have seen the card at least
+    # once (e.g. during memorization)
+    all_repetitions = models.IntegerField(default=1)
     last_reviewed = models.DateField(auto_now=True)
     introduced_on = models.DateField(auto_now_add=True)
     review_date = models.DateField(default=today)
-    computed_interval = models.IntegerField(default=0)
     grade = models.IntegerField(default=4)
     repetitions = models.IntegerField(default=1)
     easiness_factor = models.FloatField(default=2.5)
@@ -91,6 +105,7 @@ class Card(models.Model):
                 if 0 > grade or grade > 5 or type(grade) is not int:
                     raise ValueError("Grade should be 0-5 integer.")
                 return fn(self, user, grade)
+
             return wrapper
 
     @staticmethod
@@ -130,7 +145,7 @@ class Card(models.Model):
         """
         first_review = SM2.first_review(grade)
         optimal_date = self.schedule_date_for_review(
-            user=user, review_date=first_review.review_date, days_range=3)
+            user, review_date=first_review.review_date, days_range=3)
         review_data = ReviewDataSM2(
             card=self,
             user=user,
@@ -151,11 +166,40 @@ class Card(models.Model):
     def review(self, user, grade: int = 4):
         """Update ReviewDataSM2 with current review data.
         """
+        # 2 - is the highest failed grading
+        # 3 - is the lowest successful grading
         review_data = get_object_or_404(ReviewDataSM2, user=user, card=self)
-        new_review = SM2(review_data.easiness_factor,
-                         review_data.current_real_interval,
-                         review_data.repetitions).review(grade)
+        new_review = review_data.new_review(grade)
+        days_range = self._range_of_days(grade, review_data)
+        optimal_review_date = self.schedule_date_for_review(
+            user=user,
+            review_date=new_review.review_date,
+            days_range=days_range)
 
+        if grade < 3:
+            # updating object's value using F() expression (see below)
+            review_data.lapses = F("lapses") + 1
+        review_data.all_repetitions = F("all_repetitions") + 1
+        review_data.review_date = optimal_review_date
+        review_data.grade = grade
+        review_data.easiness_factor = new_review.easiness
+        review_data.computed_interval = new_review.interval
+        review_data.repetitions = new_review.repetitions
+        review_data.save()
+
+        # from the documentation:
+        # To access the new value (created with the F expression)
+        # the object must be reloaded
+        # https://docs.djangoproject.com/en/4.1/ref/models/expressions/
+        # section about F() expressions
+        review_data.refresh_from_db()
+
+        return review_data
+
+    @staticmethod
+    def _range_of_days(grade, review_data):
+        """Returns range of days within which a review can be assigned.
+        """
         # arbitrary thresholds:
         # this if/elif/else has no coverage in tests!
         if review_data.current_real_interval > 30 and grade > 2:
@@ -164,19 +208,7 @@ class Card(models.Model):
             days_range = 5
         else:
             days_range = 3
-
-        optimal_review_date = self.schedule_date_for_review(
-            user=user,
-            review_date=new_review.review_date,
-            days_range=days_range)
-        review_data.review_date = optimal_review_date
-        review_data.grade = grade
-        review_data.easiness_factor = new_review.easiness
-        review_data.computed_interval = new_review.interval
-        review_data.repetitions = new_review.repetitions
-        review_data.save()
-
-        return review_data
+        return days_range
 
     def forget(self, user):
         ReviewDataSM2.objects.get(card=self, user=user).delete()

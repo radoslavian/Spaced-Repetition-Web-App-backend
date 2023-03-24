@@ -848,6 +848,34 @@ class CardReviewsTests(FakeUsersCards):
 
         self.assertDictEqual(expected_output, simulation)
 
+    def test_lapses(self):
+        """Test ReviewDataSM2.lapses field.
+        """
+        number_of_reviews = 2
+        grade = 4
+        card, user = self.get_card_user()
+        review_data = card.memorize(user, grade)
+
+        self.assertEqual(review_data.lapses, 0)
+        for _ in range(number_of_reviews):
+            card.review(user, grade)
+        review_data = card.review(user, 1)
+        self.assertEqual(review_data.lapses, 1)
+
+    def test_all_repetitions(self):
+        """Test cumulative reviews counting.
+        """
+        card, user = self.get_card_user()
+
+        review_data = card.memorize(user, 3)
+        self.assertEqual(review_data.all_repetitions, 1)
+
+        review_data = card.review(user, 3)
+        self.assertEqual(review_data.all_repetitions, 2)
+
+        review_data = card.review(user, 1)
+        self.assertEqual(review_data.all_repetitions, 3)
+
 
 class CardsImagesTests(FakeUsersCards):
     def test_add_single_image_to_card(self):
