@@ -39,8 +39,8 @@ class APITests(FakeUsersCards, HelpersMixin):
             "back": card.back,
             "last_modified": card.last_modified,
             "template": card.template,
-            "front_images": list(card.front_images.all()),
-            "back_images": list(card.back_images.all())
+            "front_images": card.front_images,
+            "back_images": card.back_images
         }
         number_of_serialized_fields = len(expected_serialization_dict)
 
@@ -67,8 +67,8 @@ class APITests(FakeUsersCards, HelpersMixin):
             "back": card.back,
             "last_modified": card.last_modified,
             "template": card.template,
-            "front_images": list(card.front_images.all()),
-            "back_images": list(card.back_images.all())
+            "front_images": card.front_images,
+            "back_images": card.back_images
         }
 
         self.assertDictEqual(expected_serialization_dict, {
@@ -94,12 +94,13 @@ class APITests(FakeUsersCards, HelpersMixin):
                                            kwargs={"pk": card.id}))
         response_data = response.json()
         front_image_in_response = response_data["front_images"][0]
-        back_image_in_response = response_data["back_images"][1]
+        back_image_in_response = response_data["back_images"][0]
 
         self.assertEqual(len(response_data["front_images"]), 1)
         self.assertEqual(len(response_data["back_images"]), 2)
         self.assertEqual(front_image_in_response["id"],
                          str(first_image.id))
+        self.assertEqual(back_image_in_response["id"], str(first_image.id))
         self.assertTrue(
             str(second_image.id) not in
             [image["id"] for image in response_data["front_images"]])

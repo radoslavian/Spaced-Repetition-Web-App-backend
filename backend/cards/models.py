@@ -80,6 +80,7 @@ class ReviewDataSM2(models.Model):
 
 
 class Card(models.Model):
+    images_number_limit_in_query = 15
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -115,8 +116,10 @@ class Card(models.Model):
                              "or 'back'.")
 
         def getter(self):
-            card_images = CardImage.objects.filter(card=self, side=side).all()
-            return [card_image.image for card_image in card_images]
+            card_images = CardImage.objects.filter(card=self, side=side)\
+                .all().order_by('created')[:Card.images_number_limit_in_query]
+            images = [card_image.image for card_image in card_images]
+            return images
         return getter
 
     front_images = property(fget=_images_getter("front"))
@@ -300,6 +303,7 @@ class CardImage(models.Model):
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
     side = models.CharField(max_length=5,
                             default="front")
+    created = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ("card", "image", "side",)
