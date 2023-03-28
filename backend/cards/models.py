@@ -115,8 +115,8 @@ class Card(models.Model):
                              "or 'back'.")
 
         def getter(self):
-            return CardImage.objects.filter(card=self, side=side).all()
-
+            card_images = CardImage.objects.filter(card=self, side=side).all()
+            return [card_image.image for card_image in card_images]
         return getter
 
     front_images = property(fget=_images_getter("front"))

@@ -4,30 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added Card.simulate_reviews - for review simulation.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0003_reviewdatasm2_all_repetitions.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added ReviewDataSM2.lapses and ReviewDataSM2.all_repetitions fields + code refactoring.">
+      <change afterPath="$PROJECT_DIR$/backend/api/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/admin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/apps.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/migrations/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0002_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/migrations/0002_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0003_reviewdatasm2_last_reviewed.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0004_reviewdatasm2_last_computed_interval.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0005_reviewdatasm2_last_real_interval.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0006_reviewdatasm2_repetitions_reviewdatasm2_review_date.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0007_reviewdatasm2_grade_alter_reviewdatasm2_repetitions.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0008_reviewdatasm2_easiness_factor.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0009_rename_current_real_interval_reviewdatasm2_last_real_interval_and_more.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0010_rename_last_real_interval_reviewdatasm2_current_real_interval.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0011_remove_reviewdatasm2_current_real_interval.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0012_reviewdatasm2_last_real_interval.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0013_remove_reviewdatasm2_last_real_interval.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0014_rename_last_computed_interval_reviewdatasm2_computed_interval.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0015_image_cardimage.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0016_card_images_image_cards_and_more.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0017_cardimage_check_side.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0018_sound.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/wsra/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,17 +50,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/models.py",
-    "settings.editor.selected.configurable": "preferences.keymap"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/models.py&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/backend/api" />
       <recent name="$PROJECT_DIR$/backend/cards" />
     </key>
   </component>
@@ -347,7 +338,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679591606145</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Added ReviewDataSM2.lapses and ReviewDataSM2.all_repetitions fields + code refactoring.">
+      <created>1679686385444</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1679686385444</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -381,6 +379,7 @@
     <MESSAGE value="Added models for images and sounds." />
     <MESSAGE value="Grades for Card.memorize and Card.review are now validated." />
     <MESSAGE value="Added Card.simulate_reviews - for review simulation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Card.simulate_reviews - for review simulation." />
+    <MESSAGE value="Added ReviewDataSM2.lapses and ReviewDataSM2.all_repetitions fields + code refactoring." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added ReviewDataSM2.lapses and ReviewDataSM2.all_repetitions fields + code refactoring." />
   </component>
 </project>

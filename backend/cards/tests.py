@@ -3,7 +3,7 @@ from random import randint
 import django.db.utils
 import time_machine
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
@@ -16,6 +16,25 @@ from .utils.helpers import today
 import datetime
 
 fake = Faker()
+
+
+class HelpersMixin:
+    @staticmethod
+    def get_image_instance():
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
+            b'\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
+            b'\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        image = SimpleUploadedFile(name=fake.file_name(extension="gif"),
+                                   content=small_gif,
+                                   content_type="image/gif")
+        image_in_database = Image(image=image,
+                                  description=fake.text(999))
+        image_in_database.save()
+        return image_in_database
 
 
 # Create your tests here.
@@ -877,7 +896,7 @@ class CardReviewsTests(FakeUsersCards):
         self.assertEqual(review_data.all_repetitions, 3)
 
 
-class CardsImagesTests(FakeUsersCards):
+class CardsImagesTests(FakeUsersCards, HelpersMixin):
     def test_add_single_image_to_card(self):
         card, *_ = self.get_cards()
         image1_in_database = self.get_image_instance()
@@ -886,14 +905,14 @@ class CardsImagesTests(FakeUsersCards):
                                      image=image1_in_database,
                                      side="front")
         card_front_image.save()
-        self.assertEqual(card.images.count(), 1)
+        self.assertEqual(len(card.front_images), 1)
         self.assertEqual(image1_in_database.cards.count(), 1)
 
         card_back_image = CardImage(card=card,
                                     image=image2_in_database,
                                     side="back")
         card_back_image.save()
-        self.assertEqual(card.images.count(), 2)
+        self.assertEqual(len(card.back_images), 1)
 
         # card.front_images, card.back_images - properties
         self.assertEqual(len(card.front_images), 1)
@@ -953,20 +972,3 @@ class CardsImagesTests(FakeUsersCards):
         self.assertRaises(
             django.db.utils.IntegrityError,
             CardImage(card=card, image=image_in_database, side="fff").save)
-
-    @staticmethod
-    def get_image_instance():
-        small_gif = (
-            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
-            b'\x00\x00\x00\x00\x21\xf9\x04'
-            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
-            b'\x00\x01\x00\x01\x00\x00\x02'
-            b'\x02\x4c\x01\x00\x3b'
-        )
-        image = SimpleUploadedFile(name=fake.file_name(extension="gif"),
-                                   content=small_gif,
-                                   content_type="image/gif")
-        image_in_database = Image(image=image,
-                                  description=fake.text(999))
-        image_in_database.save()
-        return image_in_database
