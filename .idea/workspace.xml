@@ -4,12 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="api.serializers - pattern for serializing many-to-many relationships">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0004_cardimage_created.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Card serializing for backend viewing.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0005_rename_all_repetitions_reviewdatasm2_total_reviews.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0006_rename_template_cardtemplate.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -344,7 +348,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680018669807</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="Card serializing for backend viewing.">
+      <created>1680023740794</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1680023740795</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -380,6 +391,7 @@
     <MESSAGE value="Added Card.simulate_reviews - for review simulation." />
     <MESSAGE value="Added ReviewDataSM2.lapses and ReviewDataSM2.all_repetitions fields + code refactoring." />
     <MESSAGE value="api.serializers - pattern for serializing many-to-many relationships" />
-    <option name="LAST_COMMIT_MESSAGE" value="api.serializers - pattern for serializing many-to-many relationships" />
+    <MESSAGE value="Card serializing for backend viewing." />
+    <option name="LAST_COMMIT_MESSAGE" value="Card serializing for backend viewing." />
   </component>
 </project>

@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from .models import (Card, Template, Category, CardComment, ReviewDataSM2,
+from .models import (Card, CardTemplate, Category, CardComment, ReviewDataSM2,
                      Image, CardImage)
 from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -37,7 +37,58 @@ class HelpersMixin:
         return image_in_database
 
 
-# Create your tests here.
+class FakeUsersCards(TestCase):
+    user_model = get_user_model()
+
+    def setUp(self):
+        self.add_fake_users()
+        self.add_fake_cards()
+
+    def get_cards(self):
+        """Returns three example cards.
+        """
+        card_1 = Card.objects.get(front=self.cards_data["first"]["front"])
+        card_2 = Card.objects.get(front=self.cards_data["second"]["front"])
+        card_3 = Card.objects.get(front=self.cards_data["third"]["front"])
+        return card_1, card_2, card_3
+
+    @staticmethod
+    def get_users():
+        """Returns two example users.
+        """
+        user_1 = CramQueueTests.user_model.objects.get(username="first_user")
+        user_2 = CramQueueTests.user_model.objects.get(username="second_user")
+        return user_1, user_2
+
+    @classmethod
+    def add_fake_users(cls):
+        user_1 = cls.user_model(username="first_user")
+        user_2 = cls.user_model(username="second_user")
+        user_1.save()
+        user_2.save()
+
+    def add_fake_cards(self):
+        self.cards_data = {
+            "first": self.fake_card_data(),
+            "second": self.fake_card_data(),
+            "third": self.fake_card_data()
+        }
+        for key in self.cards_data:
+            Card(**self.cards_data[key]).save()
+
+    @staticmethod
+    def fake_card_data():
+        fake_text_len = (30, 100,)
+        return {
+            "front": fake.text(randint(*fake_text_len)),
+            "back": fake.text(randint(*fake_text_len))
+        }
+
+    def get_card_user(self):
+        card, *_ = self.get_cards()
+        user, _ = self.get_users()
+        return card, user
+
 
 class ExceptionTests(TestCase):
     def test_CardReviewDataExists_message(self):
@@ -52,7 +103,7 @@ class TemplateModelTests(TestCase):
         self.description = fake.text(300)
         self.body = fake.text(300)
 
-        self.template = Template.objects.create(
+        self.template = CardTemplate.objects.create(
             title=self.template_title,
             description=self.description,
             body=self.body
@@ -60,7 +111,7 @@ class TemplateModelTests(TestCase):
 
     def test_duplicate_template(self):
         def duplicate_template():
-            template = Template.objects.create(
+            template = CardTemplate.objects.create(
                 title=self.template_title,
                 description=self.description,
                 body=self.body
@@ -77,7 +128,7 @@ class TemplateModelTests(TestCase):
         of a callable function object.
         """
         for i in range(3):
-            Template.objects.create(
+            CardTemplate.objects.create(
                 title=fake.text(15),
                 description=fake.text(20),
                 body=fake.text(20)
@@ -121,7 +172,7 @@ class CardModelTests(TestCase):
     @staticmethod
     def test_uuids():
         for i in range(3):
-            Template.objects.create(
+            CardTemplate.objects.create(
                 title=fake.text(15),
                 description=fake.text(20),
                 body=fake.text(20)
@@ -148,7 +199,7 @@ class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
         TemplateModelTests.setUp(self)
         CardModelTests.setUp(self)
         card = Card.objects.first()
-        card.template = Template.objects.first()
+        card.template = CardTemplate.objects.first()
         card.save()
 
     def test_add_template_to_card(self):
@@ -168,7 +219,7 @@ class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
     @staticmethod
     def _get_tested_objects():
         card = Card.objects.first()
-        template = Template.objects.first()
+        template = CardTemplate.objects.first()
 
         return card, template
 
@@ -178,7 +229,7 @@ class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
         card.save()
 
         self.assertFalse(card.template is template)
-        self.assertTrue(Template.objects.get(title=self.template_title))
+        self.assertTrue(CardTemplate.objects.get(title=self.template_title))
         self.assertFalse(card.template)
         self.assertFalse(card.template_id == template.id)
 
@@ -194,7 +245,7 @@ class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
 
         self.assertRaises(
             ObjectDoesNotExist,
-            lambda: Template.objects.get(title=self.template_title))
+            lambda: CardTemplate.objects.get(title=self.template_title))
 
 
 class CategoryTests(TestCase):
@@ -319,59 +370,6 @@ class CategoryJoinsTests(TestCase):
                          card.front)
         self.assertEqual(card.ignoring_users.first().username,
                          user.username)
-
-
-class FakeUsersCards(TestCase):
-    user_model = get_user_model()
-
-    def setUp(self):
-        self.add_fake_users()
-        self.add_fake_cards()
-
-    def get_cards(self):
-        """Returns three example cards.
-        """
-        card_1 = Card.objects.get(front=self.cards_data["first"]["front"])
-        card_2 = Card.objects.get(front=self.cards_data["second"]["front"])
-        card_3 = Card.objects.get(front=self.cards_data["third"]["front"])
-        return card_1, card_2, card_3
-
-    @staticmethod
-    def get_users():
-        """Returns two example users.
-        """
-        user_1 = CramQueueTests.user_model.objects.get(username="first_user")
-        user_2 = CramQueueTests.user_model.objects.get(username="second_user")
-        return user_1, user_2
-
-    @classmethod
-    def add_fake_users(cls):
-        user_1 = cls.user_model(username="first_user")
-        user_2 = cls.user_model(username="second_user")
-        user_1.save()
-        user_2.save()
-
-    def add_fake_cards(self):
-        self.cards_data = {
-            "first": self.fake_card_data(),
-            "second": self.fake_card_data(),
-            "third": self.fake_card_data()
-        }
-        for key in self.cards_data:
-            Card(**self.cards_data[key]).save()
-
-    @staticmethod
-    def fake_card_data():
-        fake_text_len = (30, 100,)
-        return {
-            "front": fake.text(randint(*fake_text_len)),
-            "back": fake.text(randint(*fake_text_len))
-        }
-
-    def get_card_user(self):
-        card, *_ = self.get_cards()
-        user, _ = self.get_users()
-        return card, user
 
 
 class CramQueueTests(FakeUsersCards):
@@ -887,13 +885,13 @@ class CardReviewsTests(FakeUsersCards):
         card, user = self.get_card_user()
 
         review_data = card.memorize(user, 3)
-        self.assertEqual(review_data.all_repetitions, 1)
+        self.assertEqual(review_data.total_reviews, 1)
 
         review_data = card.review(user, 3)
-        self.assertEqual(review_data.all_repetitions, 2)
+        self.assertEqual(review_data.total_reviews, 2)
 
         review_data = card.review(user, 1)
-        self.assertEqual(review_data.all_repetitions, 3)
+        self.assertEqual(review_data.total_reviews, 3)
 
 
 class CardsImagesTests(FakeUsersCards, HelpersMixin):

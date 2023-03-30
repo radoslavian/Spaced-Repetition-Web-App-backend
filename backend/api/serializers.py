@@ -8,11 +8,20 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = ("id", "image",)
 
 
-class CardSerializer(serializers.ModelSerializer):
+class CardForEditingSerializer(serializers.ModelSerializer):
     front_images = ImageSerializer(many=True)
     back_images = ImageSerializer(many=True)
 
     class Meta:
         model = Card
-        fields = ("id", "last_modified", "front", "back", "template",
+        fields = ("id", "front", "back", "template", "last_modified",
                   "front_images", "back_images",)
+        read_only_fields = ("id", "last_modified", "front_images",
+                            "back_images")
+
+
+class CardForUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        fields = ("body",)
+        read_only_fields = ("body",)

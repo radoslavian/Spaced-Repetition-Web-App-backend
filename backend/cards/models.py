@@ -1,6 +1,8 @@
 import datetime
 import uuid
 from datetime import date
+from textwrap import dedent
+from django.template import Template, Context
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CheckConstraint, Q, F
@@ -16,7 +18,7 @@ encoding = CardsConfig.default_encoding
 max_comment_len = CardsConfig.max_comment_len
 
 
-class Template(models.Model):
+class CardTemplate(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -58,12 +60,12 @@ class ReviewDataSM2(models.Model):
     current_real_interval = property(fget=get_real_interval)
     lapses = models.IntegerField(default=0)
 
-    # all_repetitions - cumulative number of repetitions
+    # total reviews - cumulative number of repetitions
     # no matter if the review is failed or successful
     # default == 1 - we assume that if the association is created,
     # the user must have seen the card at least
     # once (e.g. during memorization)
-    all_repetitions = models.IntegerField(default=1)
+    total_reviews = models.IntegerField(default=1)
     last_reviewed = models.DateField(auto_now=True)
     introduced_on = models.DateField(auto_now_add=True)
     review_date = models.DateField(default=today)
@@ -90,7 +92,7 @@ class Card(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     front = models.TextField()
     back = models.TextField()
-    template = models.ForeignKey(Template, on_delete=models.PROTECT,
+    template = models.ForeignKey(CardTemplate, on_delete=models.PROTECT,
                                  null=True, related_name="cards")
     commenting_users = models.ManyToManyField(
         get_user_model(), through="CardComment")
@@ -110,7 +112,7 @@ class Card(models.Model):
             return wrapper
 
     @staticmethod
-    def _images_getter(side: str):
+    def _make_images_getter(side: str):
         if side not in ("front", "back",):
             raise ValueError("The 'side' parameter must be either 'front' "
                              "or 'back'.")
@@ -122,8 +124,29 @@ class Card(models.Model):
             return images
         return getter
 
-    front_images = property(fget=_images_getter("front"))
-    back_images = property(fget=_images_getter("back"))
+    def _body_getter(self):
+        """Renders body using fields: Card.front Card.back and Card.template.
+        """
+        # tested in api.tests
+        # TODO: consider writing additional test for this method
+        # TODO: in this app's test file
+        template_text = dedent("""
+                {# Fallback template #}
+                <div id="card">
+                <div class="question">
+                <p>{{ card.front }}</p>
+                </div>
+                <div class="answer">
+                <p>{{ card.back }}</p>
+                </div>
+                </div>""").lstrip()
+        template = Template(template_text)
+        context = Context({"card": self})
+        return template.render(context)
+
+    front_images = property(fget=_make_images_getter("front"))
+    back_images = property(fget=_make_images_getter("back"))
+    body = property(fget=_body_getter)
 
     @staticmethod
     def schedule_date_for_review(user, review_date,
@@ -182,7 +205,7 @@ class Card(models.Model):
         if grade < 3:
             # updating object's value using F() expression (see below)
             review_data.lapses = F("lapses") + 1
-        review_data.all_repetitions = F("all_repetitions") + 1
+        review_data.total_reviews = F("total_reviews") + 1
         review_data.review_date = optimal_review_date
         review_data.grade = grade
         review_data.easiness_factor = new_review.easiness
