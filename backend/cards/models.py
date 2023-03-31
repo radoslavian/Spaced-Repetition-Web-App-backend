@@ -172,6 +172,7 @@ class Card(models.Model):
             repetitions=first_review.repetitions,
             grade=grade,
             review_date=optimal_date)
+
         try:
             review_data.save()
         except IntegrityError:

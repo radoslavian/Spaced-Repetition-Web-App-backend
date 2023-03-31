@@ -157,9 +157,7 @@ class UserDataCardsTests(FakeUsersCards):
         """Test user card rendering using fallback template.
         """
         card, user = self.get_card_user()
-        response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+        response = self.get_response_for_card_with_userdata(card, user)
         received_card_body = response.json()["body"]
 
         self.assertTrue("<!-- fallback card template -->"
@@ -180,9 +178,7 @@ class UserDataCardsTests(FakeUsersCards):
         template.save()
         card.template = template
         card.save()
-        response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+        response = self.get_response_for_card_with_userdata(card, user)
         received_card_body = response.json()["body"]
 
         self.assertTrue("<!-- base template for cards-->"
@@ -191,21 +187,33 @@ class UserDataCardsTests(FakeUsersCards):
         self.assertTrue(card.front in received_card_body)
         self.assertTrue(card.front in received_card_body)
 
-    def _test_review_data(self):
-        one_day = date.today() + timedelta(days=1)
-        expected_review_data = {
-            "introducedOn": date.today(),
-            "lastReviewed": date.today(),
-            "reviewDate": one_day,
-            "grade": 4,
-            "easinessFactor": 2.5,
-            "lapses": 0,
-            "totalReviews": 1,
-            "reviews": 1,
-            "interval": 1
-        }
+    def get_response_for_card_with_userdata(self, card, user):
+        response = self.client.get(
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+        return response
+
+    def test_review_data(self):
         card, user = self.get_card_user()
-        card.memorize(user)
+        review_data = card.memorize(user, 5)
+        response = self.get_response_for_card_with_userdata(card, user)
+        expected_data = {
+            "computed_interval": review_data.computed_interval,
+            "lapses": review_data.lapses,
+            "total_reviews": review_data.total_reviews,
+            "last_reviewed": str(review_data.last_reviewed),
+            "introduced_on": str(review_data.introduced_on),
+            "review_date": str(review_data.review_date),
+            "grade": review_data.grade,
+            "repetitions": review_data.repetitions,
+            "easiness_factor": review_data.easiness_factor,
+            "card": str(card.id)
+        }
+        received_data = response.json()
+        received_data.pop("body")
+
+        self.assertDictEqual(expected_data, received_data)
+
 
     def _test_projected_review_data(self):
         six_days = date.today() + timedelta(days=6)
