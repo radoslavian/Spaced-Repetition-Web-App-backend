@@ -5,7 +5,7 @@ from datetime import datetime
 from random import choice
 from textwrap import dedent
 
-from cards.models import Card, CardImage
+from cards.models import Card, CardImage, CardTemplate
 
 if __name__ == "__main__" and __package__ is None:
     # overcoming sibling module imports problem
@@ -167,11 +167,33 @@ class UserDataCardsTests(FakeUsersCards):
         self.assertTrue(card.front in received_card_body)
         self.assertTrue(card.back in received_card_body)
 
-    def _test_review_data(self):
+    def test_card_body_template(self):
+        card, user = self.get_card_user()
+        template = CardTemplate()
+        template.body = """<!-- test template -->
+        {% extends '_base.html' %}
+        {% block content %}
+        <p>{{ card.front }}</p>
+        <p>{{ card.back }} </p>
+        {% endblock content %}
+        """
+        template.save()
+        card.template = template
+        card.save()
+        response = self.client.get(
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+        received_card_body = response.json()["body"]
 
-        # test for review data
+        self.assertTrue("<!-- base template for cards-->"
+                        in received_card_body)
+        self.assertTrue("<!-- test template -->" in received_card_body)
+        self.assertTrue(card.front in received_card_body)
+        self.assertTrue(card.front in received_card_body)
+
+    def _test_review_data(self):
         one_day = date.today() + timedelta(days=1)
-        review_data = {
+        expected_review_data = {
             "introducedOn": date.today(),
             "lastReviewed": date.today(),
             "reviewDate": one_day,
@@ -182,8 +204,10 @@ class UserDataCardsTests(FakeUsersCards):
             "reviews": 1,
             "interval": 1
         }
+        card, user = self.get_card_user()
+        card.memorize(user)
 
-        # test for projected data
+    def _test_projected_review_data(self):
         six_days = date.today() + timedelta(days=6)
         projected_data = {
             0: dict(easiness=1.7000000000000002,

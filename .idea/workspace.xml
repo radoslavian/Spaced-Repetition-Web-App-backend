@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Reformatted api.urls.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/templates/_base.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/templates/fallback.html" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/templates/_base.html" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/templates/_base.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -368,7 +365,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680216462947</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template.">
+      <created>1680270694102</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1680270694103</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -407,6 +411,7 @@
     <MESSAGE value="Card serializing for backend viewing." />
     <MESSAGE value="Card rendering with fall-back template embedded as a string." />
     <MESSAGE value="Reformatted api.urls." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reformatted api.urls." />
+    <MESSAGE value="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template." />
+    <option name="LAST_COMMIT_MESSAGE" value="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template." />
   </component>
 </project>
