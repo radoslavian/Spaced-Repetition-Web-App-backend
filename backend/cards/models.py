@@ -1,11 +1,11 @@
 import datetime
 import uuid
 from datetime import date
-from textwrap import dedent
-from django.template import Template, Context
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CheckConstraint, Q, F
+from django.template import Template, Context
+from django.template.loader import render_to_string
 from rest_framework.generics import get_object_or_404
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
@@ -127,22 +127,14 @@ class Card(models.Model):
     def _body_getter(self):
         """Renders body using fields: Card.front Card.back and Card.template.
         """
-        # tested in api.tests
-        # TODO: consider writing additional test for this method
-        # TODO: in this app's test file
-        template_text = dedent("""
-                {# Fallback template #}
-                <div id="card">
-                <div class="question">
-                <p>{{ card.front }}</p>
-                </div>
-                <div class="answer">
-                <p>{{ card.back }}</p>
-                </div>
-                </div>""").lstrip()
-        template = Template(template_text)
-        context = Context({"card": self})
-        return template.render(context)
+        context_data = {"card": self}
+        if self.template:
+            context = Context(context_data)
+            template = Template(self.template.body, context)
+            card_rendering = template.render(context)
+        else:
+            card_rendering = render_to_string("fallback.html", context_data)
+        return card_rendering
 
     front_images = property(fget=_make_images_getter("front"))
     back_images = property(fget=_make_images_getter("back"))

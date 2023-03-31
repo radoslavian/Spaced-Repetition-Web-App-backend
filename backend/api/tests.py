@@ -161,17 +161,11 @@ class UserDataCardsTests(FakeUsersCards):
             reverse("card_for_user",
                     kwargs={"card_pk": card.id, "user_pk": user.id}))
         received_card_body = response.json()["body"]
-        expected_card_body = dedent(f"""
-        <div id="card">
-        <div class="question">
-        <p>{card.front}</p>
-        </div>
-        <div class="answer">
-        <p>{card.back}</p>
-        </div>
-        </div>""")
 
-        self.assertEqual(received_card_body, expected_card_body)
+        self.assertTrue("<!-- fallback card template -->"
+                        in received_card_body)
+        self.assertTrue(card.front in received_card_body)
+        self.assertTrue(card.back in received_card_body)
 
     def _test_review_data(self):
 

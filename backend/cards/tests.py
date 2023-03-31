@@ -970,3 +970,40 @@ class CardsImagesTests(FakeUsersCards, HelpersMixin):
         self.assertRaises(
             django.db.utils.IntegrityError,
             CardImage(card=card, image=image_in_database, side="fff").save)
+
+
+class CardRendering(FakeUsersCards):
+    def test_fallback_template_rendering(self):
+        card, *_ = self.get_cards()
+        card_body = card.body
+
+        self.assertTrue(card.front in card_body)
+        self.assertTrue(card.back in card_body)
+        self.assertTrue("<!-- fallback card template -->" in card_body)
+
+    def test_base_template(self):
+        """Test rendering template in database that extends base template.
+        """
+        template = CardTemplate()
+        template.title = "test template"
+        template.description = "Test rendering template in database " \
+                               "that extends base template."
+        template.body = """
+        <!-- database template extending base template -->
+        {% extends '_base.html' %}
+        {% block content %}
+        <p>{{ card.front }}</p>
+        <p>{{ card.back }}</p>
+        {% endblock content %}
+        """
+        template.save()
+        card, *_ = self.get_cards()
+        card.template = template
+        card.save()
+        card_body = card.body
+
+        self.assertTrue("<!-- base template for cards-->" in card_body)
+        self.assertTrue("<!-- database template extending base template -->"
+                        in card_body)
+        self.assertTrue(card.front in card_body)
+        self.assertTrue(card.back in card_body)
