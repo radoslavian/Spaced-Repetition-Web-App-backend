@@ -6,12 +6,11 @@ from django.db import models
 from django.db.models import CheckConstraint, Q, F
 from django.template import Template, Context
 from django.template.loader import render_to_string
-from rest_framework.generics import get_object_or_404
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
 from .apps import CardsConfig
 from .utils.exceptions import CardReviewDataExists
-from .utils.helpers import today
+from .utils.helpers import today, validate_grade
 from .utils.supermemo2 import SM2
 
 encoding = CardsConfig.default_encoding
@@ -104,6 +103,7 @@ class ReviewDataSM2(models.Model):
     def review(self, grade):
         """Update record with current review data.
         """
+        validate_grade(grade)
         new_review = self.new_review(grade)
         days_range = self._range_of_days(grade)
         optimal_review_date = self.schedule_date_for_review(
@@ -159,15 +159,6 @@ class Card(models.Model):
     class Meta:
         unique_together = ("front", "back",)
 
-    class Decorators:
-        def validate_grade(fn):
-            def wrapper(self, user, grade: int = 4):
-                if 0 > grade or grade > 5 or type(grade) is not int:
-                    raise ValueError("Grade should be 0-5 integer.")
-                return fn(self, user, grade)
-
-            return wrapper
-
     @staticmethod
     def _make_images_getter(side: str):
         if side not in ("front", "back",):
@@ -197,11 +188,11 @@ class Card(models.Model):
     back_images = property(fget=_make_images_getter("back"))
     body = property(fget=_body_getter)
 
-    @Decorators.validate_grade
     def memorize(self, user, grade: int = 4) -> ReviewDataSM2:
         """Generate initial review data for a particular user and (this) card
         and put it into ReviewDataSM2.
         """
+        validate_grade(grade)
         first_review = SM2.first_review(grade)
         review_data = ReviewDataSM2(
             card=self,
@@ -212,7 +203,7 @@ class Card(models.Model):
             grade=grade)
         optimal_date = review_data.schedule_date_for_review(
             review_date=first_review.review_date, days_range=3)
-        review_data.review_date=optimal_date
+        review_data.review_date = optimal_date
 
         try:
             review_data.save()
@@ -222,7 +213,6 @@ class Card(models.Model):
         # for convenience
         return review_data
 
-    @Decorators.validate_grade
     def review(self, user, grade: int = 4):
         """Shorthand for making a review.
         """
@@ -233,14 +223,14 @@ class Card(models.Model):
     def forget(self, user):
         ReviewDataSM2.objects.get(card=self, user=user).delete()
 
-    def simulate_reviews(self, user):
+    def simulate_reviews(self, user=None):
         """Simulates reviews for all 0-5 grades. The next review date
         (review_date) is approximate - does not take into account
         daily burden (number of reviews already scheduled for a particular
         day).
         """
         grades = range(6)  # 0-5
-        if (review_data := ReviewDataSM2.objects.filter(
+        if not user or (review_data := ReviewDataSM2.objects.filter(
                 user=user, card=self).first()) is None:
             review_fn = SM2.first_review
         else:

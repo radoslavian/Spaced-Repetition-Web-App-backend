@@ -71,6 +71,7 @@ class SingleCardForUser(APIView):
         """Posting grade to user/card ReviewData means reviewing it.
         """
         card, user = self._get_user_card(card_pk, user_pk)
-        review_data = card.review(user, grade=grade)
+        review_data = get_object_or_404(ReviewDataSM2, user=user, card=card)
+        review_data.review(grade)
         serialized_data = CardReviewDataSerializer(review_data).data
         return Response(serialized_data)

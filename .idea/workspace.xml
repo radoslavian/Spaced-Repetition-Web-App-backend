@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added routes for memorizing and grading cards.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Moved Card.review and helper methods into ReviewDataSM2.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/utils/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/helpers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +50,7 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/models.py",
+    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/helpers.py",
     "settings.editor.selected.configurable": "preferences.keymap"
   }
 }]]></component>
@@ -421,7 +424,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680554359558</updated>
     </task>
-    <option name="localTasksCounter" value="37" />
+    <task id="LOCAL-00037" summary="Moved Card.review and helper methods into ReviewDataSM2.">
+      <created>1680555814450</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1680555814450</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -437,7 +447,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin." />
     <MESSAGE value="Added constraints against duplication to models." />
     <MESSAGE value="Added skipped card categories to the User model." />
     <MESSAGE value="Added fields for cards ignored/disabled from reviews by users." />
@@ -462,6 +471,7 @@
     <MESSAGE value="Implemented card categories." />
     <MESSAGE value="CardReviewDataSerializer.categories no longer uses SerializerMethodField." />
     <MESSAGE value="Added routes for memorizing and grading cards." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added routes for memorizing and grading cards." />
+    <MESSAGE value="Moved Card.review and helper methods into ReviewDataSM2." />
+    <option name="LAST_COMMIT_MESSAGE" value="Moved Card.review and helper methods into ReviewDataSM2." />
   </component>
 </project>

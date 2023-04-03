@@ -34,12 +34,12 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
                                            many=True)
 
     @staticmethod
-    def get_body(obj):
-        return obj.card.body
-
-    @staticmethod
     def get_projected_review_data(obj):
         return obj.card.simulate_reviews(user=obj.user)
+
+    @staticmethod
+    def get_body(obj):
+        return obj.card.body
 
     class Meta:
         model = ReviewDataSM2
@@ -52,8 +52,13 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
 
 class CardUserNoReviewDataSerializer(serializers.ModelSerializer):
     categories = CategoryForCardSerializer(many=True)
+    projected_review_data = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_projected_review_data(obj):
+        return obj.simulate_reviews()
 
     class Meta:
         model = Card
-        fields = ("body", "categories",)
-        read_only_fields = ("body", "categories",)
+        fields = ("body", "categories", "projected_review_data",)
+        read_only_fields = ("body", "categories", "projected_review_data",)

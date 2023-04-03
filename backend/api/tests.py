@@ -290,6 +290,50 @@ class UserDataCardsTests(FakeUsersCards, HelpersMixin):
         self.assertDictEqual(expected_projected_data,
                              received_projected_review_data)
 
+    def test_card_projected_data_not_memorized(self):
+        card, user = self.get_card_user()
+        expected_data = {
+            "0": {
+                "easiness": 1.7000000000000002,
+                "interval": 1,
+                "reviews": 0,
+                "review_date": "2023-04-04"
+            },
+            "1": {
+                "easiness": 1.96,
+                "interval": 1,
+                "reviews": 0,
+                "review_date": "2023-04-04"
+            },
+            "2": {
+                "easiness": 2.1799999999999997,
+                "interval": 1,
+                "reviews": 0,
+                "review_date": "2023-04-04"
+            },
+            "3": {
+                "easiness": 2.36,
+                "interval": 1,
+                "reviews": 1,
+                "review_date": "2023-04-04"
+            },
+            "4": {
+                "easiness": 2.5,
+                "interval": 1,
+                "reviews": 1,
+                "review_date": "2023-04-04"
+            },
+            "5": {
+                "easiness": 2.6,
+                "interval": 1,
+                "reviews": 1,
+                "review_date": "2023-04-04"
+            }
+        }
+        response = self.get_response_for_card_with_userdata(card, user)
+        received_data = response.json()["projected_review_data"]
+        self.assertDictEqual(expected_data, received_data)
+
     def test_user_memorized_card_single_category(self):
         card, user = self.get_card_user()
         card.memorize(user)
@@ -432,7 +476,7 @@ class ReviewingCard(FakeUsersCards):
             reverse("memorize_review_card",
                     kwargs={"card_pk": card.id, "user_pk": user.id,
                             "grade": 3}))
+        response_json = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(response.json()["detail"], "Not found.")
-        print(json.dumps(response.json(), indent=3))
+        self.assertEqual(response_json["reviews"], 2)

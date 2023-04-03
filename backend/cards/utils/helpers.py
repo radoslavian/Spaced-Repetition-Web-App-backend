@@ -12,3 +12,8 @@ def hash_sha256(string_for_hashing):
 
 def today():
     return datetime.now().date()
+
+
+def validate_grade(grade):
+    if 0 > grade or grade > 5 or type(grade) is not int:
+        raise ValueError("Grade should be 0-5 integer.")
