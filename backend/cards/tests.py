@@ -337,9 +337,10 @@ class CategoryTests(TestCase):
 
 
 class CategoryJoinsTests(TestCase):
-    def test_skipped_categories(self):
+    def test_user_categories(self):
         user_model = get_user_model()
-        user = user_model.objects.create_user(username=fake.text(6))
+        username = fake.profile()["username"]
+        user = user_model.objects.create_user(username=username)
         parent_category = Category(name="Parent category")
         first_subcategory = Category(
             name="first subcategory",
@@ -347,12 +348,12 @@ class CategoryJoinsTests(TestCase):
         )
         parent_category.save()
         first_subcategory.save()
-        user.skipped_categories.add(first_subcategory)
+        user.selected_categories.add(first_subcategory)
         user.save()
 
-        self.assertEqual(first_subcategory.skipping_users.first().username,
+        self.assertEqual(first_subcategory.category_users.first().username,
                          user.username)
-        self.assertEqual(user.skipped_categories.first().name,
+        self.assertEqual(user.selected_categories.first().name,
                          first_subcategory.name)
 
     def test_ignored_cards(self):

@@ -11,9 +11,10 @@ class User(AbstractUser):
         default=uuid.uuid4,
         editable=False
     )
-    skipped_categories = models.ManyToManyField(
+    # selected_categories, rel_name=category_users
+    selected_categories = models.ManyToManyField(
         "cards.Category",
-        related_name="skipping_users")
+        related_name="category_users")
     ignored_cards = models.ManyToManyField(
         "cards.Card",
         related_name="ignoring_users")

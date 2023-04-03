@@ -120,6 +120,7 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
 class UserDataCardsTests(FakeUsersCards):
     """Tests for cards with user data and rendered content.
     """
+
     def test_request_no_user(self):
         """Test response for a card with non-existent user data.
         """
@@ -214,10 +215,12 @@ class UserDataCardsTests(FakeUsersCards):
 
         self.assertDictEqual(expected_data, received_data)
 
-
     def _test_projected_review_data(self):
+        card, user = self.get_card_user()
+        review_data = card.memorize(user, 4)
         six_days = date.today() + timedelta(days=6)
-        projected_data = {
+        one_day = date.today() + timedelta(days=1)
+        expected_projected_data = {
             0: dict(easiness=1.7000000000000002,
                     interval=1,
                     reviews=0,
@@ -225,39 +228,33 @@ class UserDataCardsTests(FakeUsersCards):
             1: dict(easiness=1.96,
                     interval=1,
                     repetitions=0,
-                    review_date=one_day)
-,
+                    review_date=one_day),
             2: dict(easiness=2.1799999999999997,
                     interval=1,
                     repetitions=0,
-                    review_date=one_day)
-,
+                    review_date=one_day),
             3: dict(easiness=2.36,
                     interval=6,
                     repetitions=2,
-                    review_date=six_days)
-,
+                    review_date=six_days),
             4: dict(easiness=2.5,
                     interval=6,
                     repetitions=2,
-                    review_date=six_days)
-,
+                    review_date=six_days),
             5: dict(easiness=2.6,
                     interval=6,
                     repetitions=2,
                     review_date=six_days)
         }
 
-        # test for other fields
+        # test for other fields:
+        # comment, categories (single and two), ignored - true and false
         expected_output = {
             "cardId": str(card.id),
             "body": card_body,
-            "categoryName": "category",
-            "categoryId": "id",
+            "categories": "[]",
             "comment": None,
             "ignored": "false",
-            "projectedData": projected_data,
-            "reviewData": review_data
         }
 
         self.assertDictEqual(expected_output, response_json)
