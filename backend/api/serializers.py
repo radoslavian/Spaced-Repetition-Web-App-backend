@@ -30,12 +30,8 @@ class CardForEditingSerializer(serializers.ModelSerializer):
 class CardReviewDataSerializer(serializers.ModelSerializer):
     body = serializers.SerializerMethodField()
     projected_review_data = serializers.SerializerMethodField()
-    categories = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_categories(obj):
-        data = obj.card.categories.all()
-        return CategoryForCardSerializer(data, many=True).data
+    categories = CategoryForCardSerializer(source="card.categories",
+                                           many=True)
 
     @staticmethod
     def get_body(obj):

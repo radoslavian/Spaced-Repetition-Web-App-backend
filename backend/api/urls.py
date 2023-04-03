@@ -8,5 +8,6 @@ urlpatterns = [
          name="single_card"),
     path("users/<uuid:user_pk>/cards/<uuid:card_pk>/",
          SingleCardForUser.as_view(), name="card_for_user"),
-    path(name="memorize_card"),
+    # path("users/<uuid:user_pk>/cards/<uuid:card_pk>/memorize",
+    #      name="memorize_card"),
 ]

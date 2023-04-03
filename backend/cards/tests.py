@@ -37,7 +37,9 @@ class HelpersMixin:
         return image_in_database
 
     @staticmethod
-    def create_category(category_name=fake.text(20)):
+    def create_category(category_name=None):
+        if not category_name:
+            category_name = fake.text(20)
         category = Category.objects.create(name=category_name)
         return category
 

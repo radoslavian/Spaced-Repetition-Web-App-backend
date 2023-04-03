@@ -143,6 +143,8 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
+        self.assertNotEqual(categories_from_response[0]["id"],
+                            categories_from_response[1]["id"])
         self.assertNotEqual(categories_from_response[0]["name"],
                             categories_from_response[1]["name"])
 

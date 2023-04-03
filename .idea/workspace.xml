@@ -4,14 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="User.skipped_categories were converted to selected_categories with related name category_users.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0007_rename_repetitions_reviewdatasm2_reviews.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0008_card_categories.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Implemented card categories.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -398,7 +395,21 @@
       <option name="project" value="LOCAL" />
       <updated>1680520295984</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="Implemented card categories.">
+      <created>1680536483972</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1680536483972</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Implemented card categories.">
+      <created>1680536505829</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1680536505829</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -414,7 +425,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Started working on database models (added Card and Template)." />
     <MESSAGE value="Added foreign key from Card to Template and improved Card serialization (__str__ method)." />
     <MESSAGE value="Added adjacency list to Category." />
     <MESSAGE value="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin." />
@@ -439,6 +449,7 @@
     <MESSAGE value="Test for card rendering and sending through API." />
     <MESSAGE value="Added route for card with user review data." />
     <MESSAGE value="User.skipped_categories were converted to selected_categories with related name category_users." />
-    <option name="LAST_COMMIT_MESSAGE" value="User.skipped_categories were converted to selected_categories with related name category_users." />
+    <MESSAGE value="Implemented card categories." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented card categories." />
   </component>
 </project>
