@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Implemented card categories.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="CardReviewDataSerializer.categories no longer uses SerializerMethodField.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -409,7 +408,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680536505829</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="CardReviewDataSerializer.categories no longer uses SerializerMethodField.">
+      <created>1680538134957</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1680538134957</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -425,7 +431,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Added foreign key from Card to Template and improved Card serialization (__str__ method)." />
     <MESSAGE value="Added adjacency list to Category." />
     <MESSAGE value="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin." />
     <MESSAGE value="Added constraints against duplication to models." />
@@ -450,6 +455,7 @@
     <MESSAGE value="Added route for card with user review data." />
     <MESSAGE value="User.skipped_categories were converted to selected_categories with related name category_users." />
     <MESSAGE value="Implemented card categories." />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented card categories." />
+    <MESSAGE value="CardReviewDataSerializer.categories no longer uses SerializerMethodField." />
+    <option name="LAST_COMMIT_MESSAGE" value="CardReviewDataSerializer.categories no longer uses SerializerMethodField." />
   </component>
 </project>

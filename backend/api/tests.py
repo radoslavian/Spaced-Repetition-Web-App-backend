@@ -5,6 +5,7 @@ from datetime import datetime
 from random import choice
 from cards.models import Card, CardImage, CardTemplate, Category
 from faker import Faker
+from rest_framework import status
 
 if __name__ == "__main__" and __package__ is None:
     # overcoming sibling module imports problem
@@ -18,6 +19,8 @@ from django.urls import reverse
 from cards.tests import FakeUsersCards, HelpersMixin
 
 fake = Faker()
+
+
 # Create your tests here.
 
 
@@ -338,3 +341,98 @@ class UserDataCardsTests(FakeUsersCards, HelpersMixin):
         self.assertEqual(len(categories_from_response), 2)
         self.assertNotEqual(categories_from_response[0],
                             categories_from_response[1])
+
+
+class CardMemorization(FakeUsersCards):
+    def test_memorize_card_no_card(self):
+        user, _ = self.get_users()
+        fake_card_id = uuid.uuid4()
+        response = self.client.put(
+            reverse("card_for_user",
+                    kwargs={"card_pk": fake_card_id, "user_pk": user.id}))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Not found.")
+
+    def test_memorize_card_no_user(self):
+        fake_user_id = uuid.uuid4()
+        card, *_ = self.get_cards()
+        response = self.client.put(
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id, "user_pk": fake_user_id}))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Not found.")
+
+    def test_memorize_card_400(self):
+        """Bad request from attempt to again memorize already memorized card.
+        """
+        card, user = self.get_card_user()
+        card.memorize(user)
+        # putting user and card to the server means card memorization:
+        response = self.client.put(
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["status_code"], 400)
+        self.assertEqual(response.json()["detail"],
+                         f"Card with id {card.id} for "
+                         f"user {user.username} id ({user.id})"
+                         f" is already memorized.")
+
+    def test_memorize_success(self):
+        grade = 1
+        card, user = self.get_card_user()
+        response = self.client.put(
+            reverse("memorize_review_card",
+                    kwargs={"card_pk": card.id, "user_pk": user.id,
+                            "grade": grade}))
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["grade"], grade)
+
+    def test_memorize_success_no_grade(self):
+        """Successful memorization with default grade.
+        """
+        card, user = self.get_card_user()
+        response = self.client.put(
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+
+        self.assertEqual(response.status_code, 201)
+
+
+class ReviewingCard(FakeUsersCards):
+    def test_user_not_found(self):
+        card, *_ = self.get_cards()
+        fake_user_id = uuid.uuid4()
+        response = self.client.post(
+            reverse("memorize_review_card",
+                    kwargs={"card_pk": card.id, "user_pk": fake_user_id,
+                            "grade": 3}))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.json()["detail"], "Not found.")
+
+    def test_card_not_found(self):
+        user, *_ = self.get_users()
+        fake_card_id = uuid.uuid4()
+        response = self.client.post(
+            reverse("memorize_review_card",
+                    kwargs={"card_pk": fake_card_id, "user_pk": user.id,
+                            "grade": 3}))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.json()["detail"], "Not found.")
+
+    def test_grade_success(self):
+        card, user = self.get_card_user()
+        card.memorize(user)
+        response = self.client.post(
+            reverse("memorize_review_card",
+                    kwargs={"card_pk": card.id, "user_pk": user.id,
+                            "grade": 3}))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # self.assertEqual(response.json()["detail"], "Not found.")
+        print(json.dumps(response.json(), indent=3))
