@@ -68,6 +68,8 @@ class SingleCardForUser(APIView):
         return response
 
     def post(self, request, card_pk, user_pk, grade):
+        """Posting grade to user/card ReviewData means reviewing it.
+        """
         card, user = self._get_user_card(card_pk, user_pk)
         review_data = card.review(user, grade=grade)
         serialized_data = CardReviewDataSerializer(review_data).data

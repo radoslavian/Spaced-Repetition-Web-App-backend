@@ -73,6 +73,61 @@ class ReviewDataSM2(models.Model):
     grade = models.IntegerField(default=4)
     easiness_factor = models.FloatField(default=2.5)
 
+    def _range_of_days(self, grade):
+        """Returns range of days within which a review can be assigned.
+        """
+        # arbitrary thresholds:
+        # this if/elif/else has no coverage in tests!
+        if self.current_real_interval > 30 and grade > 2:
+            days_range = 7
+        elif 10 < self.current_real_interval < 30 and grade > 2:
+            days_range = 5
+        else:
+            days_range = 3
+        return days_range
+
+    def schedule_date_for_review(self, review_date,
+                                 days_range=3) -> datetime.date:
+        """Selects date for card review with minimal reviews already assigned
+         so that reviews are more evenly distributed.
+        """
+        dates = [review_date + datetime.timedelta(days=days)
+                 for days in range(days_range)]
+        dates_reviews = {
+            date_review: ReviewDataSM2.objects.filter(
+                user=self.user, review_date=date_review).count()
+            for date_review in dates
+        }
+
+        return min(dates_reviews, key=dates_reviews.get)
+
+    def review(self, grade):
+        """Update record with current review data.
+        """
+        new_review = self.new_review(grade)
+        days_range = self._range_of_days(grade)
+        optimal_review_date = self.schedule_date_for_review(
+            review_date=new_review.review_date,
+            days_range=days_range)
+
+        if grade < 3:
+            # updating object's value using F() expression (see below)
+            self.lapses = F("lapses") + 1
+        self.total_reviews = F("total_reviews") + 1
+        self.review_date = optimal_review_date
+        self.grade = grade
+        self.easiness_factor = new_review.easiness
+        self.computed_interval = new_review.interval
+        self.reviews = new_review.repetitions
+        self.save()
+
+        # from the documentation:
+        # To access the new value (created with the F expression)
+        # the object must be reloaded
+        # https://docs.djangoproject.com/en/4.1/ref/models/expressions/
+        # section about F() expressions
+        self.refresh_from_db()
+
     class Meta:
         unique_together = ("card", "user",)
 
@@ -142,38 +197,22 @@ class Card(models.Model):
     back_images = property(fget=_make_images_getter("back"))
     body = property(fget=_body_getter)
 
-    @staticmethod
-    def schedule_date_for_review(user, review_date,
-                                 days_range=3) -> datetime.date:
-        """Selects date for card review with minimal reviews already assigned
-         so that reviews are more evenly distributed.
-        """
-        dates = [review_date + datetime.timedelta(days=days)
-                 for days in range(days_range)]
-        dates_reviews = {
-            date_review: ReviewDataSM2.objects.filter(
-                user=user, review_date=date_review).count()
-            for date_review in dates
-        }
-
-        return min(dates_reviews, key=dates_reviews.get)
-
     @Decorators.validate_grade
     def memorize(self, user, grade: int = 4) -> ReviewDataSM2:
         """Generate initial review data for a particular user and (this) card
         and put it into ReviewDataSM2.
         """
         first_review = SM2.first_review(grade)
-        optimal_date = self.schedule_date_for_review(
-            user, review_date=first_review.review_date, days_range=3)
         review_data = ReviewDataSM2(
             card=self,
             user=user,
             easiness_factor=first_review.easiness,
             computed_interval=first_review.interval,
             reviews=first_review.repetitions,
-            grade=grade,
-            review_date=optimal_date)
+            grade=grade)
+        optimal_date = review_data.schedule_date_for_review(
+            review_date=first_review.review_date, days_range=3)
+        review_data.review_date=optimal_date
 
         try:
             review_data.save()
@@ -185,51 +224,11 @@ class Card(models.Model):
 
     @Decorators.validate_grade
     def review(self, user, grade: int = 4):
-        """Update ReviewDataSM2 with current review data.
+        """Shorthand for making a review.
         """
-        # 2 - is the highest failed grading
-        # 3 - is the lowest successful grading
-        review_data = get_object_or_404(ReviewDataSM2, user=user, card=self)
-        new_review = review_data.new_review(grade)
-        days_range = self._range_of_days(grade, review_data)
-        optimal_review_date = self.schedule_date_for_review(
-            user=user,
-            review_date=new_review.review_date,
-            days_range=days_range)
-
-        if grade < 3:
-            # updating object's value using F() expression (see below)
-            review_data.lapses = F("lapses") + 1
-        review_data.total_reviews = F("total_reviews") + 1
-        review_data.review_date = optimal_review_date
-        review_data.grade = grade
-        review_data.easiness_factor = new_review.easiness
-        review_data.computed_interval = new_review.interval
-        review_data.reviews = new_review.repetitions
-        review_data.save()
-
-        # from the documentation:
-        # To access the new value (created with the F expression)
-        # the object must be reloaded
-        # https://docs.djangoproject.com/en/4.1/ref/models/expressions/
-        # section about F() expressions
-        review_data.refresh_from_db()
-
+        review_data = ReviewDataSM2.objects.get(user=user, card=self)
+        review_data.review(grade=grade)
         return review_data
-
-    @staticmethod
-    def _range_of_days(grade, review_data):
-        """Returns range of days within which a review can be assigned.
-        """
-        # arbitrary thresholds:
-        # this if/elif/else has no coverage in tests!
-        if review_data.current_real_interval > 30 and grade > 2:
-            days_range = 7
-        elif 10 < review_data.current_real_interval < 30 and grade > 2:
-            days_range = 5
-        else:
-            days_range = 3
-        return days_range
 
     def forget(self, user):
         ReviewDataSM2.objects.get(card=self, user=user).delete()
