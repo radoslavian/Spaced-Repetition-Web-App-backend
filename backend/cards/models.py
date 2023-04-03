@@ -44,7 +44,7 @@ class ReviewDataSM2(models.Model):
     def new_review(self, grade):
         return SM2(self.easiness_factor,
                    self.current_real_interval,
-                   self.repetitions).review(grade)
+                   self.reviews).review(grade)
 
     def get_real_interval(self):
         if not self.last_reviewed:
@@ -65,12 +65,12 @@ class ReviewDataSM2(models.Model):
     # default == 1 - we assume that if the association is created,
     # the user must have seen the card at least
     # once (e.g. during memorization)
+    reviews = models.IntegerField(default=1)
     total_reviews = models.IntegerField(default=1)
     last_reviewed = models.DateField(auto_now=True)
     introduced_on = models.DateField(auto_now_add=True)
     review_date = models.DateField(default=today)
     grade = models.IntegerField(default=4)
-    repetitions = models.IntegerField(default=1)
     easiness_factor = models.FloatField(default=2.5)
 
     class Meta:
@@ -94,6 +94,8 @@ class Card(models.Model):
     back = models.TextField()
     template = models.ForeignKey(CardTemplate, on_delete=models.PROTECT,
                                  null=True, related_name="cards")
+    categories = models.ManyToManyField("cards.Category",
+                                        related_name="cards")
     commenting_users = models.ManyToManyField(
         get_user_model(), through="CardComment")
     images = models.ManyToManyField(
@@ -169,7 +171,7 @@ class Card(models.Model):
             user=user,
             easiness_factor=first_review.easiness,
             computed_interval=first_review.interval,
-            repetitions=first_review.repetitions,
+            reviews=first_review.repetitions,
             grade=grade,
             review_date=optimal_date)
 
@@ -203,7 +205,7 @@ class Card(models.Model):
         review_data.grade = grade
         review_data.easiness_factor = new_review.easiness
         review_data.computed_interval = new_review.interval
-        review_data.repetitions = new_review.repetitions
+        review_data.reviews = new_review.repetitions
         review_data.save()
 
         # from the documentation:
@@ -246,7 +248,7 @@ class Card(models.Model):
             def review_fn(grade):
                 sm = SM2(review_data.easiness_factor,
                          review_data.current_real_interval,
-                         review_data.repetitions)
+                         review_data.reviews)
                 return sm.review(grade)
 
         simulation = {}
@@ -254,7 +256,7 @@ class Card(models.Model):
             data = review_fn(grade)
             simulation[grade] = dict(easiness=data.easiness,
                                      interval=data.interval,
-                                     repetitions=data.repetitions,
+                                     reviews=data.repetitions,
                                      review_date=data.review_date)
         return simulation
 

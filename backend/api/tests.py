@@ -3,9 +3,8 @@ import uuid
 from datetime import date, timedelta
 from datetime import datetime
 from random import choice
-from textwrap import dedent
-
-from cards.models import Card, CardImage, CardTemplate
+from cards.models import Card, CardImage, CardTemplate, Category
+from faker import Faker
 
 if __name__ == "__main__" and __package__ is None:
     # overcoming sibling module imports problem
@@ -18,8 +17,9 @@ if __name__ == "__main__" and __package__ is None:
 from django.urls import reverse
 from cards.tests import FakeUsersCards, HelpersMixin
 
-
+fake = Faker()
 # Create your tests here.
+
 
 def convert_zulu_timestamp(timestamp: str):
     return datetime.fromisoformat(
@@ -43,6 +43,7 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
             "last_modified": card.last_modified,
             "template": card.template,
             "front_images": card.front_images,
+            "categories": [],
             "back_images": card.back_images
         }
         number_of_serialized_fields = len(expected_serialization_dict)
@@ -77,6 +78,7 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
             "front": card.front,
             "back": card.back,
             "last_modified": card.last_modified,
+            "categories": [],
             "template": card.template,
             "front_images": card.front_images,
             "back_images": card.back_images
@@ -116,8 +118,36 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
             str(second_image.id) not in
             [image["id"] for image in response_data["front_images"]])
 
+    def test_backend_card_single_category(self):
+        card, *_ = self.get_cards()
+        category_name = fake.text(20)
+        category = Category.objects.create(name=category_name)
+        card.categories.add(category)
+        card.save()
+        response = self.client.get(
+            reverse("single_card", kwargs={"pk": card.id}))
+        response_json = response.json()
 
-class UserDataCardsTests(FakeUsersCards):
+        self.assertEqual(len(response_json["categories"]), 1)
+        self.assertEqual(response_json["categories"][0]["name"],
+                         category_name)
+
+    def test_card_multiple_categories(self):
+        card, *_ = self.get_cards()
+        category_1 = self.create_category()
+        category_2 = self.create_category()
+        card.categories.add(category_1, category_2)
+        card.save()
+        response = self.client.get(
+            reverse("single_card", kwargs={"pk": card.id}))
+        categories_from_response = response.json()["categories"]
+
+        self.assertEqual(len(categories_from_response), 2)
+        self.assertNotEqual(categories_from_response[0]["name"],
+                            categories_from_response[1]["name"])
+
+
+class UserDataCardsTests(FakeUsersCards, HelpersMixin):
     """Tests for cards with user data and rendered content.
     """
 
@@ -206,55 +236,103 @@ class UserDataCardsTests(FakeUsersCards):
             "introduced_on": str(review_data.introduced_on),
             "review_date": str(review_data.review_date),
             "grade": review_data.grade,
-            "repetitions": review_data.repetitions,
+            "reviews": review_data.reviews,
+            "categories": [],
             "easiness_factor": review_data.easiness_factor,
             "card": str(card.id)
         }
         received_data = response.json()
         received_data.pop("body")
+        received_data.pop("projected_review_data")
 
         self.assertDictEqual(expected_data, received_data)
 
-    def _test_projected_review_data(self):
+    def test_projected_review_data(self):
         card, user = self.get_card_user()
-        review_data = card.memorize(user, 4)
-        six_days = date.today() + timedelta(days=6)
-        one_day = date.today() + timedelta(days=1)
+        card.memorize(user, 4)
+        six_days = str(date.today() + timedelta(days=6))
+        one_day = str(date.today() + timedelta(days=1))
         expected_projected_data = {
-            0: dict(easiness=1.7000000000000002,
-                    interval=1,
-                    reviews=0,
-                    review_date=one_day),
-            1: dict(easiness=1.96,
-                    interval=1,
-                    repetitions=0,
-                    review_date=one_day),
-            2: dict(easiness=2.1799999999999997,
-                    interval=1,
-                    repetitions=0,
-                    review_date=one_day),
-            3: dict(easiness=2.36,
-                    interval=6,
-                    repetitions=2,
-                    review_date=six_days),
-            4: dict(easiness=2.5,
-                    interval=6,
-                    repetitions=2,
-                    review_date=six_days),
-            5: dict(easiness=2.6,
-                    interval=6,
-                    repetitions=2,
-                    review_date=six_days)
+            "0": dict(easiness=1.7000000000000002,
+                      interval=1,
+                      reviews=0,
+                      review_date=one_day),
+            "1": dict(easiness=1.96,
+                      interval=1,
+                      reviews=0,
+                      review_date=one_day),
+            "2": dict(easiness=2.1799999999999997,
+                      interval=1,
+                      reviews=0,
+                      review_date=one_day),
+            "3": dict(easiness=2.36,
+                      interval=6,
+                      reviews=2,
+                      review_date=six_days),
+            "4": dict(easiness=2.5,
+                      interval=6,
+                      reviews=2,
+                      review_date=six_days),
+            "5": dict(easiness=2.6,
+                      interval=6,
+                      reviews=2,
+                      review_date=six_days)
         }
+        response = self.get_response_for_card_with_userdata(card, user)
+        received_projected_review_data = response.json(
+        )["projected_review_data"]
 
-        # test for other fields:
-        # comment, categories (single and two), ignored - true and false
-        expected_output = {
-            "cardId": str(card.id),
-            "body": card_body,
-            "categories": "[]",
-            "comment": None,
-            "ignored": "false",
-        }
+        self.assertDictEqual(expected_projected_data,
+                             received_projected_review_data)
 
-        self.assertDictEqual(expected_output, response_json)
+    def test_user_memorized_card_single_category(self):
+        card, user = self.get_card_user()
+        card.memorize(user)
+        category = self.create_category()
+        card.categories.add(category)
+        card.save()
+        response = self.get_response_for_card_with_userdata(card, user)
+        categories_from_response = response.json()["categories"]
+        category_name_from_response = categories_from_response[0]["name"]
+
+        self.assertEqual(len(categories_from_response), 1)
+        self.assertEqual(category_name_from_response, category.name)
+
+    def test_user_memorized_card_two_categories(self):
+        card, user = self.get_card_user()
+        card.memorize(user)
+        category_1 = self.create_category()
+        category_2 = self.create_category()
+        card.categories.add(category_1, category_2)
+        card.save()
+        response = self.get_response_for_card_with_userdata(card, user)
+        categories_from_response = response.json()["categories"]
+
+        self.assertEqual(len(categories_from_response), 2)
+        self.assertNotEqual(categories_from_response[0],
+                            categories_from_response[1])
+
+    def test_user_not_memorized_card_single_category(self):
+        card, user = self.get_card_user()
+        category = self.create_category()
+        card.categories.add(category)
+        card.save()
+        response = self.get_response_for_card_with_userdata(card, user)
+        categories_from_response = response.json()["categories"]
+        category_name_from_response = response.json()["categories"][0]["name"]
+
+        self.assertEqual(len(categories_from_response), 1)
+        self.assertEqual(category_name_from_response, category.name)
+
+    def test_user_not_memorized_card_two_categories(self):
+        card, user = self.get_card_user()
+        category_1 = self.create_category()
+        category_2 = self.create_category()
+        card.categories.add(category_1, category_2)
+        card.save()
+        response = self.get_response_for_card_with_userdata(card, user)
+        categories_from_response = response.json()["categories"]
+
+        self.assertEqual(len(categories_from_response), 2)
+        self.assertNotEqual(categories_from_response[0],
+                            categories_from_response[1])

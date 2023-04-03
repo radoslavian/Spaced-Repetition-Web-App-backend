@@ -36,6 +36,11 @@ class HelpersMixin:
         image_in_database.save()
         return image_in_database
 
+    @staticmethod
+    def create_category(category_name=fake.text(20)):
+        category = Category.objects.create(name=category_name)
+        return category
+
 
 class FakeUsersCards(TestCase):
     user_model = get_user_model()
@@ -566,7 +571,7 @@ class CardReviewsTests(FakeUsersCards):
 
     def test_repetitions_default(self):
         review_data = self.get_review_data()
-        self.assertEqual(review_data.repetitions, 1)
+        self.assertEqual(review_data.reviews, 1)
 
     def test_default_grade(self):
         review_data = self.get_review_data()
@@ -587,7 +592,7 @@ class CardReviewsTests(FakeUsersCards):
         review_data = ReviewDataSM2.objects.get(card=card, user=user)
 
         self.assertEqual(review_data_from_return, review_data)
-        self.assertEqual(review_data.repetitions, 1)
+        self.assertEqual(review_data.reviews, 1)
         self.assertEqual(review_data.review_date,
                          date.today() + timedelta(days=1))
         self.assertEqual(review_data.grade, grade)
@@ -613,7 +618,7 @@ class CardReviewsTests(FakeUsersCards):
             "last_reviewed": first_review.last_reviewed,
             "last_comp_interval": first_review.computed_interval,
             "current_real_interval": first_review.current_real_interval,
-            "repetitions": first_review.repetitions,
+            "repetitions": first_review.reviews,
             "next_review": first_review.review_date
         }
         first_review_expected_data = {
@@ -648,7 +653,7 @@ class CardReviewsTests(FakeUsersCards):
                 "last_reviewed": second_review.last_reviewed,
                 "grade": second_review.grade,
                 "last_comp_interval": second_review.computed_interval,
-                "repetitions": second_review.repetitions,
+                "repetitions": second_review.reviews,
                 "next_review": second_review.review_date
             }
             second_review_expected_data = {
@@ -773,27 +778,27 @@ class CardReviewsTests(FakeUsersCards):
         review_date = datetime.date.today() + datetime.timedelta(days=1)
         expected_output = {
             0: dict(
-                easiness=1.7000000000000002, interval=1, repetitions=0,
+                easiness=1.7000000000000002, interval=1, reviews=0,
                 review_date=review_date
             ),
             1: dict(
-                easiness=1.96, interval=1, repetitions=0,
+                easiness=1.96, interval=1, reviews=0,
                 review_date=review_date
             ),
             2: dict(
-                easiness=2.1799999999999997, interval=1, repetitions=0,
+                easiness=2.1799999999999997, interval=1, reviews=0,
                 review_date=review_date
             ),
             3: dict(
-                easiness=2.36, interval=1, repetitions=1,
+                easiness=2.36, interval=1, reviews=1,
                 review_date=review_date
             ),
             4: dict(
-                easiness=2.5, interval=1, repetitions=1,
+                easiness=2.5, interval=1, reviews=1,
                 review_date=review_date
             ),
             5: dict(
-                easiness=2.6, interval=1, repetitions=1,
+                easiness=2.6, interval=1, reviews=1,
                 review_date=review_date
             )
         }
@@ -809,16 +814,16 @@ class CardReviewsTests(FakeUsersCards):
         simulation = card.simulate_reviews(user)
         expected_output = {
             0: {'easiness': 1.7000000000000002, 'interval': 1,
-                'repetitions': 0, 'review_date': next_review_failed},
-            1: {'easiness': 1.96, 'interval': 1, 'repetitions': 0,
+                'reviews': 0, 'review_date': next_review_failed},
+            1: {'easiness': 1.96, 'interval': 1, 'reviews': 0,
                 'review_date': next_review_failed},
             2: {'easiness': 2.1799999999999997, 'interval': 1,
-                'repetitions': 0, 'review_date': next_review_failed},
-            3: {'easiness': 2.36, 'interval': 6, 'repetitions': 2,
+                'reviews': 0, 'review_date': next_review_failed},
+            3: {'easiness': 2.36, 'interval': 6, 'reviews': 2,
                 'review_date': next_review_success},
-            4: {'easiness': 2.5, 'interval': 6, 'repetitions': 2,
+            4: {'easiness': 2.5, 'interval': 6, 'reviews': 2,
                 'review_date': next_review_success},
-            5: {'easiness': 2.6, 'interval': 6, 'repetitions': 2,
+            5: {'easiness': 2.6, 'interval': 6, 'reviews': 2,
                 'review_date': next_review_success}
         }
 
@@ -841,27 +846,27 @@ class CardReviewsTests(FakeUsersCards):
         expected_output = {
             0: {'easiness': 1.3,
                 'interval': 1,
-                'repetitions': 0,
+                'reviews': 0,
                 'review_date': next_review_failed},
             1: {'easiness': 1.3999999999999997,
                 'interval': 1,
-                'repetitions': 0,
+                'reviews': 0,
                 'review_date': next_review_failed},
             2: {'easiness': 1.6199999999999997,
                 'interval': 1,
-                'repetitions': 0,
+                'reviews': 0,
                 'review_date': next_review_failed},
             3: {'easiness': 1.7999999999999998,
                 'interval': 138,
-                'repetitions': 6,
+                'reviews': 6,
                 'review_date': next_review_success},
             4: {'easiness': 1.9399999999999997,
                 'interval': 138,
-                'repetitions': 6,
+                'reviews': 6,
                 'review_date': next_review_success},
             5: {'easiness': 2.0399999999999996,
                 'interval': 138,
-                'repetitions': 6,
+                'reviews': 6,
                 'review_date': next_review_success}}
 
         self.assertDictEqual(expected_output, simulation)
@@ -880,7 +885,7 @@ class CardReviewsTests(FakeUsersCards):
         review_data = card.review(user, 1)
         self.assertEqual(review_data.lapses, 1)
 
-    def test_all_repetitions(self):
+    def test_total_reviews(self):
         """Test cumulative reviews counting.
         """
         card, user = self.get_card_user()
@@ -1008,3 +1013,55 @@ class CardRendering(FakeUsersCards):
                         in card_body)
         self.assertTrue(card.front in card_body)
         self.assertTrue(card.back in card_body)
+
+
+class CardCategories(FakeUsersCards, HelpersMixin):
+    def test_card_single_category(self):
+        category_name = fake.text(20)
+        card, category = self.card_with_category(category_name)
+
+        self.assertEqual(len(card.categories.all()), 1)
+        self.assertEqual(card.categories.first().name, category_name)
+
+    def test_deleting_category_keeps_card(self):
+        card, category = self.card_with_category()
+        category.delete()
+        self.assertTrue(card.id)
+
+    def test_deleting_card_keeps_category(self):
+        card, category = self.card_with_category()
+        card.delete()
+        self.assertFalse(card.id)
+        self.assertTrue(category.id)
+
+    def test_card_multiple_categories(self):
+        card_1, card_2, _ = self.get_cards()
+        category_names = [fake.text(20) for _ in range(4)]
+        categories = [self.create_category(name) for name in category_names]
+        card_1.categories.add(*categories[:2])
+        card_2.categories.add(*categories[2:])
+        [card.save() for card in (card_1, card_2,)]
+        card_1_categories = card_1.categories.all()
+        card_2_categories = card_2.categories.all()
+
+        self.assertEqual(len(card_1_categories), 2)
+        self.assertEqual(len(card_2_categories), 2)
+        self.assertFalse(card_1_categories[1] in card_2_categories)
+        self.assertTrue(card_1_categories[0].name in category_names[:2])
+        self.assertTrue(card_2_categories[0].name in category_names[2:])
+        self.assertFalse(card_2_categories[0].name in category_names[:2])
+
+        category_from_card_1 = card_1_categories[0]
+        card_1.categories.set([])
+        card_1.save()
+        category_from_card_1.refresh_from_db()
+        self.assertTrue(category_from_card_1.id)
+
+    def card_with_category(self, category_name=fake.text(20)):
+        card, *_ = self.get_cards()
+        category = self.create_category(category_name)
+        card.categories.add(category)
+        card.save()
+        return card, category
+
+
