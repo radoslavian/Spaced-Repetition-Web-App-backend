@@ -40,7 +40,7 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
         cards = self.get_cards()
         number_of_cards = len(cards)
         response = self.client.get(reverse("list_cards"))
-        cards_in_json = response.json()
+        cards_in_json = response.json()["results"]
         selected_card = choice(cards_in_json)
         card = Card.objects.get(id=selected_card["id"])
         expected_serialization_dict = {
@@ -61,7 +61,7 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
                 selected_card["last_modified"])
         })
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(cards_in_json), number_of_cards)
+        self.assertEqual(response.json()["count"], number_of_cards)
         self.assertEqual(len(selected_card.keys()),
                          number_of_serialized_fields)
 
@@ -447,7 +447,7 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         """General test for getting list of memorized cards for an app user
         (no limits, no pagination).
         """
-        NUMBER_OF_CARDS = 10
+        NUMBER_OF_CARDS = 15
         half_of_cards = ceil(NUMBER_OF_CARDS / 2)
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
         user_1, user_2 = self.make_fake_users(2)
@@ -460,10 +460,9 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         response_content = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_content), half_of_cards)
-
-    def test_list_of_memorized_cards_paginated(self):
-        pass
+        self.assertEqual(response_content["count"], half_of_cards)
+        self.assertEqual(response_content["results"][0]["body"],
+                         cards[0].body)
 
     def test_list_of_memorized_cards_no_user(self):
         self.make_fake_cards(2)
@@ -499,9 +498,10 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         response_body = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_body), number_of_not_memorized_cards)
+        self.assertEqual(response_body["count"],
+                         number_of_not_memorized_cards)
         self.assertEqual(not_memorized_cards[0].body,
-                         response_body[0]["body"])
+                         response_body["results"][0]["body"])
 
     def test_list_of_not_memorized_cards_2(self):
         NUMBER_OF_CARDS = 2
@@ -512,16 +512,16 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         response = self.client.get(
             reverse("list_of_not_memorized_cards_for_user",
                     kwargs={"user_pk": user_1.id}))
-        response_body = response.json()
+        response_results = response.json()["results"]
 
-        self.assertEqual(len(response_body), 1)
-        self.assertEqual(card_2.body, response_body[0]["body"])
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(card_2.body, response_results[0]["body"])
 
     def test_all_cards(self):
         """Test if number of cards for both endpoints:
-        for memorized and not memorized cards equals total number of cards.
+        for memorized and not memorized cards - equals total number of cards.
         """
-        NUMBER_OF_CARDS = 9
+        NUMBER_OF_CARDS = 100
         portion_of_cards = ceil(NUMBER_OF_CARDS / 2)
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
         user_1, user_2 = self.make_fake_users(2)
@@ -533,10 +533,11 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         response_memorized = self.client.get(
             reverse("list_of_memorized_cards_for_user",
                     kwargs={"user_pk": user_1.id}))
-        number_of_memorized_cards = len(response_memorized.json())
-        number_of_not_memorized_cards = len(response_not_memorized.json())
+
+        # count - key from the current page (results are paginated)
+        number_of_memorized_cards = response_memorized.json()["count"]
+        number_of_not_memorized_cards = response_not_memorized.json()["count"]
 
         self.assertEqual(sum([number_of_memorized_cards,
                               number_of_not_memorized_cards]),
                          NUMBER_OF_CARDS)
-

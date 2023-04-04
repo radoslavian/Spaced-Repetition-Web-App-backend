@@ -13,7 +13,7 @@ urlpatterns = [
          SingleCardForUser.as_view(), name="memorize_review_card"),
     path("users/<uuid:user_pk>/cards/memorized", ListMemorizedCards.as_view(),
          name="list_of_memorized_cards_for_user"),
-    path("users/<uuid:user_pk>/cards/not-memorized",
+    path("users/<uuid:user_pk>/cards/queued",
          ListUserNotMemorizedCards.as_view(),
          name="list_of_not_memorized_cards_for_user"),
 ]

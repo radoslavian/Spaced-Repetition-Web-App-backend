@@ -1,6 +1,8 @@
 import datetime
 import uuid
 from datetime import date
+
+import django
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CheckConstraint, Q, F
@@ -144,6 +146,7 @@ class Card(models.Model):
         editable=False)
     # auto_now - automatically sets the field to now each time
     # the object is saved
+    created_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     front = models.TextField()
     back = models.TextField()
