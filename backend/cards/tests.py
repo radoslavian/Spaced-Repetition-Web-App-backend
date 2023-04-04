@@ -43,6 +43,25 @@ class HelpersMixin:
         category = Category.objects.create(name=category_name)
         return category
 
+    @staticmethod
+    def make_fake_users(number_of_users):
+        User = get_user_model()
+        users = []
+        for _ in range(number_of_users):
+            user = User(username=fake.profile()["username"])
+            user.save()
+            users.append(user)
+        return users
+
+    @staticmethod
+    def make_fake_cards(number_of_cards):
+        cards = []
+        for _ in range(number_of_cards):
+            card = Card(front=fake.text(20), back=fake.text(20))
+            card.save()
+            cards.append(card)
+        return cards
+
 
 class FakeUsersCards(TestCase):
     user_model = get_user_model()
@@ -59,12 +78,12 @@ class FakeUsersCards(TestCase):
         card_3 = Card.objects.get(front=self.cards_data["third"]["front"])
         return card_1, card_2, card_3
 
-    @staticmethod
-    def get_users():
+    @classmethod
+    def get_users(cls):
         """Returns two example users.
         """
-        user_1 = CramQueueTests.user_model.objects.get(username="first_user")
-        user_2 = CramQueueTests.user_model.objects.get(username="second_user")
+        user_1 = cls.user_model.objects.get(username="first_user")
+        user_2 = cls.user_model.objects.get(username="second_user")
         return user_1, user_2
 
     @classmethod

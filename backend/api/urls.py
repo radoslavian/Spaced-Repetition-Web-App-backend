@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (SingleCardForBackendView, ListCardsForBackendView,
-                    SingleCardForUser)
+                    SingleCardForUser, ListMemorizedCards,
+                    ListUserNotMemorizedCards)
 
 urlpatterns = [
     path("cards/", ListCardsForBackendView.as_view(), name="list_cards"),
@@ -10,4 +11,9 @@ urlpatterns = [
          SingleCardForUser.as_view(), name="card_for_user"),
     path("users/<uuid:user_pk>/cards/<uuid:card_pk>/grade/<int:grade>/",
          SingleCardForUser.as_view(), name="memorize_review_card"),
+    path("users/<uuid:user_pk>/cards/memorized", ListMemorizedCards.as_view(),
+         name="list_of_memorized_cards_for_user"),
+    path("users/<uuid:user_pk>/cards/not-memorized",
+         ListUserNotMemorizedCards.as_view(),
+         name="list_of_not_memorized_cards_for_user"),
 ]

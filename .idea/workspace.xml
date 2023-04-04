@@ -4,13 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Moved Card.review and helper methods into ReviewDataSM2.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Code refactoring.">
+      <change afterPath="$PROJECT_DIR$/backend/api/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/api/utils/helpers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/utils/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/helpers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +22,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -50,7 +52,7 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/cards/utils/helpers.py",
+    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/api/utils/helpers.py",
     "settings.editor.selected.configurable": "preferences.keymap"
   }
 }]]></component>
@@ -431,7 +433,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680555814450</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="Code refactoring.">
+      <created>1680562046903</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1680562046903</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -447,7 +456,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Added constraints against duplication to models." />
     <MESSAGE value="Added skipped card categories to the User model." />
     <MESSAGE value="Added fields for cards ignored/disabled from reviews by users." />
     <MESSAGE value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
@@ -472,6 +480,7 @@
     <MESSAGE value="CardReviewDataSerializer.categories no longer uses SerializerMethodField." />
     <MESSAGE value="Added routes for memorizing and grading cards." />
     <MESSAGE value="Moved Card.review and helper methods into ReviewDataSM2." />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved Card.review and helper methods into ReviewDataSM2." />
+    <MESSAGE value="Code refactoring." />
+    <option name="LAST_COMMIT_MESSAGE" value="Code refactoring." />
   </component>
 </project>

@@ -1,8 +1,12 @@
 import json
 import uuid
+from math import ceil
+
+from django.contrib.auth import get_user_model
+from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
-from random import choice
+from random import choice, shuffle
 from cards.models import Card, CardImage, CardTemplate, Category
 from faker import Faker
 from rest_framework import status
@@ -290,50 +294,6 @@ class UserDataCardsTests(FakeUsersCards, HelpersMixin):
         self.assertDictEqual(expected_projected_data,
                              received_projected_review_data)
 
-    def test_card_projected_data_not_memorized(self):
-        card, user = self.get_card_user()
-        expected_data = {
-            "0": {
-                "easiness": 1.7000000000000002,
-                "interval": 1,
-                "reviews": 0,
-                "review_date": "2023-04-04"
-            },
-            "1": {
-                "easiness": 1.96,
-                "interval": 1,
-                "reviews": 0,
-                "review_date": "2023-04-04"
-            },
-            "2": {
-                "easiness": 2.1799999999999997,
-                "interval": 1,
-                "reviews": 0,
-                "review_date": "2023-04-04"
-            },
-            "3": {
-                "easiness": 2.36,
-                "interval": 1,
-                "reviews": 1,
-                "review_date": "2023-04-04"
-            },
-            "4": {
-                "easiness": 2.5,
-                "interval": 1,
-                "reviews": 1,
-                "review_date": "2023-04-04"
-            },
-            "5": {
-                "easiness": 2.6,
-                "interval": 1,
-                "reviews": 1,
-                "review_date": "2023-04-04"
-            }
-        }
-        response = self.get_response_for_card_with_userdata(card, user)
-        received_data = response.json()["projected_review_data"]
-        self.assertDictEqual(expected_data, received_data)
-
     def test_user_memorized_card_single_category(self):
         card, user = self.get_card_user()
         card.memorize(user)
@@ -480,3 +440,103 @@ class ReviewingCard(FakeUsersCards):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json["reviews"], 2)
+
+
+class ListOfCardsForUser(TestCase, HelpersMixin):
+    def test_list_of_memorized_cards(self):
+        """General test for getting list of memorized cards for an app user
+        (no limits, no pagination).
+        """
+        NUMBER_OF_CARDS = 10
+        half_of_cards = ceil(NUMBER_OF_CARDS / 2)
+        cards = self.make_fake_cards(NUMBER_OF_CARDS)
+        user_1, user_2 = self.make_fake_users(2)
+        shuffle(cards)
+        memorized_cards = [card.memorize(user_1)
+                           for card in cards[:half_of_cards]]
+        cards[-1].memorize(user_2)
+        response = self.client.get(reverse("list_of_memorized_cards_for_user",
+                                           kwargs={"user_pk": user_1.id}))
+        response_content = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_content), half_of_cards)
+
+    def test_list_of_memorized_cards_paginated(self):
+        pass
+
+    def test_list_of_memorized_cards_no_user(self):
+        self.make_fake_cards(2)
+        fake_user_id = uuid.uuid4()
+        response = self.client.get(reverse("list_of_memorized_cards_for_user",
+                                           kwargs={"user_pk": fake_user_id}))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_of_not_memorized_cards_no_user(self):
+        fake_user_id = uuid.uuid4()
+        self.make_fake_cards(2)
+        response = self.client.get(
+            reverse("list_of_not_memorized_cards_for_user",
+                    kwargs={"user_pk": fake_user_id}))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_of_not_memorized_cards(self):
+        NUMBER_OF_CARDS = 10
+        half_of_cards = ceil(NUMBER_OF_CARDS / 2)
+        cards = self.make_fake_cards(NUMBER_OF_CARDS)
+        user_1, user_2 = self.make_fake_users(2)
+        memorized_cards = [card.memorize(user_1)
+                           for card in cards[:half_of_cards]]
+        not_memorized_cards = cards[half_of_cards:]
+        cards[-1].memorize(user_2)
+        number_of_not_memorized_cards = len(not_memorized_cards)
+
+        response = self.client.get(
+            reverse("list_of_not_memorized_cards_for_user",
+                    kwargs={"user_pk": user_1.id}))
+        response_body = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_body), number_of_not_memorized_cards)
+        self.assertEqual(not_memorized_cards[0].body,
+                         response_body[0]["body"])
+
+    def test_list_of_not_memorized_cards_2(self):
+        NUMBER_OF_CARDS = 2
+        card_1, card_2 = self.make_fake_cards(NUMBER_OF_CARDS)
+        user_1, user_2 = self.make_fake_users(2)
+        card_1.memorize(user_1)
+        card_2.memorize(user_2)
+        response = self.client.get(
+            reverse("list_of_not_memorized_cards_for_user",
+                    kwargs={"user_pk": user_1.id}))
+        response_body = response.json()
+
+        self.assertEqual(len(response_body), 1)
+        self.assertEqual(card_2.body, response_body[0]["body"])
+
+    def test_all_cards(self):
+        """Test if number of cards for both endpoints:
+        for memorized and not memorized cards equals total number of cards.
+        """
+        NUMBER_OF_CARDS = 9
+        portion_of_cards = ceil(NUMBER_OF_CARDS / 2)
+        cards = self.make_fake_cards(NUMBER_OF_CARDS)
+        user_1, user_2 = self.make_fake_users(2)
+        memorized_cards = [card.memorize(user_1)
+                           for card in cards[:portion_of_cards]]
+        response_not_memorized = self.client.get(
+            reverse("list_of_not_memorized_cards_for_user",
+                    kwargs={"user_pk": user_1.id}))
+        response_memorized = self.client.get(
+            reverse("list_of_memorized_cards_for_user",
+                    kwargs={"user_pk": user_1.id}))
+        number_of_memorized_cards = len(response_memorized.json())
+        number_of_not_memorized_cards = len(response_not_memorized.json())
+
+        self.assertEqual(sum([number_of_memorized_cards,
+                              number_of_not_memorized_cards]),
+                         NUMBER_OF_CARDS)
+

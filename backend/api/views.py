@@ -8,6 +8,7 @@ from cards.models import Card, ReviewDataSM2
 from cards.utils.exceptions import CardReviewDataExists
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer)
+from .utils.helpers import get_user_or_404
 
 
 # Create your views here.
@@ -75,3 +76,21 @@ class SingleCardForUser(APIView):
         review_data.review(grade)
         serialized_data = CardReviewDataSerializer(review_data).data
         return Response(serialized_data)
+
+
+class ListMemorizedCards(ListAPIView):
+    serializer_class = CardReviewDataSerializer
+
+    def get_queryset(self):
+        user = get_user_or_404(self.kwargs["user_pk"])
+        return ReviewDataSM2.objects.filter(user=user)
+
+
+class ListUserNotMemorizedCards(ListAPIView):
+    """list of the cards that are not yet memorized by a given user.
+    """
+    serializer_class = CardUserNoReviewDataSerializer
+
+    def get_queryset(self):
+        user = get_user_or_404(self.kwargs["user_pk"])
+        return Card.objects.exclude(reviewing_users=user)
