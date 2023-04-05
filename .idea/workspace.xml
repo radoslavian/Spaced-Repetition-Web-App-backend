@@ -4,19 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added default pagination for endpoints.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0010_reviewdatasm2_crammed.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0011_alter_reviewdatasm2_introduced_on.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0003_remove_user_cram_queue.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0004_rename_cards_review_data_user_memorized_cards.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Implemented the cram queue (with API endpoints).&#10;CardReviewDataSerializer returns projected reviews only for due cards.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -466,7 +458,21 @@
       <option name="project" value="LOCAL" />
       <updated>1680632431936</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="Implemented the cram queue (with API endpoints).&#10;CardReviewDataSerializer returns projected reviews only for due cards.">
+      <created>1680711927824</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1680711927824</updated>
+    </task>
+    <task id="LOCAL-00043" summary="Implemented the cram queue (with API endpoints).&#10;CardReviewDataSerializer returns projected reviews only for due cards.">
+      <created>1680712041717</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1680712041717</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -482,7 +488,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Working on ReviewDataSM2, memorizing and reviewing cards." />
     <MESSAGE value="Working on ReviewDataSM2 - reviewing cards." />
     <MESSAGE value="Working on card reviews: test_third_review and Card.review print additional information for testing purposes." />
     <MESSAGE value="Working on Card and relationships: implementing methods for memorizing and reviewing cards." />
@@ -507,6 +512,7 @@
     <MESSAGE value="Wrote routes for lists of cards (memorized and not yet memorized) for logged-in users." />
     <MESSAGE value="Wrote routes for lists of cards (memorized and not yet memorized) for app users." />
     <MESSAGE value="Added default pagination for endpoints." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added default pagination for endpoints." />
+    <MESSAGE value="Implemented the cram queue (with API endpoints).&#10;CardReviewDataSerializer returns projected reviews only for due cards." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented the cram queue (with API endpoints).&#10;CardReviewDataSerializer returns projected reviews only for due cards." />
   </component>
 </project>

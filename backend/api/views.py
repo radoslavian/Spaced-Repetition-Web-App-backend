@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -87,6 +89,17 @@ class ListMemorizedCards(ListAPIView):
         user = get_user_or_404(self.kwargs["user_pk"])
         return ReviewDataSM2.objects.filter(user=user) \
             .order_by("introduced_on")
+
+
+class ListOutstandingCards(ListAPIView):
+    serializer_class = CardReviewDataSerializer
+
+    def get_queryset(self):
+        user = get_user_or_404(self.kwargs["user_pk"])
+        return ReviewDataSM2.objects.filter(
+            user=user,
+            review_date__lte=datetime.datetime.today().date()
+        ).order_by("introduced_on")
 
 
 class ListUserNotMemorizedCards(ListAPIView):

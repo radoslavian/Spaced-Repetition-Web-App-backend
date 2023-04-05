@@ -558,6 +558,55 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
                               number_of_not_memorized_cards]),
                          NUMBER_OF_CARDS)
 
+    def test_outstanding_cards(self):
+        """Test retrieving outstanding cards.
+        """
+        # should be split into two tests
+        NUMBER_OF_NOT_MEMORIZED_CARDS = 2
+        NUMBER_OF_MEMORIZED_CARDS = 3
+        NUMBER_OF_REVIEWED_CARDS = 4
+        due_for_memorized = date.today() + timedelta(days=3)
+        due_for_review = due_for_memorized + timedelta(days=6)
+
+        user = self.make_fake_users(1)[0]
+        not_memorized_cards = self.make_fake_cards(
+            NUMBER_OF_NOT_MEMORIZED_CARDS)
+        memorized_cards = self.make_fake_cards(NUMBER_OF_MEMORIZED_CARDS)
+        reviewed_cards = self.make_fake_cards(NUMBER_OF_REVIEWED_CARDS)
+
+        for card in memorized_cards:
+            card.memorize(user)
+
+        for card in reviewed_cards:
+            card_review_data = card.memorize(user)
+            with time_machine.travel(card_review_data.review_date):
+                card_review_data.review(4)
+
+        with time_machine.travel(due_for_memorized):
+            response_cards_memorized = self.client.get(
+                reverse("outstanding_cards", kwargs={"user_pk": user.id}))
+
+        with time_machine.travel(due_for_review):
+            response_cards_for_review = self.client.get(
+                reverse("outstanding_cards", kwargs={"user_pk": user.id}))
+        card_for_review_body = response_cards_for_review.json()[
+            "results"][0]["body"]
+
+        self.assertEqual(response_cards_memorized.json()["count"],
+                         NUMBER_OF_MEMORIZED_CARDS)
+        self.assertEqual(response_cards_for_review.json()["count"],
+                         NUMBER_OF_MEMORIZED_CARDS + NUMBER_OF_REVIEWED_CARDS)
+        self.assertEqual(card_for_review_body, memorized_cards[0].body)
+
+    def test_outstanding_cards_404(self):
+        """Attempt to download outstanding cards using wrong user id.
+        """
+        fake_user_id = uuid.uuid4()
+        response = self.client.get(
+            reverse("outstanding_cards", kwargs={"user_pk": fake_user_id}))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class CramTests(TestCase, HelpersMixin):
     def test_adding_to_cram_success(self):
