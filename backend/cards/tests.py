@@ -792,7 +792,7 @@ class CardReviewsTests(FakeUsersCards):
         self.assertRaises(ValueError, lambda: card.review(user, -1))
         self.assertRaises(ValueError, lambda: card.review(user, 3.5))
 
-    def test_intervals_simulation_after_memorization(self):
+    def test_intervals_simulation_before_memorization(self):
         card, user = self.get_card_user()
         review_date = datetime.date.today() + datetime.timedelta(days=1)
         expected_output = {
@@ -825,7 +825,7 @@ class CardReviewsTests(FakeUsersCards):
 
         self.assertDictEqual(expected_output, simulation)
 
-    def test_intervals_simulation_after_second_review(self):
+    def test_intervals_simulation_before_second_review(self):
         card, user = self.get_card_user()
         card.memorize(user, grade=4)
         next_review_failed = datetime.date.today() + timedelta(days=1)
