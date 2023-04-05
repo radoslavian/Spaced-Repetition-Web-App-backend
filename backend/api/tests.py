@@ -2,7 +2,7 @@ import json
 import uuid
 from math import ceil
 
-from django.contrib.auth import get_user_model
+import time_machine
 from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
@@ -237,12 +237,15 @@ class UserDataCardsTests(FakeUsersCards, HelpersMixin):
         card, user = self.get_card_user()
         review_data = card.memorize(user, 5)
         response = self.get_response_for_card_with_userdata(card, user)
+        introduced_on = review_data.introduced_on \
+            .isoformat().replace("+00:00", "Z")
         expected_data = {
             "computed_interval": review_data.computed_interval,
             "lapses": review_data.lapses,
             "total_reviews": review_data.total_reviews,
             "last_reviewed": str(review_data.last_reviewed),
-            "introduced_on": str(review_data.introduced_on),
+            "crammed": False,
+            "introduced_on": introduced_on,
             "review_date": str(review_data.review_date),
             "grade": review_data.grade,
             "reviews": review_data.reviews,
@@ -258,9 +261,12 @@ class UserDataCardsTests(FakeUsersCards, HelpersMixin):
 
     def test_projected_review_data(self):
         card, user = self.get_card_user()
-        card.memorize(user, 4)
-        six_days = str(date.today() + timedelta(days=6))
-        one_day = str(date.today() + timedelta(days=1))
+        card_review_data = card.memorize(user, 4)
+        with time_machine.travel(card_review_data.review_date):
+            six_days = str(date.today() + timedelta(days=6))
+            one_day = str(date.today() + timedelta(days=1))
+            response = self.get_response_for_card_with_userdata(card, user)
+
         expected_projected_data = {
             "0": dict(easiness=1.7000000000000002,
                       interval=1,
@@ -287,12 +293,22 @@ class UserDataCardsTests(FakeUsersCards, HelpersMixin):
                       reviews=2,
                       review_date=six_days)
         }
-        response = self.get_response_for_card_with_userdata(card, user)
         received_projected_review_data = response.json(
         )["projected_review_data"]
 
         self.assertDictEqual(expected_projected_data,
                              received_projected_review_data)
+
+    def test_no_projected_review_data(self):
+        """Serializer shouldn't return any reviews simulation for date earlier
+        than review due date.
+        """
+        card, user = self.get_card_user()
+        card.memorize(user, 4)
+        response = self.get_response_for_card_with_userdata(
+            card, user)
+
+        self.assertFalse(response.json()["projected_review_data"])
 
     def test_user_memorized_card_single_category(self):
         card, user = self.get_card_user()
@@ -462,7 +478,7 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_content["count"], half_of_cards)
         self.assertEqual(response_content["results"][0]["body"],
-                         cards[0].body)
+                         memorized_cards[0].card.body)
 
     def test_list_of_memorized_cards_no_user(self):
         self.make_fake_cards(2)
@@ -541,3 +557,72 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         self.assertEqual(sum([number_of_memorized_cards,
                               number_of_not_memorized_cards]),
                          NUMBER_OF_CARDS)
+
+
+class CramTests(TestCase, HelpersMixin):
+    def test_adding_to_cram_success(self):
+        card_1, card_2 = self.make_fake_cards(2)
+        user_1, user_2 = self.make_fake_users(2)
+        card_1.memorize(user_1, 5)
+        card_2.memorize(user_2, 5)
+        response = self.client.put(
+            reverse("cram_queue", kwargs={"user_pk": user_1.id,
+                                          "card_pk": card_1.id}))
+        response_card_body = response.json()["body"]
+
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(user_1.crammed_cards), 1)
+        self.assertEqual(card_1.body, response_card_body)
+
+    def test_adding_to_cram_fail(self):
+        card = self.make_fake_cards(1)[0]
+        user = self.make_fake_users(1)[0]
+        response = self.client.put(
+            reverse("cram_queue", kwargs={"user_pk": user.id,
+                                          "card_pk": card.id}))
+        response_json = response.json()
+        error_detail = f"The card id {card.id} is not " \
+                       f"memorized by user id {user.id}."
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_json["status_code"], 400)
+        self.assertEqual(response_json["detail"], error_detail)
+
+    def test_retrieving_cram_queue(self):
+        NUMBER_OF_CARDS = 20
+        cards = self.make_fake_cards(NUMBER_OF_CARDS)
+        user = self.make_fake_users(1)[0]
+        for card in cards:
+            card.memorize(user, 3)
+        response = self.client.get(
+            reverse("get_cram_queue", kwargs={"user_pk": user.id}))
+        response_json = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_json["count"], NUMBER_OF_CARDS)
+
+    def test_removing_card_from_cram_400(self):
+        """Test response to attempt to delete not memorized card.
+        """
+        card = self.make_fake_cards(1)[0]
+        user = self.make_fake_users(1)[0]
+        response = self.client.delete(
+            reverse("cram_queue", kwargs={"user_pk": user.id,
+                                          "card_pk": card.id}))
+        response_json = response.json()
+        error_detail = f"The card id {card.id} is not " \
+                       f"memorized by user id {user.id}."
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_json["status_code"], 400)
+        self.assertEqual(response_json["detail"], error_detail)
+
+    def test_removing_card_from_cram(self):
+        card = self.make_fake_cards(1)[0]
+        user = self.make_fake_users(1)[0]
+        card.memorize(user)
+        response = self.client.delete(
+            reverse("cram_queue", kwargs={"user_pk": user.id,
+                                          "card_pk": card.id}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

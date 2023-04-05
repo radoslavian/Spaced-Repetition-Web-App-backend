@@ -4,14 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Wrote routes for lists of cards (memorized and not yet memorized) for app users.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0009_card_created_on.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added default pagination for endpoints.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0010_reviewdatasm2_crammed.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0011_alter_reviewdatasm2_introduced_on.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0003_remove_user_cram_queue.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0004_rename_cards_review_data_user_memorized_cards.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/wsra/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,16 +50,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "DefaultHtmlFileTemplate": "HTML File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/api/utils/helpers.py",
-    "settings.editor.selected.configurable": "preferences.keymap"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/api/utils/helpers.py&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/backend/api" />
@@ -157,10 +163,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python tests.Python tests for tests.ListOfCardsForUser.test_all_cards" />
-        <item itemvalue="Python tests.Python tests for cards.tests.CardCommentsTests" />
-        <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests" />
-        <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" />
         <item itemvalue="Python tests.Python tests for cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table" />
+        <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" />
+        <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests" />
+        <item itemvalue="Python tests.Python tests for cards.tests.CardCommentsTests" />
       </list>
     </recent_temporary>
   </component>
@@ -453,7 +459,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680624520463</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="Added default pagination for endpoints.">
+      <created>1680632431936</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1680632431936</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -469,7 +482,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Added database model: for comments (CardComment) and for queueing cards for cramming." />
     <MESSAGE value="Working on ReviewDataSM2, memorizing and reviewing cards." />
     <MESSAGE value="Working on ReviewDataSM2 - reviewing cards." />
     <MESSAGE value="Working on card reviews: test_third_review and Card.review print additional information for testing purposes." />
@@ -494,6 +506,7 @@
     <MESSAGE value="Code refactoring." />
     <MESSAGE value="Wrote routes for lists of cards (memorized and not yet memorized) for logged-in users." />
     <MESSAGE value="Wrote routes for lists of cards (memorized and not yet memorized) for app users." />
-    <option name="LAST_COMMIT_MESSAGE" value="Wrote routes for lists of cards (memorized and not yet memorized) for app users." />
+    <MESSAGE value="Added default pagination for endpoints." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added default pagination for endpoints." />
   </component>
 </project>

@@ -399,37 +399,34 @@ class CategoryJoinsTests(TestCase):
                          user.username)
 
 
-class CramQueueTests(FakeUsersCards):
-    def test_add_card_to_cram(self):
-        user_1, user_2 = self.get_users()
-        card_1, card_2, card_3 = self.get_cards()
+class CramQueueTests(TestCase, HelpersMixin):
+    def test_cram(self):
+        user = self.make_fake_users(1)[0]
+        # TODO: split into several tests
+        # TODO: following should go into setUp
+        # memorizing adds cards to cram
+        card_1, card_2, card_3 = self.make_fake_cards(3)
+        for card in card_1, card_2, card_3:
+            card.memorize(user, 3)
 
-        user_1.cram_queue.add(card_1, card_2)
-        user_2.cram_queue.add(card_3, card_2)
+        self.assertEqual(len(user.crammed_cards), 3)
 
-        self.assertEqual(card_1.cramming_users.count(), 1)
-        self.assertEqual(card_2.cramming_users.count(), 2)
+        # removing from cram - status change
+        card_review_data = ReviewDataSM2.objects.get(user=user, card=card_1)
+        self.assertTrue(card_review_data.crammed)
+        status = card_review_data.remove_from_cram()
+        self.assertFalse(status)
+        self.assertEqual(len(user.crammed_cards), 2)
+        self.assertFalse(card_review_data.crammed)
 
-        # check users of the 2nd card:
-        card_2_cramming_users = card_2.cramming_users.all()
-        card_2_cramming_users_names = [user.username
-                                       for user in card_2_cramming_users]
-        self.assertTrue(user_1.username in card_2_cramming_users_names)
-        self.assertTrue(user_2.username in card_2_cramming_users_names)
+        # removing from cram - no status change
+        status = card_review_data.remove_from_cram()
+        self.assertFalse(status)  # card wasn't crammed
 
-    def test_remove_card_from_cram(self):
-        user_1, user_2 = self.get_users()
-        card_1, card_2, card_3 = self.get_cards()
-
-        user_1.cram_queue.add(card_1, card_2)
-        user_2.cram_queue.add(card_3, card_2)
-
-        # switch set([]) to clear()
-        card_3.cramming_users.set([])
-        card_3.save()
-
-        self.assertEqual(user_2.cram_queue.count(), 1)
-        self.assertEqual(user_2.cram_queue.first().front, card_2.front)
+        # manually adding to cram
+        status = card_review_data.add_to_cram()
+        self.assertTrue(status)
+        self.assertTrue(card_review_data.crammed)
 
 
 class CardCommentsTests(FakeUsersCards):
@@ -533,11 +530,11 @@ class CardReviewsTests(FakeUsersCards):
 
         self.assertEqual(card.reviewing_users.get(id=user1.id).username,
                          user1.username)
-        self.assertEqual(user2.cards_review_data.get(id=card.id).front,
+        self.assertEqual(user2.memorized_cards.get(id=card.id).front,
                          card.front)
         self.assertEqual(card.reviewing_users.count(), 2)
-        self.assertEqual(user1.cards_review_data.count(), 1)
-        self.assertEqual(user1.cards_review_data.first().front,
+        self.assertEqual(user1.memorized_cards.count(), 1)
+        self.assertEqual(user1.memorized_cards.first().front,
                          card.front)
 
     def test_deleting_reviews_data(self):
@@ -561,7 +558,8 @@ class CardReviewsTests(FakeUsersCards):
         review_data = self.get_review_data()
         review_data.save()
 
-        self.assertEqual(review_data.introduced_on, today())
+        self.assertTrue(type(review_data.introduced_on) is datetime.datetime)
+        self.assertEqual(review_data.introduced_on.date(), today())
 
     def test_last_reviewed_default(self):
         card, user = self.get_card_user()
@@ -669,7 +667,7 @@ class CardReviewsTests(FakeUsersCards):
 
             second_review = card.review(user=user, grade=3)
             second_review_obtained_data = {
-                "introduced_on": second_review.introduced_on,
+                "introduced_on": second_review.introduced_on.date(),
                 "easiness": second_review.easiness_factor,
                 "last_reviewed": second_review.last_reviewed,
                 "grade": second_review.grade,
@@ -1084,5 +1082,3 @@ class CardCategories(FakeUsersCards, HelpersMixin):
         card.categories.add(category)
         card.save()
         return card, category
-
-

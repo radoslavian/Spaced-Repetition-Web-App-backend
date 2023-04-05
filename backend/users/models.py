@@ -11,20 +11,25 @@ class User(AbstractUser):
         default=uuid.uuid4,
         editable=False
     )
-    # selected_categories, rel_name=category_users
+
+    def _get_crammed_cards(self):
+        return ReviewDataSM2.objects.filter(user=self, crammed=True)\
+            .order_by("introduced_on")
+
+    crammed_cards = property(fget=_get_crammed_cards)
+    memorized_cards = models.ManyToManyField(
+        "cards.Card",
+        through="cards.ReviewDataSM2",
+        related_name="reviewing_users")
     selected_categories = models.ManyToManyField(
         "cards.Category",
         related_name="category_users")
     ignored_cards = models.ManyToManyField(
         "cards.Card",
         related_name="ignoring_users")
-    cram_queue = models.ManyToManyField(
-        "cards.Card",
-        related_name="cramming_users")
     commented_cards = models.ManyToManyField(
         "cards.Card",
         through="cards.CardComment")
-    cards_review_data = models.ManyToManyField(
-        "cards.Card",
-        through="cards.ReviewDataSM2",
-        related_name="reviewing_users")
+
+
+from cards.models import ReviewDataSM2

@@ -1,8 +1,6 @@
 import datetime
 import uuid
 from datetime import date
-
-import django
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CheckConstraint, Q, F
@@ -32,9 +30,6 @@ class CardTemplate(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
-
-    # body will eventually contain template for rendering
-    # with fields for question and answer
     body = models.TextField()
 
     def __str__(self):
@@ -69,10 +64,23 @@ class ReviewDataSM2(models.Model):
     reviews = models.IntegerField(default=1)
     total_reviews = models.IntegerField(default=1)
     last_reviewed = models.DateField(auto_now=True)
-    introduced_on = models.DateField(auto_now_add=True)
+    introduced_on = models.DateTimeField(auto_now_add=True)
     review_date = models.DateField(default=today)
     grade = models.IntegerField(default=4)
     easiness_factor = models.FloatField(default=2.5)
+    crammed = models.BooleanField(default=False)
+
+    def _set_crammed(self, status: bool = False):
+        if self.crammed != status:
+            self.crammed = status
+            self.save()
+        return self.crammed
+
+    def add_to_cram(self):
+        return self._set_crammed(True)
+
+    def remove_from_cram(self):
+        return self._set_crammed(False)
 
     def _range_of_days(self, grade):
         """Returns range of days within which a review can be assigned.
@@ -144,7 +152,7 @@ class Card(models.Model):
         primary_key=True,
         default=uuid.uuid4,
         editable=False)
-    # auto_now - automatically sets the field to now each time
+    # auto_now - automatically sets the field to "now" each time
     # the object is saved
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
@@ -164,6 +172,9 @@ class Card(models.Model):
 
     @staticmethod
     def _make_images_getter(side: str):
+        """Returns function for getting front or back images from
+        the properties.
+        """
         if side not in ("front", "back",):
             raise ValueError("The 'side' parameter must be either 'front' "
                              "or 'back'.")
@@ -195,6 +206,10 @@ class Card(models.Model):
         """Generate initial review data for a particular user and (this) card
         and put it into ReviewDataSM2.
         """
+        if grade < 4:
+            crammed = True
+        else:
+            crammed = False
         validate_grade(grade)
         first_review = SM2.first_review(grade)
         review_data = ReviewDataSM2(
@@ -203,6 +218,7 @@ class Card(models.Model):
             easiness_factor=first_review.easiness,
             computed_interval=first_review.interval,
             reviews=first_review.repetitions,
+            crammed=crammed,
             grade=grade)
         optimal_date = review_data.schedule_date_for_review(
             review_date=first_review.review_date, days_range=3)

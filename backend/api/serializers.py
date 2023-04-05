@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 from cards.models import Card, Image, CardImage, ReviewDataSM2, Category
 
@@ -35,7 +37,10 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_projected_review_data(obj):
-        return obj.card.simulate_reviews(user=obj.user)
+        """Returns reviews simulation only for currently scheduled cards.
+        """
+        if obj.current_real_interval > 0:
+            return obj.card.simulate_reviews(user=obj.user)
 
     @staticmethod
     def get_body(obj):

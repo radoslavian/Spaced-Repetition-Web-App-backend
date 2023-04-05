@@ -11,6 +11,13 @@ from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
 from .utils.helpers import get_user_or_404
 
 
+def get_card_user_or_404(card_pk, user_pk):
+    UserModel = get_user_model()
+    card = get_object_or_404(Card, id=card_pk)
+    user = get_object_or_404(UserModel, id=user_pk)
+    return card, user
+
+
 # Create your views here.
 
 class ListCardsForBackendView(ListAPIView):
@@ -24,12 +31,6 @@ class SingleCardForBackendView(RetrieveAPIView):
 
 
 class SingleCardForUser(APIView):
-    @staticmethod
-    def _get_user_card(card_pk, user_pk):
-        UserModel = get_user_model()
-        card = get_object_or_404(Card, id=card_pk)
-        user = get_object_or_404(UserModel, id=user_pk)
-        return card, user
 
     @staticmethod
     def _get_review_data(card, user):
@@ -38,7 +39,7 @@ class SingleCardForUser(APIView):
         return review_data
 
     def get(self, request, card_pk, user_pk):
-        card, user = self._get_user_card(card_pk, user_pk)
+        card, user = get_card_user_or_404(card_pk, user_pk)
         review_data = self._get_review_data(card, user)
         if not review_data:
             serialized_data = CardUserNoReviewDataSerializer(card)
@@ -51,7 +52,7 @@ class SingleCardForUser(APIView):
     def put(self, request, card_pk, user_pk, grade=4):
         """Putting data to the user/card url means memorizing a card.
         """
-        card, user = self._get_user_card(card_pk, user_pk)
+        card, user = get_card_user_or_404(card_pk, user_pk)
         try:
             review_data = card.memorize(user, grade=grade)
         except CardReviewDataExists:
@@ -71,10 +72,11 @@ class SingleCardForUser(APIView):
     def post(self, request, card_pk, user_pk, grade):
         """Posting grade to user/card ReviewData means reviewing it.
         """
-        card, user = self._get_user_card(card_pk, user_pk)
-        review_data = get_object_or_404(ReviewDataSM2, user=user, card=card)
-        review_data.review(grade)
-        serialized_data = CardReviewDataSerializer(review_data).data
+        card, user = get_card_user_or_404(card_pk, user_pk)
+        card_review_data = get_object_or_404(
+            ReviewDataSM2, user=user, card=card)
+        card_review_data.review(grade)
+        serialized_data = CardReviewDataSerializer(card_review_data).data
         return Response(serialized_data)
 
 
@@ -83,7 +85,7 @@ class ListMemorizedCards(ListAPIView):
 
     def get_queryset(self):
         user = get_user_or_404(self.kwargs["user_pk"])
-        return ReviewDataSM2.objects.filter(user=user)\
+        return ReviewDataSM2.objects.filter(user=user) \
             .order_by("introduced_on")
 
 
@@ -94,5 +96,46 @@ class ListUserNotMemorizedCards(ListAPIView):
 
     def get_queryset(self):
         user = get_user_or_404(self.kwargs["user_pk"])
-        return Card.objects.exclude(reviewing_users=user)\
+        return Card.objects.exclude(reviewing_users=user) \
             .order_by("created_on")
+
+
+class CramQueue(ListAPIView):
+    serializer_class = CardReviewDataSerializer
+
+    def get_queryset(self):
+        user = get_user_or_404(self.kwargs["user_pk"])
+        return user.crammed_cards
+
+    def put(self, request, card_pk, user_pk):
+        card, user = get_card_user_or_404(card_pk, user_pk)
+        review_data = ReviewDataSM2.objects.filter(
+            user=user, card=card).first()
+        if not review_data:
+            error_message = f"The card id {card.id} is not " \
+                            f"memorized by user id {user.id}."
+            response = Response({
+                "status_code": 400,
+                "detail": error_message
+            }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            review_data.add_to_cram()
+            serialized_data = CardReviewDataSerializer(review_data).data
+            response = Response(serialized_data)
+        return response
+
+    def delete(self, request, card_pk, user_pk):
+        card, user = get_card_user_or_404(card_pk, user_pk)
+        review_data = ReviewDataSM2.objects.filter(
+            user=user, card=card).first()
+        if not review_data:
+            error_message = f"The card id {card.id} is not " \
+                            f"memorized by user id {user.id}."
+            response = Response({
+                "status_code": 400,
+                "detail": error_message
+            }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            review_data.remove_from_cram()
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+        return response
