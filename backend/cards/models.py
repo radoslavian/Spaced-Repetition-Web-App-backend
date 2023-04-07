@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
 from .apps import CardsConfig
-from .utils.exceptions import CardReviewDataExists
+from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue
 from .utils.helpers import today, validate_grade
 from .utils.supermemo2 import SM2
 
@@ -114,6 +114,8 @@ class ReviewDataSM2(models.Model):
         """Update record with current review data.
         """
         validate_grade(grade)
+        if self.review_date > datetime.datetime.today().date():
+            raise ReviewBeforeDue
         new_review = self.new_review(grade)
         days_range = self._range_of_days(grade)
         optimal_review_date = self.schedule_date_for_review(
@@ -302,7 +304,8 @@ class Category(AL_Node):
         related_name="sub_categories",
         on_delete=models.PROTECT,
         db_index=True,
-        null=True
+        null=True,
+        blank=True
     )
     node_order_by = ["name"]
 

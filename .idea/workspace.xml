@@ -4,9 +4,36 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added route for getting outstanding cards.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Renamed tests from commited file.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/forms.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/migrations/0001_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0002_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/migrations/0002_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0003_reviewdatasm2_all_repetitions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0004_cardimage_created.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0005_rename_all_repetitions_reviewdatasm2_total_reviews.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0006_rename_template_cardtemplate.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0007_rename_repetitions_reviewdatasm2_reviews.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0008_card_categories.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0009_card_created_on.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0010_reviewdatasm2_crammed.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/migrations/0011_alter_reviewdatasm2_introduced_on.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/utils/exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/utils/exceptions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/migrations/0001_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0002_remove_user_skipped_categories_and_more.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0003_remove_user_cram_queue.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/migrations/0004_rename_cards_review_data_user_memorized_cards.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/wsra/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -477,7 +504,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680720890539</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="Renamed tests from commited file.">
+      <created>1680724730711</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1680724730711</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -493,7 +527,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Working on card reviews: test_third_review and Card.review print additional information for testing purposes." />
     <MESSAGE value="Working on Card and relationships: implementing methods for memorizing and reviewing cards." />
     <MESSAGE value="Added memorized cards review dates redistribution." />
     <MESSAGE value="Added models for images and sounds." />
@@ -518,6 +551,7 @@
     <MESSAGE value="Added default pagination for endpoints." />
     <MESSAGE value="Implemented the cram queue (with API endpoints).&#10;CardReviewDataSerializer returns projected reviews only for due cards." />
     <MESSAGE value="Added route for getting outstanding cards." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added route for getting outstanding cards." />
+    <MESSAGE value="Renamed tests from commited file." />
+    <option name="LAST_COMMIT_MESSAGE" value="Renamed tests from commited file." />
   </component>
 </project>

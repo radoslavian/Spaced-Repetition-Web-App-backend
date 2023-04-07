@@ -156,7 +156,7 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
                             categories_from_response[1]["name"])
 
 
-class UserDataCardsTests(FakeUsersCards, HelpersMixin):
+class UserCardsTests(FakeUsersCards, HelpersMixin):
     """Tests for cards with user data and rendered content.
     """
 
@@ -362,6 +362,13 @@ class UserDataCardsTests(FakeUsersCards, HelpersMixin):
         self.assertNotEqual(categories_from_response[0],
                             categories_from_response[1])
 
+    def test_user_not_memorized_card_id(self):
+        card, user = self.get_card_user()
+        response = self.get_response_for_card_with_userdata(card, user)
+        card_id = response.json()["id"]
+
+        self.assertEqual(str(card.id), card_id)
+
 
 class CardMemorization(FakeUsersCards):
     def test_memorize_card_no_card(self):
@@ -447,15 +454,34 @@ class ReviewingCard(FakeUsersCards):
 
     def test_grade_success(self):
         card, user = self.get_card_user()
-        card.memorize(user)
-        response = self.client.post(
-            reverse("memorize_review_card",
-                    kwargs={"card_pk": card.id, "user_pk": user.id,
-                            "grade": 3}))
+        review_card_data = card.memorize(user)
+        with time_machine.travel(review_card_data.review_date):
+            response = self.client.post(
+                reverse("memorize_review_card",
+                        kwargs={"card_pk": card.id, "user_pk": user.id,
+                                "grade": 3}))
         response_json = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json["reviews"], 2)
+
+    def test_grading_before_review_date(self):
+        """Test response to attempt to review card before it's review date.
+        """
+        card, user = self.get_card_user()
+        review_card_data = card.memorize(user)
+        response = self.client.post(
+            reverse("memorize_review_card",
+                    kwargs={"card_pk": card.id, "user_pk": user.id,
+                            "grade": 3}))
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["status_code"],
+                         status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"],
+                         "Reviewing before card's due review date "
+                         "is forbidden.")
+
 
 
 class ListOfCardsForUser(TestCase, HelpersMixin):
@@ -651,7 +677,8 @@ class CramTests(TestCase, HelpersMixin):
         self.assertEqual(response_json["count"], NUMBER_OF_CARDS)
 
     def test_removing_card_from_cram_400(self):
-        """Test response to attempt to delete not memorized card.
+        """Test response to attempt to delete not memorized card
+        with user-data.
         """
         card = self.make_fake_cards(1)[0]
         user = self.make_fake_users(1)[0]
@@ -675,3 +702,16 @@ class CramTests(TestCase, HelpersMixin):
                                           "card_pk": card.id}))
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_post_not_allowed(self):
+        """Post method shouldn't be allowed for cram queue route.
+        """
+        card = self.make_fake_cards(1)[0]
+        user = self.make_fake_users(1)[0]
+        card.memorize(user)
+        response = self.client.post(
+            reverse("cram_queue", kwargs={"user_pk": user.id,
+                                          "card_pk": card.id}))
+
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)

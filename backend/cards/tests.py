@@ -11,7 +11,7 @@ from .models import (Card, CardTemplate, Category, CardComment, ReviewDataSM2,
                      Image, CardImage)
 from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .utils.exceptions import CardReviewDataExists
+from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue
 from .utils.helpers import today
 import datetime
 
@@ -900,8 +900,11 @@ class CardReviewsTests(FakeUsersCards):
 
         self.assertEqual(review_data.lapses, 0)
         for _ in range(number_of_reviews):
-            card.review(user, grade)
-        review_data = card.review(user, 1)
+            with time_machine.travel(review_data.review_date):
+                review_data = card.review(user, grade)
+
+        with time_machine.travel(review_data.review_date):
+            review_data = card.review(user, 1)
         self.assertEqual(review_data.lapses, 1)
 
     def test_total_reviews(self):
@@ -912,11 +915,23 @@ class CardReviewsTests(FakeUsersCards):
         review_data = card.memorize(user, 3)
         self.assertEqual(review_data.total_reviews, 1)
 
-        review_data = card.review(user, 3)
+        with time_machine.travel(review_data.review_date):
+            review_data = card.review(user, 3)
         self.assertEqual(review_data.total_reviews, 2)
 
-        review_data = card.review(user, 1)
+        with time_machine.travel(review_data.review_date):
+            review_data = card.review(user, 1)
         self.assertEqual(review_data.total_reviews, 3)
+
+    def test_reviewing_before_due_date(self):
+        """Attempt to review cards before it's due date should raise an error.
+        """
+        card, user = self.get_card_user()
+        card_userdata = card.memorize(user, 5)
+        with time_machine.travel(card_userdata.review_date):
+            card_userdata.review(5)
+
+        self.assertRaises(ReviewBeforeDue, lambda: card_userdata.review(5))
 
 
 class CardsImagesTests(FakeUsersCards, HelpersMixin):

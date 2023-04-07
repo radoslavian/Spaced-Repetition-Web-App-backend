@@ -1,5 +1,4 @@
 import datetime
-
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -11,6 +10,7 @@ from cards.utils.exceptions import CardReviewDataExists
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer)
 from .utils.helpers import get_user_or_404
+from cards.utils.exceptions import ReviewBeforeDue
 
 
 def get_card_user_or_404(card_pk, user_pk):
@@ -33,7 +33,8 @@ class SingleCardForBackendView(RetrieveAPIView):
 
 
 class SingleCardForUser(APIView):
-
+    """Returns single card with user data.
+    """
     @staticmethod
     def _get_review_data(card, user):
         review_data = ReviewDataSM2.objects.filter(card=card, user=user) \
@@ -77,9 +78,17 @@ class SingleCardForUser(APIView):
         card, user = get_card_user_or_404(card_pk, user_pk)
         card_review_data = get_object_or_404(
             ReviewDataSM2, user=user, card=card)
-        card_review_data.review(grade)
-        serialized_data = CardReviewDataSerializer(card_review_data).data
-        return Response(serialized_data)
+        try:
+            card_review_data.review(grade)
+        except ReviewBeforeDue as e:
+            response = Response({
+                "status_code": status.HTTP_400_BAD_REQUEST,
+                "detail": e.message
+            }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            response = Response(
+                CardReviewDataSerializer(card_review_data).data)
+        return response
 
 
 class ListMemorizedCards(ListAPIView):

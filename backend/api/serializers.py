@@ -37,7 +37,7 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_projected_review_data(obj):
-        """Returns reviews simulation only for currently scheduled cards.
+        """Returns reviews simulation for currently scheduled cards only.
         """
         if obj.current_real_interval > 0:
             return obj.card.simulate_reviews(user=obj.user)
@@ -60,5 +60,5 @@ class CardUserNoReviewDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Card
-        fields = ("body", "categories", )
-        read_only_fields = ("body", "categories",)
+        fields = ("id", "body", "categories",)
+        read_only_fields = ("id", "body", "categories",)
