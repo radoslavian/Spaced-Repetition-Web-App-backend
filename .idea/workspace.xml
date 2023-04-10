@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added pages into admin for cards adding/updating (for the purpose of hands-on testing).">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Turned on DRF authentication.&#10;Refactored api.tests.&#10;Added endpoint for dropping whole cram queue for a particular user.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/utils/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/utils/helpers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/wsra/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/settings.py" afterDir="false" />
     </list>
@@ -494,7 +495,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680864969176</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="Turned on DRF authentication.&#10;Refactored api.tests.&#10;Added endpoint for dropping whole cram queue for a particular user.">
+      <created>1681141914910</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1681141914910</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -510,7 +518,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Added memorized cards review dates redistribution." />
     <MESSAGE value="Added models for images and sounds." />
     <MESSAGE value="Grades for Card.memorize and Card.review are now validated." />
     <MESSAGE value="Added Card.simulate_reviews - for review simulation." />
@@ -535,6 +542,7 @@
     <MESSAGE value="Added route for getting outstanding cards." />
     <MESSAGE value="Renamed tests from commited file." />
     <MESSAGE value="Added pages into admin for cards adding/updating (for the purpose of hands-on testing)." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added pages into admin for cards adding/updating (for the purpose of hands-on testing)." />
+    <MESSAGE value="Turned on DRF authentication.&#10;Refactored api.tests.&#10;Added endpoint for dropping whole cram queue for a particular user." />
+    <option name="LAST_COMMIT_MESSAGE" value="Turned on DRF authentication.&#10;Refactored api.tests.&#10;Added endpoint for dropping whole cram queue for a particular user." />
   </component>
 </project>

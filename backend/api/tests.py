@@ -1,7 +1,6 @@
 import json
 import uuid
 from math import ceil
-
 import time_machine
 from django.test import TestCase
 from datetime import date, timedelta
@@ -10,6 +9,7 @@ from random import choice, shuffle
 from cards.models import Card, CardImage, CardTemplate, Category
 from faker import Faker
 from rest_framework import status
+from .utils.helpers import add_url_params
 
 if __name__ == "__main__" and __package__ is None:
     # overcoming sibling module imports problem
@@ -331,8 +331,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.categories.add(category)
         card.save()
         response = self.client.get(
-                reverse("card_for_user",
-                        kwargs={"card_pk": card.id}))
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
         category_name_from_response = categories_from_response[0]["name"]
 
@@ -347,8 +347,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.categories.add(category_1, category_2)
         card.save()
         response = self.client.get(
-                reverse("card_for_user",
-                        kwargs={"card_pk": card.id}))
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
@@ -361,8 +361,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.categories.add(category)
         card.save()
         response = self.client.get(
-                reverse("card_for_user",
-                        kwargs={"card_pk": card.id}))
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
         category_name_from_response = response.json()["categories"][0]["name"]
 
@@ -376,8 +376,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.categories.add(category_1, category_2)
         card.save()
         response = self.client.get(
-                reverse("card_for_user",
-                        kwargs={"card_pk": card.id}))
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
@@ -387,8 +387,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
     def test_user_not_memorized_card_id(self):
         card = self.make_fake_cards(1)[0]
         response = self.client.get(
-                reverse("card_for_user",
-                        kwargs={"card_pk": card.id}))
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id}))
         card_id = response.json()["id"]
 
         self.assertEqual(str(card.id), card_id)
@@ -524,7 +524,7 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_list_of_not_memorized_cards_no_user(self):
+    def test_list_of_queued_cards_no_user(self):
         client = APIClient()
         self.make_fake_cards(2)
         response = client.get(reverse("queued_cards"))
@@ -738,3 +738,99 @@ class CramTests(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(all([card.crammed for card in cards_userdata]))
         self.assertTrue(all([card.crammed for card in other_cards_userdata]))
+
+
+class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
+    """Test DRF's searching-filtering functionality for memorized cards.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.cards = self.make_fake_cards(5)
+        self.selected_card = choice(self.cards)
+        for card in self.cards:
+            card.memorize(self.user)
+
+    def test_card_search_front(self):
+        url = add_url_params(reverse('list_of_memorized_cards_for_user'),
+                             {"search": self.selected_card.front})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(response_json["results"][0]["card"],
+                         str(self.selected_card.id))
+
+    def test_card_back_search(self):
+        url = add_url_params(reverse('list_of_memorized_cards_for_user'),
+                             {"search": self.selected_card.back})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_json["count"], 1)
+        self.assertEqual(response_json["results"][0]["card"],
+                         str(self.selected_card.id))
+
+    def test_card_template_search(self):
+        template_text = fake.text(20)
+        template = CardTemplate(title=fake.text(10),
+                                description=fake.text(10),
+                                body=f"{template_text}")
+        template.save()
+        self.selected_card.template = template
+        self.selected_card.save()
+        url = add_url_params(reverse('list_of_memorized_cards_for_user'),
+                             {"search": template_text})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["count"], 1)
+        self.assertEqual(response_json["results"][0]["card"],
+                         str(self.selected_card.id))
+
+
+class TestFilterQueuedCards(ApiTestHelpersMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.cards = self.make_fake_cards(5)
+        self.selected_card = choice(self.cards)
+
+    def test_card_front(self):
+        url = add_url_params(reverse("queued_cards"),
+                             {"search": self.selected_card.front})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["count"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.selected_card.id))
+
+    def test_card_back(self):
+        url = add_url_params(reverse("queued_cards"),
+                             {"search": self.selected_card.back})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["count"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.selected_card.id))
+
+    def test_card_template(self):
+        template_text = fake.text(20)
+        template = CardTemplate(title=fake.text(10),
+                                description=fake.text(10),
+                                body=f"{template_text}")
+        template.save()
+        self.selected_card.template = template
+        self.selected_card.save()
+
+        url = add_url_params(reverse("queued_cards"),
+                             {"search": template_text})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["count"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.selected_card.id))

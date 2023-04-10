@@ -1,7 +1,6 @@
 import datetime
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,15 +8,7 @@ from cards.models import Card, ReviewDataSM2
 from cards.utils.exceptions import CardReviewDataExists
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer)
-from .utils.helpers import get_user_or_404
 from cards.utils.exceptions import ReviewBeforeDue
-
-
-def get_card_user_or_404(card_pk, user_pk):
-    UserModel = get_user_model()
-    card = get_object_or_404(Card, id=card_pk)
-    user = get_object_or_404(UserModel, id=user_pk)
-    return card, user
 
 
 # Create your views here.
@@ -96,6 +87,8 @@ class SingleCardForUser(APIView):
 
 class ListMemorizedCards(ListAPIView):
     serializer_class = CardReviewDataSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["card__front", "card__back", "card__template__body"]
 
     def get_queryset(self):
         return ReviewDataSM2.objects.filter(user=self.request.user) \
@@ -112,9 +105,11 @@ class ListOutstandingCards(ListAPIView):
         ).order_by("introduced_on")
 
 
-class ListUserNotMemorizedCards(ListAPIView):
+class ListQueuedCards(ListAPIView):
     """list of the cards that are not yet memorized by a given user.
     """
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["front", "back", "template__body"]
     serializer_class = CardUserNoReviewDataSerializer
 
     def get_queryset(self):

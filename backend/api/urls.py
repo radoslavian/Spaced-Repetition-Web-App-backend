@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (SingleCardForBackendView, ListCardsForBackendView,
                     SingleCardForUser, ListMemorizedCards,
-                    ListUserNotMemorizedCards, CramQueue,
+                    ListQueuedCards, CramQueue,
                     ListOutstandingCards, CramSingleCard)
 
 urlpatterns = [
@@ -35,12 +35,11 @@ urlpatterns = [
 
     # queued cards
     # TODO: memorizing:
-    # POST "users/<uuid:user_pk>/cards/queued/<card_id>"
+    # PUT "cards/queued/<card_id>"
     # body: { "grade": 4 }
-    # grade should go into request body; request using POST
-    # rather than PUT
+    # grade should go into request body
     path("cards/queued",
-         ListUserNotMemorizedCards.as_view(),
+         ListQueuedCards.as_view(),
          name="queued_cards"),
 
     # cram queue
