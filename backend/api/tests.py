@@ -19,6 +19,7 @@ if __name__ == "__main__" and __package__ is None:
 
     path.append(dirname(path[0]))
 
+from rest_framework.test import APIClient
 from django.urls import reverse
 from cards.tests import FakeUsersCards, HelpersMixin
 
@@ -33,9 +34,36 @@ def convert_zulu_timestamp(timestamp: str):
         timestamp.replace("Z", "+00:00").replace("T", " "))
 
 
-class TestBackendCards(FakeUsersCards, HelpersMixin):
-    def test_list_of_cards(self):  # turned off temporarily
-        """List of cards with no user data.
+class ApiTestHelpersMixin(HelpersMixin):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = self.make_fake_users(1)[0]
+        self.client.force_authenticate(user=self.user)
+
+
+class ApiTestFakeUsersCardsMixin(ApiTestHelpersMixin, FakeUsersCards):
+    def setUp(self):
+        FakeUsersCards.setUp(self)
+        ApiTestHelpersMixin.setUp(self)
+
+
+class TestBackendCards(ApiTestFakeUsersCardsMixin):
+    def test_list_of_cards_staff_forbidden(self):
+        """Test if route is forbidden for unauthorized access.
+        """
+        # client with no authenticated user:
+        client = APIClient()
+        response = client.get(reverse("list_cards"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_list_of_cards_staff_response_code(self):
+        """Test response code for client with authenticated user.
+        """
+        response = self.client.get(reverse("list_cards"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_list_of_cards_staff(self):
+        """List of cards with no user data for staff viewing/editing.
         """
         cards = self.get_cards()
         number_of_cards = len(cards)
@@ -60,7 +88,6 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
             "last_modified": convert_zulu_timestamp(
                 selected_card["last_modified"])
         })
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["count"], number_of_cards)
         self.assertEqual(len(selected_card.keys()),
                          number_of_serialized_fields)
@@ -156,48 +183,36 @@ class TestBackendCards(FakeUsersCards, HelpersMixin):
                             categories_from_response[1]["name"])
 
 
-class UserCardsTests(FakeUsersCards, HelpersMixin):
+class UserCardsTests(ApiTestFakeUsersCardsMixin):
     """Tests for cards with user data and rendered content.
     """
 
     def test_request_no_user(self):
-        """Test response for a card with non-existent user data.
+        """Test an unauthorized response for a card.
         """
-        fake_user_id = uuid.uuid4()
-        fake_card_id = uuid.uuid4()
-        response = self.client.get(
+        client = APIClient()
+        fake_card = self.make_fake_cards(1)[0]
+        response = client.get(
             reverse("card_for_user",
-                    kwargs={"card_pk": fake_card_id,
-                            "user_pk": fake_user_id}))
-        self.assertEqual(response.status_code, 404)
+                    kwargs={"card_pk": fake_card.id}))
+        self.assertEqual(response.status_code, 403)
 
     def test_request_non_existing_card(self):
-        """Test response for a valid user.id but for a non-existent card.
+        """Test response to request for a non-existent card.
         """
-        user, _ = self.get_users()
         fake_card_id = uuid.uuid4()
         response = self.client.get(
             reverse("card_for_user",
-                    kwargs={"card_pk": fake_card_id,
-                            "user_pk": user.id}))
-        self.assertEqual(response.status_code, 404)
-
-    def test_request_for_invalid_data(self):
-        """Test request where both user and card ids are invalid.
-        """
-        fake_user_id = uuid.uuid4()
-        fake_card_id = uuid.uuid4()
-        response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": fake_card_id,
-                            "user_pk": fake_user_id}))
+                    kwargs={"card_pk": fake_card_id}))
         self.assertEqual(response.status_code, 404)
 
     def test_card_body_fallback_template(self):
         """Test user card rendering using fallback template.
         """
-        card, user = self.get_card_user()
-        response = self.get_response_for_card_with_userdata(card, user)
+        card = self.make_fake_cards(1)[0]
+        response = self.client.get(
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id}))
         received_card_body = response.json()["body"]
 
         self.assertTrue("<!-- fallback card template -->"
@@ -206,7 +221,7 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
         self.assertTrue(card.back in received_card_body)
 
     def test_card_body_template(self):
-        card, user = self.get_card_user()
+        card = self.make_fake_cards(1)[0]
         template = CardTemplate()
         template.body = """<!-- test template -->
         {% extends '_base.html' %}
@@ -218,7 +233,9 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
         template.save()
         card.template = template
         card.save()
-        response = self.get_response_for_card_with_userdata(card, user)
+        response = self.client.get(
+            reverse("card_for_user",
+                    kwargs={"card_pk": card.id}))
         received_card_body = response.json()["body"]
 
         self.assertTrue("<!-- base template for cards-->"
@@ -227,16 +244,11 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
         self.assertTrue(card.front in received_card_body)
         self.assertTrue(card.front in received_card_body)
 
-    def get_response_for_card_with_userdata(self, card, user):
-        response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id, "user_pk": user.id}))
-        return response
-
     def test_review_data(self):
-        card, user = self.get_card_user()
-        review_data = card.memorize(user, 5)
-        response = self.get_response_for_card_with_userdata(card, user)
+        card = self.make_fake_cards(1)[0]
+        review_data = card.memorize(self.user, 5)
+        response = self.client.get(
+            reverse("card_for_user", kwargs={"card_pk": card.id}))
         introduced_on = review_data.introduced_on \
             .isoformat().replace("+00:00", "Z")
         expected_data = {
@@ -260,12 +272,14 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
         self.assertDictEqual(expected_data, received_data)
 
     def test_projected_review_data(self):
-        card, user = self.get_card_user()
-        card_review_data = card.memorize(user, 4)
+        card = self.make_fake_cards(1)[0]
+        card_review_data = card.memorize(self.user, 4)
         with time_machine.travel(card_review_data.review_date):
             six_days = str(date.today() + timedelta(days=6))
             one_day = str(date.today() + timedelta(days=1))
-            response = self.get_response_for_card_with_userdata(card, user)
+            response = self.client.get(
+                reverse("card_for_user",
+                        kwargs={"card_pk": card.id}))
 
         expected_projected_data = {
             "0": dict(easiness=1.7000000000000002,
@@ -303,20 +317,22 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
         """Serializer shouldn't return any reviews simulation for date earlier
         than review due date.
         """
-        card, user = self.get_card_user()
-        card.memorize(user, 4)
-        response = self.get_response_for_card_with_userdata(
-            card, user)
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user, 4)
+        response = self.client.get(reverse("card_for_user",
+                                           kwargs={"card_pk": card.id}))
 
         self.assertFalse(response.json()["projected_review_data"])
 
     def test_user_memorized_card_single_category(self):
-        card, user = self.get_card_user()
-        card.memorize(user)
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user)
         category = self.create_category()
         card.categories.add(category)
         card.save()
-        response = self.get_response_for_card_with_userdata(card, user)
+        response = self.client.get(
+                reverse("card_for_user",
+                        kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
         category_name_from_response = categories_from_response[0]["name"]
 
@@ -324,13 +340,15 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
         self.assertEqual(category_name_from_response, category.name)
 
     def test_user_memorized_card_two_categories(self):
-        card, user = self.get_card_user()
-        card.memorize(user)
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user)
         category_1 = self.create_category()
         category_2 = self.create_category()
         card.categories.add(category_1, category_2)
         card.save()
-        response = self.get_response_for_card_with_userdata(card, user)
+        response = self.client.get(
+                reverse("card_for_user",
+                        kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
@@ -338,11 +356,13 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
                             categories_from_response[1])
 
     def test_user_not_memorized_card_single_category(self):
-        card, user = self.get_card_user()
+        card = self.make_fake_cards(1)[0]
         category = self.create_category()
         card.categories.add(category)
         card.save()
-        response = self.get_response_for_card_with_userdata(card, user)
+        response = self.client.get(
+                reverse("card_for_user",
+                        kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
         category_name_from_response = response.json()["categories"][0]["name"]
 
@@ -350,12 +370,14 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
         self.assertEqual(category_name_from_response, category.name)
 
     def test_user_not_memorized_card_two_categories(self):
-        card, user = self.get_card_user()
+        card = self.make_fake_cards(1)[0]
         category_1 = self.create_category()
         category_2 = self.create_category()
         card.categories.add(category_1, category_2)
         card.save()
-        response = self.get_response_for_card_with_userdata(card, user)
+        response = self.client.get(
+                reverse("card_for_user",
+                        kwargs={"card_pk": card.id}))
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
@@ -363,58 +385,59 @@ class UserCardsTests(FakeUsersCards, HelpersMixin):
                             categories_from_response[1])
 
     def test_user_not_memorized_card_id(self):
-        card, user = self.get_card_user()
-        response = self.get_response_for_card_with_userdata(card, user)
+        card = self.make_fake_cards(1)[0]
+        response = self.client.get(
+                reverse("card_for_user",
+                        kwargs={"card_pk": card.id}))
         card_id = response.json()["id"]
 
         self.assertEqual(str(card.id), card_id)
 
 
-class CardMemorization(FakeUsersCards):
-    def test_memorize_card_no_card(self):
-        user, _ = self.get_users()
+class CardMemorization(ApiTestFakeUsersCardsMixin):
+    def test_memorize_card_fake_card(self):
         fake_card_id = uuid.uuid4()
         response = self.client.put(
             reverse("card_for_user",
-                    kwargs={"card_pk": fake_card_id, "user_pk": user.id}))
+                    kwargs={"card_pk": fake_card_id}))
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["detail"], "Not found.")
 
-    def test_memorize_card_no_user(self):
-        fake_user_id = uuid.uuid4()
+    def test_memorize_card_forbidden(self):
+        """Unauthorized attempt to memorize a card.
+        """
+        client = APIClient()
         card, *_ = self.get_cards()
-        response = self.client.put(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id, "user_pk": fake_user_id}))
+        response = client.put(
+            reverse("card_for_user", kwargs={"card_pk": card.id}))
 
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json()["detail"], "Not found.")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["detail"],
+                         "Authentication credentials were not provided.")
 
     def test_memorize_card_400(self):
         """Bad request from attempt to again memorize already memorized card.
         """
-        card, user = self.get_card_user()
-        card.memorize(user)
-        # putting user and card to the server means card memorization:
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user)
         response = self.client.put(
             reverse("card_for_user",
-                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+                    kwargs={"card_pk": card.id}))
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["status_code"], 400)
         self.assertEqual(response.json()["detail"],
                          f"Card with id {card.id} for "
-                         f"user {user.username} id ({user.id})"
+                         f"user {self.user.username} id ({self.user.id})"
                          f" is already memorized.")
 
     def test_memorize_success(self):
         grade = 1
-        card, user = self.get_card_user()
+        card = self.make_fake_cards(1)[0]
         response = self.client.put(
             reverse("memorize_review_card",
-                    kwargs={"card_pk": card.id, "user_pk": user.id,
-                            "grade": grade}))
+                    kwargs={"card_pk": card.id, "grade": grade}))
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json()["grade"], grade)
@@ -422,44 +445,31 @@ class CardMemorization(FakeUsersCards):
     def test_memorize_success_no_grade(self):
         """Successful memorization with default grade.
         """
-        card, user = self.get_card_user()
+        card = self.make_fake_cards(1)[0]
         response = self.client.put(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id, "user_pk": user.id}))
+            reverse("card_for_user", kwargs={"card_pk": card.id}))
 
         self.assertEqual(response.status_code, 201)
 
 
-class ReviewingCard(FakeUsersCards):
-    def test_user_not_found(self):
-        card, *_ = self.get_cards()
-        fake_user_id = uuid.uuid4()
-        response = self.client.post(
-            reverse("memorize_review_card",
-                    kwargs={"card_pk": card.id, "user_pk": fake_user_id,
-                            "grade": 3}))
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.json()["detail"], "Not found.")
-
+class ReviewingCard(ApiTestFakeUsersCardsMixin):
     def test_card_not_found(self):
         user, *_ = self.get_users()
         fake_card_id = uuid.uuid4()
         response = self.client.post(
             reverse("memorize_review_card",
-                    kwargs={"card_pk": fake_card_id, "user_pk": user.id,
-                            "grade": 3}))
+                    kwargs={"card_pk": fake_card_id, "grade": 3}))
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.json()["detail"], "Not found.")
 
     def test_grade_success(self):
-        card, user = self.get_card_user()
-        review_card_data = card.memorize(user)
+        card = self.make_fake_cards(1)[0]
+        review_card_data = card.memorize(self.user)
         with time_machine.travel(review_card_data.review_date):
             response = self.client.post(
                 reverse("memorize_review_card",
-                        kwargs={"card_pk": card.id, "user_pk": user.id,
-                                "grade": 3}))
+                        kwargs={"card_pk": card.id, "grade": 3}))
         response_json = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -468,12 +478,11 @@ class ReviewingCard(FakeUsersCards):
     def test_grading_before_review_date(self):
         """Test response to attempt to review card before it's review date.
         """
-        card, user = self.get_card_user()
-        review_card_data = card.memorize(user)
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user)
         response = self.client.post(
             reverse("memorize_review_card",
-                    kwargs={"card_pk": card.id, "user_pk": user.id,
-                            "grade": 3}))
+                    kwargs={"card_pk": card.id, "grade": 3}))
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["status_code"],
@@ -483,22 +492,20 @@ class ReviewingCard(FakeUsersCards):
                          "is forbidden.")
 
 
-
-class ListOfCardsForUser(TestCase, HelpersMixin):
+class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
     def test_list_of_memorized_cards(self):
-        """General test for getting list of memorized cards for an app user
-        (no limits, no pagination).
+        """General test for getting list of memorized cards for an app user.
         """
         NUMBER_OF_CARDS = 15
         half_of_cards = ceil(NUMBER_OF_CARDS / 2)
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
-        user_1, user_2 = self.make_fake_users(2)
+        user_2 = self.make_fake_users(1)[0]
         shuffle(cards)
-        memorized_cards = [card.memorize(user_1)
+        memorized_cards = [card.memorize(self.user)
                            for card in cards[:half_of_cards]]
         cards[-1].memorize(user_2)
-        response = self.client.get(reverse("list_of_memorized_cards_for_user",
-                                           kwargs={"user_pk": user_1.id}))
+        response = self.client.get(reverse(
+            "list_of_memorized_cards_for_user"))
         response_content = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -507,53 +514,51 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
                          memorized_cards[0].card.body)
 
     def test_list_of_memorized_cards_no_user(self):
-        self.make_fake_cards(2)
-        fake_user_id = uuid.uuid4()
-        response = self.client.get(reverse("list_of_memorized_cards_for_user",
-                                           kwargs={"user_pk": fake_user_id}))
+        cards = self.make_fake_cards(2)
+        user = self.make_fake_users(1)[0]
+        for card in cards:
+            card.memorize(user)
+        client = APIClient()
+        response = client.get(reverse(
+            "list_of_memorized_cards_for_user"))
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_list_of_not_memorized_cards_no_user(self):
-        fake_user_id = uuid.uuid4()
+        client = APIClient()
         self.make_fake_cards(2)
-        response = self.client.get(
-            reverse("list_of_not_memorized_cards_for_user",
-                    kwargs={"user_pk": fake_user_id}))
+        response = client.get(reverse("queued_cards"))
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_list_of_not_memorized_cards(self):
+    def test_list_of_queued_cards(self):
         NUMBER_OF_CARDS = 10
         half_of_cards = ceil(NUMBER_OF_CARDS / 2)
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
-        user_1, user_2 = self.make_fake_users(2)
-        memorized_cards = [card.memorize(user_1)
+        user_1 = self.make_fake_users(1)[0]
+        memorized_cards = [card.memorize(self.user)
                            for card in cards[:half_of_cards]]
         not_memorized_cards = cards[half_of_cards:]
-        cards[-1].memorize(user_2)
-        number_of_not_memorized_cards = len(not_memorized_cards)
+        cards[-1].memorize(user_1)
+        number_of_queued_cards = len(not_memorized_cards)
 
-        response = self.client.get(
-            reverse("list_of_not_memorized_cards_for_user",
-                    kwargs={"user_pk": user_1.id}))
+        response = self.client.get(reverse("queued_cards"))
         response_body = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_body["count"],
-                         number_of_not_memorized_cards)
+        self.assertEqual(response_body["count"], number_of_queued_cards)
         self.assertEqual(not_memorized_cards[0].body,
                          response_body["results"][0]["body"])
 
-    def test_list_of_not_memorized_cards_2(self):
+    def test_list_of_queued_cards_single_user(self):
+        """Test if only cards for currently authorized user are returned.
+        """
         NUMBER_OF_CARDS = 2
         card_1, card_2 = self.make_fake_cards(NUMBER_OF_CARDS)
-        user_1, user_2 = self.make_fake_users(2)
-        card_1.memorize(user_1)
+        user_2 = self.make_fake_users(1)[0]
+        card_1.memorize(self.user)
         card_2.memorize(user_2)
-        response = self.client.get(
-            reverse("list_of_not_memorized_cards_for_user",
-                    kwargs={"user_pk": user_1.id}))
+        response = self.client.get(reverse("queued_cards"))
         response_results = response.json()["results"]
 
         self.assertEqual(response.json()["count"], 1)
@@ -566,55 +571,49 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
         NUMBER_OF_CARDS = 100
         portion_of_cards = ceil(NUMBER_OF_CARDS / 2)
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
-        user_1, user_2 = self.make_fake_users(2)
-        memorized_cards = [card.memorize(user_1)
-                           for card in cards[:portion_of_cards]]
+        for card in cards[:portion_of_cards]:
+            card.memorize(self.user)
         response_not_memorized = self.client.get(
-            reverse("list_of_not_memorized_cards_for_user",
-                    kwargs={"user_pk": user_1.id}))
+            reverse("queued_cards"))
         response_memorized = self.client.get(
-            reverse("list_of_memorized_cards_for_user",
-                    kwargs={"user_pk": user_1.id}))
+            reverse("list_of_memorized_cards_for_user"))
 
-        # count - key from the current page (results are paginated)
         number_of_memorized_cards = response_memorized.json()["count"]
-        number_of_not_memorized_cards = response_not_memorized.json()["count"]
+        number_of_queued_cards = response_not_memorized.json()["count"]
 
         self.assertEqual(sum([number_of_memorized_cards,
-                              number_of_not_memorized_cards]),
+                              number_of_queued_cards]),
                          NUMBER_OF_CARDS)
 
     def test_outstanding_cards(self):
         """Test retrieving outstanding cards.
         """
-        # should be split into two tests
         NUMBER_OF_NOT_MEMORIZED_CARDS = 2
         NUMBER_OF_MEMORIZED_CARDS = 3
         NUMBER_OF_REVIEWED_CARDS = 4
         due_for_memorized = date.today() + timedelta(days=3)
         due_for_review = due_for_memorized + timedelta(days=6)
 
-        user = self.make_fake_users(1)[0]
         not_memorized_cards = self.make_fake_cards(
             NUMBER_OF_NOT_MEMORIZED_CARDS)
         memorized_cards = self.make_fake_cards(NUMBER_OF_MEMORIZED_CARDS)
         reviewed_cards = self.make_fake_cards(NUMBER_OF_REVIEWED_CARDS)
 
         for card in memorized_cards:
-            card.memorize(user)
+            card.memorize(self.user)
 
         for card in reviewed_cards:
-            card_review_data = card.memorize(user)
+            card_review_data = card.memorize(self.user)
             with time_machine.travel(card_review_data.review_date):
                 card_review_data.review(4)
 
         with time_machine.travel(due_for_memorized):
             response_cards_memorized = self.client.get(
-                reverse("outstanding_cards", kwargs={"user_pk": user.id}))
+                reverse("outstanding_cards"))
 
         with time_machine.travel(due_for_review):
             response_cards_for_review = self.client.get(
-                reverse("outstanding_cards", kwargs={"user_pk": user.id}))
+                reverse("outstanding_cards"))
         card_for_review_body = response_cards_for_review.json()[
             "results"][0]["body"]
 
@@ -624,55 +623,59 @@ class ListOfCardsForUser(TestCase, HelpersMixin):
                          NUMBER_OF_MEMORIZED_CARDS + NUMBER_OF_REVIEWED_CARDS)
         self.assertEqual(card_for_review_body, memorized_cards[0].body)
 
-    def test_outstanding_cards_404(self):
+    def test_outstanding_cards_unauthorized(self):
         """Attempt to download outstanding cards using wrong user id.
         """
-        fake_user_id = uuid.uuid4()
-        response = self.client.get(
-            reverse("outstanding_cards", kwargs={"user_pk": fake_user_id}))
+        client = APIClient()
+        response = client.get(reverse("outstanding_cards"))
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class CramTests(TestCase, HelpersMixin):
+class CramTests(ApiTestHelpersMixin, TestCase):
     def test_adding_to_cram_success(self):
         card_1, card_2 = self.make_fake_cards(2)
-        user_1, user_2 = self.make_fake_users(2)
-        card_1.memorize(user_1, 5)
+        user_2 = self.make_fake_users(1)[0]
+        card_1.memorize(self.user, 5)
         card_2.memorize(user_2, 5)
-        response = self.client.put(
-            reverse("cram_queue", kwargs={"user_pk": user_1.id,
-                                          "card_pk": card_1.id}))
+        card_1_request = {"card_pk": card_1.id}
+        response = self.client.put(reverse("cram_queue"),
+                                   data=card_1_request)
         response_card_body = response.json()["body"]
 
         self.assertTrue(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(user_1.crammed_cards), 1)
+        self.assertEqual(len(self.user.crammed_cards), 1)
         self.assertEqual(card_1.body, response_card_body)
 
     def test_adding_to_cram_fail(self):
         card = self.make_fake_cards(1)[0]
-        user = self.make_fake_users(1)[0]
+        card_request = {"card_pk": card.id}
         response = self.client.put(
-            reverse("cram_queue", kwargs={"user_pk": user.id,
-                                          "card_pk": card.id}))
+            reverse("cram_queue"), data=card_request)
         response_json = response.json()
-        error_detail = f"The card id {card.id} is not " \
-                       f"memorized by user id {user.id}."
+        error_detail = f"The card id {card.id} is not in cram queue."
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response_json["status_code"], 400)
         self.assertEqual(response_json["detail"], error_detail)
 
     def test_retrieving_cram_queue(self):
-        NUMBER_OF_CARDS = 20
+        NUMBER_OF_CARDS = 5
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
+        cards_ids = [str(card.id) for card in cards]
         user = self.make_fake_users(1)[0]
+        user_cards = self.make_fake_cards(NUMBER_OF_CARDS)
+        user_cards_ids = [str(card.id) for card in user_cards]
+        for card in user_cards:
+            card.memorize(user, 2)
         for card in cards:
-            card.memorize(user, 3)
-        response = self.client.get(
-            reverse("get_cram_queue", kwargs={"user_pk": user.id}))
+            card.memorize(self.user, 3)
+        response = self.client.get(reverse("cram_queue"))
         response_json = response.json()
+        retrieved_card_id = choice(response_json["results"])["card"]
 
+        self.assertTrue(retrieved_card_id in cards_ids)
+        self.assertFalse(retrieved_card_id in user_cards_ids)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json["count"], NUMBER_OF_CARDS)
 
@@ -681,13 +684,12 @@ class CramTests(TestCase, HelpersMixin):
         with user-data.
         """
         card = self.make_fake_cards(1)[0]
-        user = self.make_fake_users(1)[0]
         response = self.client.delete(
-            reverse("cram_queue", kwargs={"user_pk": user.id,
-                                          "card_pk": card.id}))
+            reverse("cram_single_card", kwargs={"card_pk": card.id}))
         response_json = response.json()
+        # ... is not in cram queue
         error_detail = f"The card id {card.id} is not " \
-                       f"memorized by user id {user.id}."
+                       f"in cram queue."
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response_json["status_code"], 400)
@@ -695,11 +697,9 @@ class CramTests(TestCase, HelpersMixin):
 
     def test_removing_card_from_cram(self):
         card = self.make_fake_cards(1)[0]
-        user = self.make_fake_users(1)[0]
-        card.memorize(user)
+        card.memorize(self.user)
         response = self.client.delete(
-            reverse("cram_queue", kwargs={"user_pk": user.id,
-                                          "card_pk": card.id}))
+            reverse("cram_single_card", kwargs={"card_pk": card.id}))
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -707,11 +707,34 @@ class CramTests(TestCase, HelpersMixin):
         """Post method shouldn't be allowed for cram queue route.
         """
         card = self.make_fake_cards(1)[0]
-        user = self.make_fake_users(1)[0]
-        card.memorize(user)
+        card.memorize(self.user)
         response = self.client.post(
-            reverse("cram_queue", kwargs={"user_pk": user.id,
-                                          "card_pk": card.id}))
+            reverse("cram_single_card", kwargs={"card_pk": card.id}))
 
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_deleting_user_cram_queue(self):
+        """Test deleting all cards from user cram queue.
+        """
+        cards = self.make_fake_cards(5)
+        other_cards = self.make_fake_cards(5)
+        other_user = self.make_fake_users(1)[0]
+        cards_userdata = []
+        other_cards_userdata = []
+        for card in cards:
+            card_userdata = card.memorize(self.user)
+            card_userdata.add_to_cram()
+            cards_userdata.append(card_userdata)
+        for card in other_cards:
+            card_userdata = card.memorize(other_user)
+            card_userdata.add_to_cram()
+            other_cards_userdata.append(card_userdata)
+
+        response = self.client.delete(reverse("cram_queue"))
+        for card in cards_userdata + other_cards_userdata:
+            card.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(all([card.crammed for card in cards_userdata]))
+        self.assertTrue(all([card.crammed for card in other_cards_userdata]))

@@ -41,9 +41,9 @@ class SingleCardForUser(APIView):
             .first()
         return review_data
 
-    def get(self, request, card_pk, user_pk):
-        card, user = get_card_user_or_404(card_pk, user_pk)
-        review_data = self._get_review_data(card, user)
+    def get(self, request, card_pk):
+        card = get_object_or_404(Card, id=card_pk)
+        review_data = self._get_review_data(card, request.user)
         if not review_data:
             serialized_data = CardUserNoReviewDataSerializer(card)
         else:
@@ -52,17 +52,19 @@ class SingleCardForUser(APIView):
         data = serialized_data.data
         return Response(data)
 
-    def put(self, request, card_pk, user_pk, grade=4):
+    def put(self, request, card_pk, grade=4):
         """Putting data to the user/card url means memorizing a card.
         """
-        card, user = get_card_user_or_404(card_pk, user_pk)
+        user = request.user
+        card = get_object_or_404(Card, id=card_pk)
         try:
             review_data = card.memorize(user, grade=grade)
         except CardReviewDataExists:
             error_message = {
                 "status_code": 400,
-                "detail": f"Card with id {card.id} for user {user.username} "
-                          f"id ({user.id}) is already memorized."
+                "detail": f"Card with id {card.id} for user "
+                          f"{user.username} id ({user.id}) "
+                          f"is already memorized."
             }
             response = Response(error_message,
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -72,10 +74,11 @@ class SingleCardForUser(APIView):
                                 status=status.HTTP_201_CREATED)
         return response
 
-    def post(self, request, card_pk, user_pk, grade):
+    def post(self, request, card_pk, grade):
         """Posting grade to user/card ReviewData means reviewing it.
         """
-        card, user = get_card_user_or_404(card_pk, user_pk)
+        card = get_object_or_404(Card, id=card_pk)
+        user = request.user
         card_review_data = get_object_or_404(
             ReviewDataSM2, user=user, card=card)
         try:
@@ -95,8 +98,7 @@ class ListMemorizedCards(ListAPIView):
     serializer_class = CardReviewDataSerializer
 
     def get_queryset(self):
-        user = get_user_or_404(self.kwargs["user_pk"])
-        return ReviewDataSM2.objects.filter(user=user) \
+        return ReviewDataSM2.objects.filter(user=self.request.user) \
             .order_by("introduced_on")
 
 
@@ -104,9 +106,8 @@ class ListOutstandingCards(ListAPIView):
     serializer_class = CardReviewDataSerializer
 
     def get_queryset(self):
-        user = get_user_or_404(self.kwargs["user_pk"])
         return ReviewDataSM2.objects.filter(
-            user=user,
+            user=self.request.user,
             review_date__lte=datetime.datetime.today().date()
         ).order_by("introduced_on")
 
@@ -117,47 +118,56 @@ class ListUserNotMemorizedCards(ListAPIView):
     serializer_class = CardUserNoReviewDataSerializer
 
     def get_queryset(self):
-        user = get_user_or_404(self.kwargs["user_pk"])
-        return Card.objects.exclude(reviewing_users=user) \
+        return Card.objects.exclude(reviewing_users=self.request.user) \
             .order_by("created_on")
+
+
+def no_review_data_response(card):
+    error_message = f"The card id {card.id} is not in cram queue."
+    response = Response({
+        "status_code": 400,
+        "detail": error_message
+    }, status=status.HTTP_400_BAD_REQUEST)
+    return response
 
 
 class CramQueue(ListAPIView):
     serializer_class = CardReviewDataSerializer
 
     def get_queryset(self):
-        user = get_user_or_404(self.kwargs["user_pk"])
+        user = self.request.user
         return user.crammed_cards
 
-    def put(self, request, card_pk, user_pk):
-        card, user = get_card_user_or_404(card_pk, user_pk)
-        review_data = ReviewDataSM2.objects.filter(
+    def put(self, request):
+        card_pk = request.data["card_pk"]
+        card = get_object_or_404(Card, id=card_pk)
+        user = request.user
+        card_review_data = ReviewDataSM2.objects.filter(
             user=user, card=card).first()
-        if not review_data:
-            error_message = f"The card id {card.id} is not " \
-                            f"memorized by user id {user.id}."
-            response = Response({
-                "status_code": 400,
-                "detail": error_message
-            }, status=status.HTTP_400_BAD_REQUEST)
+        if not card_review_data:
+            response = no_review_data_response(card)
         else:
-            review_data.add_to_cram()
-            serialized_data = CardReviewDataSerializer(review_data).data
+            card_review_data.add_to_cram()
+            serialized_data = CardReviewDataSerializer(card_review_data).data
             response = Response(serialized_data)
         return response
 
-    def delete(self, request, card_pk, user_pk):
-        card, user = get_card_user_or_404(card_pk, user_pk)
-        review_data = ReviewDataSM2.objects.filter(
+    def delete(self, request):
+        """Drop cram queue for an authenticated user.
+        """
+        self.get_queryset().update(crammed=False)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CramSingleCard(APIView):
+    def delete(self, request, card_pk):
+        user = request.user
+        card = get_object_or_404(Card, id=card_pk)
+        card_review_data = ReviewDataSM2.objects.filter(
             user=user, card=card).first()
-        if not review_data:
-            error_message = f"The card id {card.id} is not " \
-                            f"memorized by user id {user.id}."
-            response = Response({
-                "status_code": 400,
-                "detail": error_message
-            }, status=status.HTTP_400_BAD_REQUEST)
+        if not card_review_data:
+            response = no_review_data_response(card)
         else:
-            review_data.remove_from_cram()
+            card_review_data.remove_from_cram()
             response = Response(status=status.HTTP_204_NO_CONTENT)
         return response
