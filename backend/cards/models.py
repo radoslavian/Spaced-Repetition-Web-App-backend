@@ -36,7 +36,7 @@ class CardTemplate(models.Model):
         return f"<{self.title}>"
 
 
-class ReviewDataSM2(models.Model):
+class CardUserData(models.Model):
     def new_review(self, grade):
         return SM2(self.easiness_factor,
                    self.current_real_interval,
@@ -103,7 +103,7 @@ class ReviewDataSM2(models.Model):
         dates = [review_date + datetime.timedelta(days=days)
                  for days in range(days_range)]
         dates_reviews = {
-            date_review: ReviewDataSM2.objects.filter(
+            date_review: CardUserData.objects.filter(
                 user=self.user, review_date=date_review).count()
             for date_review in dates
         }
@@ -144,7 +144,7 @@ class ReviewDataSM2(models.Model):
         unique_together = ("card", "user",)
 
     def __str__(self):
-        return f"ReviewDataSM2(user='{str(self.user)}' " \
+        return f"CardUserData(user='{str(self.user)}' " \
                f"card='{str(self.card)}')"
 
 
@@ -204,9 +204,9 @@ class Card(models.Model):
     back_images = property(fget=_make_images_getter("back"))
     body = property(fget=_body_getter)
 
-    def memorize(self, user, grade: int = 4) -> ReviewDataSM2:
+    def memorize(self, user, grade: int = 4) -> CardUserData:
         """Generate initial review data for a particular user and (this) card
-        and put it into ReviewDataSM2.
+        and put it into CardUserData.
         """
         if grade < 4:
             crammed = True
@@ -214,7 +214,7 @@ class Card(models.Model):
             crammed = False
         validate_grade(grade)
         first_review = SM2.first_review(grade)
-        review_data = ReviewDataSM2(
+        review_data = CardUserData(
             card=self,
             user=user,
             easiness_factor=first_review.easiness,
@@ -237,12 +237,12 @@ class Card(models.Model):
     def review(self, user, grade: int = 4):
         """Shorthand for making a review.
         """
-        review_data = ReviewDataSM2.objects.get(user=user, card=self)
+        review_data = CardUserData.objects.get(user=user, card=self)
         review_data.review(grade=grade)
         return review_data
 
     def forget(self, user):
-        ReviewDataSM2.objects.get(card=self, user=user).delete()
+        CardUserData.objects.get(card=self, user=user).delete()
 
     def simulate_reviews(self, user=None):
         """Simulates reviews for all 0-5 grades. The next review date
@@ -251,7 +251,7 @@ class Card(models.Model):
         day).
         """
         grades = range(6)  # 0-5
-        if not user or (review_data := ReviewDataSM2.objects.filter(
+        if not user or (review_data := CardUserData.objects.filter(
                 user=user, card=self).first()) is None:
             review_fn = SM2.first_review
         else:

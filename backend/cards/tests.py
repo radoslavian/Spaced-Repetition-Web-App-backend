@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from .models import (Card, CardTemplate, Category, CardComment, ReviewDataSM2,
+from .models import (Card, CardTemplate, Category, CardComment, CardUserData,
                      Image, CardImage)
 from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -412,7 +412,7 @@ class CramQueueTests(TestCase, HelpersMixin):
         self.assertEqual(len(user.crammed_cards), 3)
 
         # removing from cram - status change
-        card_review_data = ReviewDataSM2.objects.get(user=user, card=card_1)
+        card_review_data = CardUserData.objects.get(user=user, card=card_1)
         self.assertTrue(card_review_data.crammed)
         status = card_review_data.remove_from_cram()
         self.assertFalse(status)
@@ -496,13 +496,13 @@ class CardReviewsTests(FakeUsersCards):
         card, *_ = self.get_cards()
         self.assertRaises(django.db.utils.IntegrityError,
                           lambda: self.raise_error(
-                              ReviewDataSM2.objects.create(card=card).save))
+                              CardUserData.objects.create(card=card).save))
 
     def test_no_card_foreign_key_in_join_table(self):
         user, _ = self.get_users()
         self.assertRaises(django.db.utils.IntegrityError,
                           lambda: self.raise_error(
-                              ReviewDataSM2.objects.create(user=user).save))
+                              CardUserData.objects.create(user=user).save))
 
     @staticmethod
     def raise_error(failing_transaction):
@@ -517,16 +517,16 @@ class CardReviewsTests(FakeUsersCards):
 
     def test_uniqueness(self):
         card, user = self.get_card_user()
-        ReviewDataSM2(card=card, user=user).save()
+        CardUserData(card=card, user=user).save()
 
         self.assertRaises(django.db.utils.IntegrityError,
-                          ReviewDataSM2(card=card, user=user).save)
+                          CardUserData(card=card, user=user).save)
 
     def test_backrefs(self):
         card, *_ = self.get_cards()
         user1, user2 = self.get_users()
-        ReviewDataSM2(card=card, user=user1).save()
-        ReviewDataSM2(card=card, user=user2).save()
+        CardUserData(card=card, user=user1).save()
+        CardUserData(card=card, user=user2).save()
 
         self.assertEqual(card.reviewing_users.get(id=user1.id).username,
                          user1.username)
@@ -540,18 +540,18 @@ class CardReviewsTests(FakeUsersCards):
     def test_deleting_reviews_data(self):
         card, *_ = self.get_cards()
         user1, user2 = self.get_users()
-        ReviewDataSM2(card=card, user=user1).save()
-        ReviewDataSM2.objects.get(card=card, user=user1).delete()
+        CardUserData(card=card, user=user1).save()
+        CardUserData.objects.get(card=card, user=user1).delete()
 
         self.assertTrue(all([user1.id, card.id]))
-        self.assertEqual(ReviewDataSM2.objects.count(), 0)
+        self.assertEqual(CardUserData.objects.count(), 0)
 
     def test_deleting_users_cards(self):
         card, user = self.get_card_user()
-        ReviewDataSM2(card=card, user=user).save()
+        CardUserData(card=card, user=user).save()
         user.delete()
 
-        self.assertFalse(ReviewDataSM2.objects.first())
+        self.assertFalse(CardUserData.objects.first())
         self.assertTrue(card.id)
 
     def test_introduced_on_field(self):
@@ -563,10 +563,10 @@ class CardReviewsTests(FakeUsersCards):
 
     def test_last_reviewed_default(self):
         card, user = self.get_card_user()
-        ReviewDataSM2(card=card, user=user).save()
+        CardUserData(card=card, user=user).save()
 
         # the field shall be updated on introduction and on each review
-        self.assertEqual(ReviewDataSM2.objects.first().last_reviewed,
+        self.assertEqual(CardUserData.objects.first().last_reviewed,
                          today())
 
     def test_last_computed_interval_default(self):
@@ -600,7 +600,7 @@ class CardReviewsTests(FakeUsersCards):
 
     def get_review_data(self):
         card, user = self.get_card_user()
-        review_data = ReviewDataSM2(card=card, user=user)
+        review_data = CardUserData(card=card, user=user)
         return review_data
 
     def test_memorize_card(self):
@@ -608,7 +608,7 @@ class CardReviewsTests(FakeUsersCards):
         grade = 4
         easiness_factor = 2.5
         review_data_from_return = card.memorize(user, grade=grade)
-        review_data = ReviewDataSM2.objects.get(card=card, user=user)
+        review_data = CardUserData.objects.get(card=card, user=user)
 
         self.assertEqual(review_data_from_return, review_data)
         self.assertEqual(review_data.reviews, 1)
@@ -713,7 +713,7 @@ class CardReviewsTests(FakeUsersCards):
 
         self.assertRaises(
             ObjectDoesNotExist,
-            lambda: ReviewDataSM2.objects.get(user=user, card=card))
+            lambda: CardUserData.objects.get(user=user, card=card))
 
     def test_forgetting_non_existent_relationship(self):
         """Attempt to forget (remove from the learning process)
@@ -728,9 +728,9 @@ class CardReviewsTests(FakeUsersCards):
     def test_ReviewDataSM2_serialization(self):
         card, user = self.get_card_user()
         card.memorize(user)
-        review_data = ReviewDataSM2.objects.get(user=user, card=card)
+        review_data = CardUserData.objects.get(user=user, card=card)
         expected_rdsm2_serialization = \
-            f"ReviewDataSM2(user='{str(user)}' card='{str(card)}')"
+            f"CardUserData(user='{str(user)}' card='{str(card)}')"
 
         self.assertEqual(expected_rdsm2_serialization,
                          str(review_data))
@@ -743,13 +743,13 @@ class CardReviewsTests(FakeUsersCards):
             card.save()
             card.memorize(user)
 
-        first_day = ReviewDataSM2.objects.filter(
+        first_day = CardUserData.objects.filter(
             review_date=date.today() + timedelta(1)).count()
-        second_day = ReviewDataSM2.objects.filter(
+        second_day = CardUserData.objects.filter(
             review_date=date.today() + timedelta(2)).count()
-        third_day = ReviewDataSM2.objects.filter(
+        third_day = CardUserData.objects.filter(
             review_date=date.today() + timedelta(3)).count()
-        fourth_day = ReviewDataSM2.objects.filter(
+        fourth_day = CardUserData.objects.filter(
             review_date=date.today() + timedelta(4)).count()
 
         # numbers won't be valid if distribution range != 3
@@ -771,7 +771,7 @@ class CardReviewsTests(FakeUsersCards):
                 with time_machine.travel(review_date):
                     review_date = card.review(user, 5).review_date
 
-        reviews_last_day = ReviewDataSM2.objects.filter(
+        reviews_last_day = CardUserData.objects.filter(
             user=user,
             review_date=review_date).count()
         self.assertLess(reviews_last_day, cards_number)
@@ -891,7 +891,7 @@ class CardReviewsTests(FakeUsersCards):
         self.assertDictEqual(expected_output, simulation)
 
     def test_lapses(self):
-        """Test ReviewDataSM2.lapses field.
+        """Test CardUserData.lapses field.
         """
         number_of_reviews = 2
         grade = 4

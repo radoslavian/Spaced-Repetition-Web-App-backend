@@ -4,7 +4,7 @@ from rest_framework import status, filters
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from cards.models import Card, ReviewDataSM2
+from cards.models import Card, CardUserData
 from cards.utils.exceptions import CardReviewDataExists
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer)
@@ -28,7 +28,7 @@ class SingleCardForUser(APIView):
     """
     @staticmethod
     def _get_review_data(card, user):
-        review_data = ReviewDataSM2.objects.filter(card=card, user=user) \
+        review_data = CardUserData.objects.filter(card=card, user=user) \
             .first()
         return review_data
 
@@ -71,7 +71,7 @@ class SingleCardForUser(APIView):
         card = get_object_or_404(Card, id=card_pk)
         user = request.user
         card_review_data = get_object_or_404(
-            ReviewDataSM2, user=user, card=card)
+            CardUserData, user=user, card=card)
         try:
             card_review_data.review(grade)
         except ReviewBeforeDue as e:
@@ -91,7 +91,7 @@ class ListMemorizedCards(ListAPIView):
     search_fields = ["card__front", "card__back", "card__template__body"]
 
     def get_queryset(self):
-        return ReviewDataSM2.objects.filter(user=self.request.user) \
+        return CardUserData.objects.filter(user=self.request.user) \
             .order_by("introduced_on")
 
 
@@ -99,7 +99,7 @@ class ListOutstandingCards(ListAPIView):
     serializer_class = CardReviewDataSerializer
 
     def get_queryset(self):
-        return ReviewDataSM2.objects.filter(
+        return CardUserData.objects.filter(
             user=self.request.user,
             review_date__lte=datetime.datetime.today().date()
         ).order_by("introduced_on")
@@ -137,7 +137,7 @@ class CramQueue(ListAPIView):
         card_pk = request.data["card_pk"]
         card = get_object_or_404(Card, id=card_pk)
         user = request.user
-        card_review_data = ReviewDataSM2.objects.filter(
+        card_review_data = CardUserData.objects.filter(
             user=user, card=card).first()
         if not card_review_data:
             response = no_review_data_response(card)
@@ -158,7 +158,7 @@ class CramSingleCard(APIView):
     def delete(self, request, card_pk):
         user = request.user
         card = get_object_or_404(Card, id=card_pk)
-        card_review_data = ReviewDataSM2.objects.filter(
+        card_review_data = CardUserData.objects.filter(
             user=user, card=card).first()
         if not card_review_data:
             response = no_review_data_response(card)

@@ -13,13 +13,13 @@ class User(AbstractUser):
     )
 
     def _get_crammed_cards(self):
-        return ReviewDataSM2.objects.filter(user=self, crammed=True)\
+        return CardUserData.objects.filter(user=self, crammed=True)\
             .order_by("introduced_on")
 
     crammed_cards = property(fget=_get_crammed_cards)
     memorized_cards = models.ManyToManyField(
         "cards.Card",
-        through="cards.ReviewDataSM2",
+        through="cards.CardUserData",
         related_name="reviewing_users")
     selected_categories = models.ManyToManyField(
         "cards.Category",
@@ -32,4 +32,4 @@ class User(AbstractUser):
         through="cards.CardComment")
 
 
-from cards.models import ReviewDataSM2
+from cards.models import CardUserData

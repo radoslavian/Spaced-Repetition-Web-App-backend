@@ -1,7 +1,7 @@
 import datetime
 
 from rest_framework import serializers
-from cards.models import Card, Image, CardImage, ReviewDataSM2, Category
+from cards.models import Card, Image, CardImage, CardUserData, Category
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -47,7 +47,7 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
         return obj.card.body
 
     class Meta:
-        model = ReviewDataSM2
+        model = CardUserData
         exclude = ("id", "user")
         read_only_fields = ("body", "computed_interval", "lapses",
                             "total_reviews", "last_reviewed", "introduced_on",
