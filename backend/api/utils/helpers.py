@@ -22,6 +22,8 @@ def add_url_params(url, params: {}):
 
 
 def extract_from_request_json(request, key, default=None):
+    """Extract data from the request object using given key.
+    """
     try:
         request_body = json.loads(request.body)
     except JSONDecodeError:

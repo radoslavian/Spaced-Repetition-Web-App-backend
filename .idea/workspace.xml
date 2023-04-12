@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Renamed cards.models.ReviewDataSM2 into CardUserData.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Fixed memorizing/reviewing cards (according to comments in api.urls). Refactored API endpoints.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/utils/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/utils/helpers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -170,13 +168,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00001" summary="Initial commit.">
-      <created>1676305432918</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1676305432918</updated>
     </task>
     <task id="LOCAL-00002" summary="Added the &quot;user&quot; app.">
       <created>1676308797878</created>
@@ -514,7 +505,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681159396595</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="Fixed memorizing/reviewing cards (according to comments in api.urls). Refactored API endpoints.">
+      <created>1681309654188</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1681309654189</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -530,7 +528,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Added Card.simulate_reviews - for review simulation." />
     <MESSAGE value="Added ReviewDataSM2.lapses and ReviewDataSM2.all_repetitions fields + code refactoring." />
     <MESSAGE value="api.serializers - pattern for serializing many-to-many relationships" />
     <MESSAGE value="Card serializing for backend viewing." />
@@ -555,6 +552,7 @@
     <MESSAGE value="Turned on DRF authentication.&#10;Refactored api.tests.&#10;Added endpoint for dropping whole cram queue for a particular user." />
     <MESSAGE value="Card searching/filtering for users." />
     <MESSAGE value="Renamed cards.models.ReviewDataSM2 into CardUserData." />
-    <option name="LAST_COMMIT_MESSAGE" value="Renamed cards.models.ReviewDataSM2 into CardUserData." />
+    <MESSAGE value="Fixed memorizing/reviewing cards (according to comments in api.urls). Refactored API endpoints." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed memorizing/reviewing cards (according to comments in api.urls). Refactored API endpoints." />
   </component>
 </project>
