@@ -109,6 +109,7 @@ class MemorizedCard(RetrieveUpdateAPIView):
         else:
             response = Response(
                 CardReviewDataSerializer(card_review_data).data)
+            response["Location"] = card_review_data.get_absolute_url()
         return response
 
 

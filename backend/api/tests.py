@@ -472,24 +472,28 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
         fake_card_id = uuid.uuid4()
         response = self.client.patch(
             reverse("memorized_card", kwargs={"pk": str(fake_card_id)}),
-            json.dumps({"grade": 3}),
-            content_type="application/json")
+            json.dumps({"grade": 3}), content_type="application/json")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertFalse(response.has_header("Location"))
         self.assertEqual(response.json()["detail"], "Not found.")
 
     def test_grading(self):
         card = self.make_fake_cards(1)[0]
         review_card_data = card.memorize(self.user)
+        review_grade = 3
         with time_machine.travel(review_card_data.review_date):
             response = self.client.patch(
                 reverse("memorized_card", kwargs={"pk": str(card.id)}),
-                json.dumps({"grade": 3}),
+                json.dumps({"grade": review_grade}),
                 content_type="application/json")
         response_json = response.json()
+        location_header = response.get("Location")
 
+        self.assertEqual(location_header, review_card_data.get_absolute_url())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json["reviews"], 2)
+        self.assertEqual(response_json["grade"], review_grade)
 
     def test_grading_before_review_date(self):
         """Test response to attempt to review card before it's review date.
@@ -502,6 +506,7 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
             content_type="application/json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.has_header("Location"))
         self.assertEqual(response.json()["status_code"],
                          status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["detail"],

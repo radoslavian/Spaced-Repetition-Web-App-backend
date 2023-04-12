@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Moved comments into CardUserData.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added &quot;Location&quot; header to server response to the card memorization.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -171,13 +168,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Started working on database models (added Card and Template).">
-      <created>1677109149842</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1677109149842</updated>
     </task>
     <task id="LOCAL-00005" summary="Added foreign key from Card to Template and improved Card serialization (__str__ method).">
       <created>1677520520720</created>
@@ -515,7 +505,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681315686663</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="Added &quot;Location&quot; header to server response to the card memorization.">
+      <created>1681319863733</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1681319863733</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -531,7 +528,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Card serializing for backend viewing." />
     <MESSAGE value="Card rendering with fall-back template embedded as a string." />
     <MESSAGE value="Reformatted api.urls." />
     <MESSAGE value="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template." />
@@ -556,6 +552,7 @@
     <MESSAGE value="Fixed memorizing/reviewing cards (according to comments in api.urls). Refactored API endpoints." />
     <MESSAGE value="Added docstring to api.utils.helpers.extract_from_request_json." />
     <MESSAGE value="Moved comments into CardUserData." />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved comments into CardUserData." />
+    <MESSAGE value="Added &quot;Location&quot; header to server response to the card memorization." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added &quot;Location&quot; header to server response to the card memorization." />
   </component>
 </project>
