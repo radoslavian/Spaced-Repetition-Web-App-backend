@@ -1,7 +1,8 @@
 import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework import status, filters
-from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView, \
+    RetrieveUpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from cards.models import Card, CardUserData
@@ -9,6 +10,8 @@ from cards.utils.exceptions import CardReviewDataExists
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer)
 from cards.utils.exceptions import ReviewBeforeDue
+
+from .utils.helpers import extract_grade, no_review_data_response
 
 
 # Create your views here.
@@ -23,31 +26,31 @@ class SingleCardForBackendView(RetrieveAPIView):
     serializer_class = CardForEditingSerializer
 
 
-class SingleCardForUser(APIView):
-    """Returns single card with user data.
+class QueuedCards(ListAPIView):
+    """list of the cards that are not yet memorized by a given user.
     """
-    @staticmethod
-    def _get_review_data(card, user):
-        review_data = CardUserData.objects.filter(card=card, user=user) \
-            .first()
-        return review_data
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["front", "back", "template__body"]
+    serializer_class = CardUserNoReviewDataSerializer
 
-    def get(self, request, card_pk):
-        card = get_object_or_404(Card, id=card_pk)
-        review_data = self._get_review_data(card, request.user)
-        if not review_data:
-            serialized_data = CardUserNoReviewDataSerializer(card)
-        else:
-            serialized_data = CardReviewDataSerializer(review_data)
+    def get_queryset(self):
+        return Card.objects.exclude(reviewing_users=self.request.user) \
+            .order_by("created_on")
 
-        data = serialized_data.data
-        return Response(data)
 
-    def put(self, request, card_pk, grade=4):
-        """Putting data to the user/card url means memorizing a card.
+class QueuedCard(RetrieveUpdateAPIView):
+    serializer_class = CardUserNoReviewDataSerializer
+
+    def get_queryset(self):
+        return Card.objects.exclude(reviewing_users=self.request.user) \
+            .filter(id=self.kwargs["pk"])
+
+    def patch(self, request, **kwargs):
+        """Patching grade on a queued card means memorizing it.
         """
         user = request.user
-        card = get_object_or_404(Card, id=card_pk)
+        card = get_object_or_404(Card, id=kwargs["pk"])
+        grade = extract_grade(request)
         try:
             review_data = card.memorize(user, grade=grade)
         except CardReviewDataExists:
@@ -62,14 +65,37 @@ class SingleCardForUser(APIView):
         else:
             serialized_data = CardReviewDataSerializer(review_data).data
             response = Response(serialized_data,
-                                status=status.HTTP_201_CREATED)
+                                status=status.HTTP_200_OK)
         return response
 
-    def post(self, request, card_pk, grade):
-        """Posting grade to user/card ReviewData means reviewing it.
+
+class MemorizedCards(ListAPIView):
+    serializer_class = CardReviewDataSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["card__front", "card__back", "card__template__body"]
+
+    def get_queryset(self):
+        return CardUserData.objects.filter(user=self.request.user) \
+            .order_by("introduced_on")
+
+
+class MemorizedCard(RetrieveUpdateAPIView):
+    serializer_class = CardReviewDataSerializer
+
+    def get(self, request, **kwargs):
+        card = get_object_or_404(Card, id=kwargs["pk"])
+        card_user_data = get_object_or_404(CardUserData,
+                                           user=self.request.user,
+                                           card=card)
+        data = self.serializer_class(card_user_data).data
+        return Response(data)
+
+    def patch(self, request, **kwargs):
+        """Patching grade on a memorized card means reviewing it.
         """
-        card = get_object_or_404(Card, id=card_pk)
+        card = get_object_or_404(Card, id=self.kwargs["pk"])
         user = request.user
+        grade = extract_grade(request)
         card_review_data = get_object_or_404(
             CardUserData, user=user, card=card)
         try:
@@ -85,17 +111,7 @@ class SingleCardForUser(APIView):
         return response
 
 
-class ListMemorizedCards(ListAPIView):
-    serializer_class = CardReviewDataSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ["card__front", "card__back", "card__template__body"]
-
-    def get_queryset(self):
-        return CardUserData.objects.filter(user=self.request.user) \
-            .order_by("introduced_on")
-
-
-class ListOutstandingCards(ListAPIView):
+class OutstandingCards(ListAPIView):
     serializer_class = CardReviewDataSerializer
 
     def get_queryset(self):
@@ -103,27 +119,6 @@ class ListOutstandingCards(ListAPIView):
             user=self.request.user,
             review_date__lte=datetime.datetime.today().date()
         ).order_by("introduced_on")
-
-
-class ListQueuedCards(ListAPIView):
-    """list of the cards that are not yet memorized by a given user.
-    """
-    filter_backends = [filters.SearchFilter]
-    search_fields = ["front", "back", "template__body"]
-    serializer_class = CardUserNoReviewDataSerializer
-
-    def get_queryset(self):
-        return Card.objects.exclude(reviewing_users=self.request.user) \
-            .order_by("created_on")
-
-
-def no_review_data_response(card):
-    error_message = f"The card id {card.id} is not in cram queue."
-    response = Response({
-        "status_code": 400,
-        "detail": error_message
-    }, status=status.HTTP_400_BAD_REQUEST)
-    return response
 
 
 class CramQueue(ListAPIView):
@@ -136,9 +131,8 @@ class CramQueue(ListAPIView):
     def put(self, request):
         card_pk = request.data["card_pk"]
         card = get_object_or_404(Card, id=card_pk)
-        user = request.user
         card_review_data = CardUserData.objects.filter(
-            user=user, card=card).first()
+            user=request.user, card=card).first()
         if not card_review_data:
             response = no_review_data_response(card)
         else:

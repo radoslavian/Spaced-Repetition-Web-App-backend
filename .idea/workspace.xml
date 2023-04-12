@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Card searching/filtering for users.">
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Renamed cards.models.ReviewDataSM2 into CardUserData.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -506,7 +507,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681158933371</updated>
     </task>
-    <option name="localTasksCounter" value="49" />
+    <task id="LOCAL-00049" summary="Renamed cards.models.ReviewDataSM2 into CardUserData.">
+      <created>1681159396595</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1681159396595</updated>
+    </task>
+    <option name="localTasksCounter" value="50" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -522,7 +530,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Grades for Card.memorize and Card.review are now validated." />
     <MESSAGE value="Added Card.simulate_reviews - for review simulation." />
     <MESSAGE value="Added ReviewDataSM2.lapses and ReviewDataSM2.all_repetitions fields + code refactoring." />
     <MESSAGE value="api.serializers - pattern for serializing many-to-many relationships" />
@@ -547,6 +554,7 @@
     <MESSAGE value="Added pages into admin for cards adding/updating (for the purpose of hands-on testing)." />
     <MESSAGE value="Turned on DRF authentication.&#10;Refactored api.tests.&#10;Added endpoint for dropping whole cram queue for a particular user." />
     <MESSAGE value="Card searching/filtering for users." />
-    <option name="LAST_COMMIT_MESSAGE" value="Card searching/filtering for users." />
+    <MESSAGE value="Renamed cards.models.ReviewDataSM2 into CardUserData." />
+    <option name="LAST_COMMIT_MESSAGE" value="Renamed cards.models.ReviewDataSM2 into CardUserData." />
   </component>
 </project>

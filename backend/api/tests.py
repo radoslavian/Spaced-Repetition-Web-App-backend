@@ -9,6 +9,7 @@ from random import choice, shuffle
 from cards.models import Card, CardImage, CardTemplate, Category
 from faker import Faker
 from rest_framework import status
+
 from .utils.helpers import add_url_params
 
 if __name__ == "__main__" and __package__ is None:
@@ -193,17 +194,16 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         client = APIClient()
         fake_card = self.make_fake_cards(1)[0]
         response = client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": fake_card.id}))
+            reverse("memorized_card", kwargs={"pk": str(fake_card.id)}))
         self.assertEqual(response.status_code, 403)
 
-    def test_request_non_existing_card(self):
+    def test_request_for_non_existing_memorized_card(self):
         """Test response to request for a non-existent card.
         """
         fake_card_id = uuid.uuid4()
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": fake_card_id}))
+            reverse("memorized_card",
+                    kwargs={"pk": str(fake_card_id)}))
         self.assertEqual(response.status_code, 404)
 
     def test_card_body_fallback_template(self):
@@ -211,14 +211,23 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         """
         card = self.make_fake_cards(1)[0]
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+            reverse("queued_card", kwargs={"pk": str(card.id)}))
         received_card_body = response.json()["body"]
 
         self.assertTrue("<!-- fallback card template -->"
                         in received_card_body)
         self.assertTrue(card.front in received_card_body)
         self.assertTrue(card.back in received_card_body)
+
+    def test_response_for_not_memorized_card(self):
+        """Tests response to request for user data for not memorized card
+        using endpoint for getting a memorized card.
+        """
+        card = self.make_fake_cards(1)[0]
+        response = self.client.get(
+            reverse("memorized_card", kwargs={"pk": str(card.id)}))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_card_body_template(self):
         card = self.make_fake_cards(1)[0]
@@ -234,8 +243,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.template = template
         card.save()
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+            reverse("queued_card", kwargs={"pk": str(card.id)}))
         received_card_body = response.json()["body"]
 
         self.assertTrue("<!-- base template for cards-->"
@@ -248,7 +256,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card = self.make_fake_cards(1)[0]
         review_data = card.memorize(self.user, 5)
         response = self.client.get(
-            reverse("card_for_user", kwargs={"card_pk": card.id}))
+            reverse("memorized_card", kwargs={"pk": str(card.id)}))
         introduced_on = review_data.introduced_on \
             .isoformat().replace("+00:00", "Z")
         expected_data = {
@@ -278,8 +286,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             six_days = str(date.today() + timedelta(days=6))
             one_day = str(date.today() + timedelta(days=1))
             response = self.client.get(
-                reverse("card_for_user",
-                        kwargs={"card_pk": card.id}))
+                reverse("memorized_card",
+                        kwargs={"pk": str(card.id)}))
 
         expected_projected_data = {
             "0": dict(easiness=1.7000000000000002,
@@ -319,8 +327,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         """
         card = self.make_fake_cards(1)[0]
         card.memorize(self.user, 4)
-        response = self.client.get(reverse("card_for_user",
-                                           kwargs={"card_pk": card.id}))
+        response = self.client.get(reverse("memorized_card",
+                                           kwargs={"pk": str(card.id)}))
 
         self.assertFalse(response.json()["projected_review_data"])
 
@@ -331,8 +339,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.categories.add(category)
         card.save()
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+            reverse("memorized_card",
+                    kwargs={"pk": str(card.id)}))
         categories_from_response = response.json()["categories"]
         category_name_from_response = categories_from_response[0]["name"]
 
@@ -347,8 +355,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.categories.add(category_1, category_2)
         card.save()
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+            reverse("memorized_card", kwargs={"pk": str(card.id)}))
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
@@ -361,34 +368,31 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         card.categories.add(category)
         card.save()
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+            reverse("queued_card", kwargs={"pk": card.id}))
         categories_from_response = response.json()["categories"]
         category_name_from_response = response.json()["categories"][0]["name"]
 
         self.assertEqual(len(categories_from_response), 1)
         self.assertEqual(category_name_from_response, category.name)
 
-    def test_user_not_memorized_card_two_categories(self):
+    def test_queued_card_two_categories(self):
         card = self.make_fake_cards(1)[0]
         category_1 = self.create_category()
         category_2 = self.create_category()
         card.categories.add(category_1, category_2)
         card.save()
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+            reverse("queued_card", kwargs={"pk": card.id}))
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
         self.assertNotEqual(categories_from_response[0],
                             categories_from_response[1])
 
-    def test_user_not_memorized_card_id(self):
+    def test_user_queued_card_id(self):
         card = self.make_fake_cards(1)[0]
         response = self.client.get(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+            reverse("queued_card", kwargs={"pk": card.id}))
         card_id = response.json()["id"]
 
         self.assertEqual(str(card.id), card_id)
@@ -398,78 +402,80 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
     def test_memorize_card_fake_card(self):
         fake_card_id = uuid.uuid4()
         response = self.client.put(
-            reverse("card_for_user",
-                    kwargs={"card_pk": fake_card_id}))
+            reverse("queued_card", kwargs={"pk": str(fake_card_id)}))
+        detail = "Not found."
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json()["detail"], "Not found.")
+        self.assertEqual(response.json()["detail"], detail)
 
     def test_memorize_card_forbidden(self):
         """Unauthorized attempt to memorize a card.
         """
         client = APIClient()
         card, *_ = self.get_cards()
-        response = client.put(
-            reverse("card_for_user", kwargs={"card_pk": card.id}))
+        response = client.put(reverse("queued_card", kwargs={"pk": card.id}))
+        detail = "Authentication credentials were not provided."
 
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()["detail"],
-                         "Authentication credentials were not provided.")
+        self.assertEqual(response.json()["detail"], detail)
 
     def test_memorize_card_400(self):
         """Bad request from attempt to again memorize already memorized card.
         """
         card = self.make_fake_cards(1)[0]
         card.memorize(self.user)
-        response = self.client.put(
-            reverse("card_for_user",
-                    kwargs={"card_pk": card.id}))
+        response = self.client.patch(
+            reverse("queued_card", kwargs={"pk": card.id}))
+        detail = f"Card with id {card.id} for user {self.user.username} " \
+                 f"id ({self.user.id}) is already memorized."
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["status_code"], 400)
-        self.assertEqual(response.json()["detail"],
-                         f"Card with id {card.id} for "
-                         f"user {self.user.username} id ({self.user.id})"
-                         f" is already memorized.")
+        self.assertEqual(response.json()["detail"], detail)
 
     def test_memorize_success(self):
         grade = 1
         card = self.make_fake_cards(1)[0]
-        response = self.client.put(
-            reverse("memorize_review_card",
-                    kwargs={"card_pk": card.id, "grade": grade}))
+        response = self.client.patch(
+            reverse("queued_card", kwargs={"pk": card.id}),
+            json.dumps({"grade": grade}),
+            content_type="application/json")
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["grade"], grade)
 
     def test_memorize_success_no_grade(self):
         """Successful memorization with default grade.
         """
+        default_grade = 4
         card = self.make_fake_cards(1)[0]
-        response = self.client.put(
-            reverse("card_for_user", kwargs={"card_pk": card.id}))
+        response = self.client.patch(
+            reverse("queued_card", kwargs={"pk": str(card.id)}))
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["grade"], default_grade)
 
 
 class ReviewingCard(ApiTestFakeUsersCardsMixin):
     def test_card_not_found(self):
         user, *_ = self.get_users()
         fake_card_id = uuid.uuid4()
-        response = self.client.post(
-            reverse("memorize_review_card",
-                    kwargs={"card_pk": fake_card_id, "grade": 3}))
+        response = self.client.patch(
+            reverse("memorized_card", kwargs={"pk": str(fake_card_id)}),
+            json.dumps({"grade": 3}),
+            content_type="application/json")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.json()["detail"], "Not found.")
 
-    def test_grade_success(self):
+    def test_grading(self):
         card = self.make_fake_cards(1)[0]
         review_card_data = card.memorize(self.user)
         with time_machine.travel(review_card_data.review_date):
-            response = self.client.post(
-                reverse("memorize_review_card",
-                        kwargs={"card_pk": card.id, "grade": 3}))
+            response = self.client.patch(
+                reverse("memorized_card", kwargs={"pk": str(card.id)}),
+                json.dumps({"grade": 3}),
+                content_type="application/json")
         response_json = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -480,9 +486,10 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
         """
         card = self.make_fake_cards(1)[0]
         card.memorize(self.user)
-        response = self.client.post(
-            reverse("memorize_review_card",
-                    kwargs={"card_pk": card.id, "grade": 3}))
+        response = self.client.patch(
+            reverse("memorized_card", kwargs={"pk": str(card.id)}),
+            json.dumps({"grade": 3}),
+            content_type="application/json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["status_code"],
@@ -504,8 +511,7 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         memorized_cards = [card.memorize(self.user)
                            for card in cards[:half_of_cards]]
         cards[-1].memorize(user_2)
-        response = self.client.get(reverse(
-            "list_of_memorized_cards_for_user"))
+        response = self.client.get(reverse("memorized_cards"))
         response_content = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -519,8 +525,7 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         for card in cards:
             card.memorize(user)
         client = APIClient()
-        response = client.get(reverse(
-            "list_of_memorized_cards_for_user"))
+        response = client.get(reverse("memorized_cards"))
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -568,22 +573,19 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         """Test if number of cards for both endpoints:
         for memorized and not memorized cards - equals total number of cards.
         """
-        NUMBER_OF_CARDS = 100
+        NUMBER_OF_CARDS = 50
         portion_of_cards = ceil(NUMBER_OF_CARDS / 2)
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
         for card in cards[:portion_of_cards]:
             card.memorize(self.user)
-        response_not_memorized = self.client.get(
-            reverse("queued_cards"))
-        response_memorized = self.client.get(
-            reverse("list_of_memorized_cards_for_user"))
+        response_not_memorized = self.client.get(reverse("queued_cards"))
+        response_memorized = self.client.get(reverse("memorized_cards"))
 
         number_of_memorized_cards = response_memorized.json()["count"]
         number_of_queued_cards = response_not_memorized.json()["count"]
 
         self.assertEqual(sum([number_of_memorized_cards,
-                              number_of_queued_cards]),
-                         NUMBER_OF_CARDS)
+                              number_of_queued_cards]), NUMBER_OF_CARDS)
 
     def test_outstanding_cards(self):
         """Test retrieving outstanding cards.
@@ -752,7 +754,7 @@ class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
             card.memorize(self.user)
 
     def test_card_search_front(self):
-        url = add_url_params(reverse('list_of_memorized_cards_for_user'),
+        url = add_url_params(reverse('memorized_cards'),
                              {"search": self.selected_card.front})
         response = self.client.get(url)
         response_json = response.json()
@@ -763,7 +765,7 @@ class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
                          str(self.selected_card.id))
 
     def test_card_back_search(self):
-        url = add_url_params(reverse('list_of_memorized_cards_for_user'),
+        url = add_url_params(reverse('memorized_cards'),
                              {"search": self.selected_card.back})
         response = self.client.get(url)
         response_json = response.json()
@@ -781,7 +783,7 @@ class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
         template.save()
         self.selected_card.template = template
         self.selected_card.save()
-        url = add_url_params(reverse('list_of_memorized_cards_for_user'),
+        url = add_url_params(reverse('memorized_cards'),
                              {"search": template_text})
         response = self.client.get(url)
         response_json = response.json()

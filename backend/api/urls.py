@@ -1,52 +1,26 @@
 from django.urls import path
 from .views import (SingleCardForBackendView, ListCardsForBackendView,
-                    SingleCardForUser, ListMemorizedCards,
-                    ListQueuedCards, CramQueue,
-                    ListOutstandingCards, CramSingleCard)
+                    MemorizedCards, QueuedCards, CramQueue,
+                    OutstandingCards, CramSingleCard, QueuedCard,
+                    MemorizedCard)
 
 urlpatterns = [
-    # staff endpoints
-    path("staff/cards/",
-         ListCardsForBackendView.as_view(),
+    path("staff/cards/", ListCardsForBackendView.as_view(),
          name="list_cards"),
-    path("staff/cards/<uuid:pk>/",
-         SingleCardForBackendView.as_view(),
+    path("staff/cards/<uuid:pk>/", SingleCardForBackendView.as_view(),
          name="single_card"),
-
-    # regular user's endpoints
-    path("cards/<uuid:card_pk>/",
-         SingleCardForUser.as_view(),
-         name="card_for_user"),
-
-    # remove memorizing from this route
-    path("cards/<uuid:card_pk>/grade/<int:grade>/",
-         SingleCardForUser.as_view(),
-         name="memorize_review_card"),
-
-    # TODO: Reviewing:
-    # POST users/<uuid:user_pk>/cards/memorized/<card_id>
-    # body: { "grade": 4 }
-    path("cards/memorized",
-         ListMemorizedCards.as_view(),
-         name="list_of_memorized_cards_for_user"),
-    path("cards/outstanding",
-         ListOutstandingCards.as_view(),
+    path("cards/memorized", MemorizedCards.as_view(),
+         name="memorized_cards"),
+    path("cards/memorized/<uuid:pk>/", MemorizedCard.as_view(),
+         name="memorized_card"),
+    path("cards/outstanding", OutstandingCards.as_view(),
          name="outstanding_cards"),
-
-    # queued cards
-    # TODO: memorizing:
-    # PUT "cards/queued/<card_id>"
-    # body: { "grade": 4 }
-    # grade should go into request body
-    path("cards/queued",
-         ListQueuedCards.as_view(),
+    path("cards/queued", QueuedCards.as_view(),
          name="queued_cards"),
-
-    # cram queue
-    path("cards/cram-queue",
-         CramQueue.as_view(),
+    path("cards/queued/<uuid:pk>/", QueuedCard.as_view(),
+         name="queued_card"),
+    path("cards/cram-queue", CramQueue.as_view(),
          name="cram_queue"),
-    path("cards/cram-queue/<uuid:card_pk>",
-         CramSingleCard.as_view(),
+    path("cards/cram-queue/<uuid:card_pk>", CramSingleCard.as_view(),
          name="cram_single_card"),
 ]
