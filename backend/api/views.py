@@ -66,6 +66,7 @@ class QueuedCard(RetrieveUpdateAPIView):
             serialized_data = CardReviewDataSerializer(review_data).data
             response = Response(serialized_data,
                                 status=status.HTTP_200_OK)
+            response["Location"] = review_data.get_absolute_url()
         return response
 
 

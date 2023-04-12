@@ -8,6 +8,7 @@ from django.template import Template, Context
 from django.template.loader import render_to_string
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
+from django.urls import reverse
 from .apps import CardsConfig
 from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue
 from .utils.helpers import today, validate_grade
@@ -141,6 +142,10 @@ class CardUserData(models.Model):
         # section about F() expressions
         self.refresh_from_db()
 
+    def get_absolute_url(self):
+        return reverse("memorized_card",
+                       kwargs={"pk": str(self.card.id)})
+
     class Meta:
         unique_together = ("card", "user",)
 
@@ -181,10 +186,12 @@ class Card(models.Model):
                              "or 'back'.")
 
         def getter(self):
-            card_images = CardImage.objects.filter(card=self, side=side)\
-                .all().order_by('created')[:Card.images_number_limit_in_query]
+            card_images = CardImage.objects.filter(card=self, side=side) \
+                              .all().order_by('created')[
+                          :Card.images_number_limit_in_query]
             images = [card_image.image for card_image in card_images]
             return images
+
         return getter
 
     def _body_getter(self):

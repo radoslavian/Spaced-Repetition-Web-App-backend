@@ -2,11 +2,13 @@ from datetime import timedelta, date, datetime
 from random import randint
 import django.db.utils
 import time_machine
+from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
+from django.urls import reverse
 from .models import (Card, CardTemplate, Category, CardUserData,
                      Image, CardImage)
 from faker import Faker
@@ -1071,3 +1073,20 @@ class CardCategories(FakeUsersCards, HelpersMixin):
         card.categories.add(category)
         card.save()
         return card, category
+
+
+class AbsoluteUrls(HelpersMixin, TestCase):
+    def setUp(self):
+        # this should be inherited from the ApiTestHelpersMixin
+        # which currently resides in api.tests
+        self.client = APIClient()
+        self.user = self.make_fake_users(1)[0]
+        self.client.force_authenticate(user=self.user)
+        self.card = self.make_fake_cards(1)[0]
+
+    def test_card_user_data_canonical_url(self):
+        card_user_data = self.card.memorize(self.user)
+        canonical_url = reverse("memorized_card",
+                                kwargs={"pk": str(self.card.id)})
+
+        self.assertEqual(card_user_data.get_absolute_url(), canonical_url)

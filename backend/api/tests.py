@@ -6,7 +6,7 @@ from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
 from random import choice, shuffle
-from cards.models import Card, CardImage, CardTemplate, Category
+from cards.models import Card, CardImage, CardTemplate, Category, CardUserData
 from faker import Faker
 from rest_framework import status
 
@@ -406,6 +406,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
             reverse("queued_card", kwargs={"pk": str(fake_card_id)}))
         detail = "Not found."
 
+        self.assertFalse(response.has_header("Location"))
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["detail"], detail)
 
@@ -417,6 +418,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         response = client.put(reverse("queued_card", kwargs={"pk": card.id}))
         detail = "Authentication credentials were not provided."
 
+        self.assertFalse(response.has_header("Location"))
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["detail"], detail)
 
@@ -430,6 +432,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         detail = f"Card with id {card.id} for user {self.user.username} " \
                  f"id ({self.user.id}) is already memorized."
 
+        self.assertFalse(response.has_header("Location"))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["status_code"], 400)
         self.assertEqual(response.json()["detail"], detail)
@@ -441,8 +444,11 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
             reverse("queued_card", kwargs={"pk": card.id}),
             json.dumps({"grade": grade}),
             content_type="application/json")
+        location_header = response.get("Location")
+        user_card_data = CardUserData.objects.get(card=card, user=self.user)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(location_header, user_card_data.get_absolute_url())
         self.assertEqual(response.json()["grade"], grade)
 
     def test_memorize_success_no_grade(self):
@@ -452,8 +458,11 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         card = self.make_fake_cards(1)[0]
         response = self.client.patch(
             reverse("queued_card", kwargs={"pk": str(card.id)}))
+        location_header = response.get("Location")
+        user_card_data = CardUserData.objects.get(card=card, user=self.user)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(location_header, user_card_data.get_absolute_url())
         self.assertEqual(response.json()["grade"], default_grade)
 
 

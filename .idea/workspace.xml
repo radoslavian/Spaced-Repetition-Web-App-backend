@@ -4,15 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added docstring to api.utils.helpers.extract_from_request_json.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0005_remove_card_commenting_users_carduserdata_comment_and_more.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0006_alter_carduserdata_comment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0007_alter_carduserdata_comment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/users/migrations/0002_remove_user_commented_cards.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Moved comments into CardUserData.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -174,13 +171,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Started working on database models (added Card and Template).">
-      <created>1677109124480</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1677109124480</updated>
     </task>
     <task id="LOCAL-00004" summary="Started working on database models (added Card and Template).">
       <created>1677109149842</created>
@@ -518,7 +508,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681313394915</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="Moved comments into CardUserData.">
+      <created>1681315686663</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1681315686663</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -534,7 +531,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="api.serializers - pattern for serializing many-to-many relationships" />
     <MESSAGE value="Card serializing for backend viewing." />
     <MESSAGE value="Card rendering with fall-back template embedded as a string." />
     <MESSAGE value="Reformatted api.urls." />
@@ -559,6 +555,7 @@
     <MESSAGE value="Renamed cards.models.ReviewDataSM2 into CardUserData." />
     <MESSAGE value="Fixed memorizing/reviewing cards (according to comments in api.urls). Refactored API endpoints." />
     <MESSAGE value="Added docstring to api.utils.helpers.extract_from_request_json." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added docstring to api.utils.helpers.extract_from_request_json." />
+    <MESSAGE value="Moved comments into CardUserData." />
+    <option name="LAST_COMMIT_MESSAGE" value="Moved comments into CardUserData." />
   </component>
 </project>
