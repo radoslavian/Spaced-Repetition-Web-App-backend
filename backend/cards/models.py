@@ -69,6 +69,7 @@ class CardUserData(models.Model):
     grade = models.IntegerField(default=4)
     easiness_factor = models.FloatField(default=2.5)
     crammed = models.BooleanField(default=False)
+    comment = models.TextField(default=None, null=True)
 
     def _set_crammed(self, status: bool = False):
         if self.crammed != status:
@@ -164,8 +165,6 @@ class Card(models.Model):
                                  null=True, related_name="cards")
     categories = models.ManyToManyField("cards.Category",
                                         related_name="cards")
-    commenting_users = models.ManyToManyField(
-        get_user_model(), through="CardComment")
     images = models.ManyToManyField(
         "Image", through="CardImage")
 
@@ -281,15 +280,6 @@ class Card(models.Model):
         serialized = f"Card(Q: {question}; A: {answer})"
 
         return serialized
-
-
-class CardComment(models.Model):
-    card = models.ForeignKey(Card, on_delete=models.CASCADE)
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    text = models.CharField(max_length=max_comment_len)
-
-    class Meta:
-        unique_together = ("card", "user")
 
 
 class Category(AL_Node):

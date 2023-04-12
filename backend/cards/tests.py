@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from .models import (Card, CardTemplate, Category, CardComment, CardUserData,
+from .models import (Card, CardTemplate, Category, CardUserData,
                      Image, CardImage)
 from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -432,63 +432,37 @@ class CramQueueTests(TestCase, HelpersMixin):
 class CardCommentsTests(FakeUsersCards):
     def setUp(self):
         super().setUp()
-        self.fake_comment_len = randint(10, 100)
-        self.comment1_text = fake.text(self.fake_comment_len)
-        self.comment2_text = fake.text(self.fake_comment_len)
+        self.user, *_ = self.get_users()
+        self.card, *_ = self.get_cards()
+        self.comment_text = fake.text(100)
+        card_user_data = self.card.memorize(self.user)
+        card_user_data.comment = self.comment_text
+        card_user_data.save()
 
     def test_add_comment(self):
-        card, user_1, user_2 = self.get_card_users_with_comments()
-        card_comment = CardComment.objects.get(card=card, user=user_2)
+        card_user_data = CardUserData.objects.get(user=self.user,
+                                                  card=self.card)
 
-        self.assertEqual(card_comment.text, self.comment2_text)
-        self.assertEqual(user_1.commented_cards.count(), 1)
-        self.assertEqual(card.commenting_users.count(), 2)
-        self.assertEqual(user_2.cardcomment_set.get(card=card).text,
-                         self.comment2_text)
+        self.assertEqual(card_user_data.comment, self.comment_text)
 
     def test_remove_comment(self):
-        card, user_1, user_2 = self.get_card_users_with_comments()
+        card_user_data = CardUserData.objects.get(user=self.user,
+                                                  card=self.card)
+        card_user_data.comment = None  # or .clear()? or = "" ?
+        card_user_data.save()
+        card_user_data.refresh_from_db()
 
-        self.assertEqual(user_1.commented_cards.count(), 1)
-        card.commenting_users.clear()
-        self.assertEqual(user_1.commented_cards.count(), 0)
-        self.assertTrue(all([card.id, user_1.id, user_2.id]))
-        self.assertRaises(ObjectDoesNotExist,
-                          lambda: CardComment.objects.get(
-                              user=user_1, card=card))
-
-    def test_uniqueness(self):
-        """Test for uniqueness of user/card pair.
-        """
-        card, user_1, _ = self.get_card_users_with_comments()
-        self.assertRaises(django.db.utils.IntegrityError,
-                          CardComment(card=card, user=user_1).save)
+        self.assertFalse(card_user_data.comment)
 
     def test_update_comment(self):
-        card, user_1, user_2 = self.get_card_users_with_comments()
-        card_comment = CardComment.objects.get(user=user_1,
-                                               card=card)
-        card_comment.text = "new text"
-        card_comment.save()
+        fake_comment = fake.text(100)
+        card_user_data = CardUserData.objects.get(user=self.user,
+                                                  card=self.card)
+        card_user_data.comment = fake_comment
+        card_user_data.save()
+        card_user_data.refresh_from_db()
 
-        self.assertEqual(user_1.cardcomment_set.get(card=card).text,
-                         card_comment.text)
-        self.assertNotEqual(user_2.cardcomment_set.get(card=card).text,
-                            card_comment.text)
-
-    def add_comments(self, card, user_1, user_2):
-        CardComment(user=user_1,
-                    text=self.comment1_text,
-                    card=card).save()
-        CardComment(user=user_2,
-                    text=self.comment2_text,
-                    card=card).save()
-
-    def get_card_users_with_comments(self):
-        user_1, user_2 = self.get_users()
-        card = self.get_cards()[0]
-        self.add_comments(card, user_1, user_2)
-        return card, user_1, user_2
+        self.assertEqual(card_user_data.comment, fake_comment)
 
 
 class CardReviewsTests(FakeUsersCards):

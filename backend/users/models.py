@@ -27,9 +27,6 @@ class User(AbstractUser):
     ignored_cards = models.ManyToManyField(
         "cards.Card",
         related_name="ignoring_users")
-    commented_cards = models.ManyToManyField(
-        "cards.Card",
-        through="cards.CardComment")
 
 
 from cards.models import CardUserData

@@ -264,6 +264,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             "lapses": review_data.lapses,
             "total_reviews": review_data.total_reviews,
             "last_reviewed": str(review_data.last_reviewed),
+            "comment": None,
             "crammed": False,
             "introduced_on": introduced_on,
             "review_date": str(review_data.review_date),
