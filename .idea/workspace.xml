@@ -4,9 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added &quot;Location&quot; header to server response to the card memorization.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added &quot;Location&quot; header to server response to the card reviewing.">
+      <change afterPath="$PROJECT_DIR$/backend/api/permissions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,19 +62,23 @@
       <recent name="$PROJECT_DIR$/backend/cards" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests for tests.ListOfCardsForUser.test_all_cards">
-    <configuration name="Python tests for cards.tests.CardCommentsTests" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.tests">
+    <configuration name="tests" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="web_spaced_repetition_app" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/backend" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/backend/api" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;cards.tests.CardCommentsTests&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/backend/api/tests.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
     <configuration name="Python tests for cards.tests.CramQueueTests" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
@@ -143,20 +152,20 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.tests" />
       <item itemvalue="Python tests.Test cards" />
       <item itemvalue="Python tests.Python tests for tests.ListOfCardsForUser.test_all_cards" />
-      <item itemvalue="Python tests.Python tests for cards.tests.CardCommentsTests" />
       <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests" />
       <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" />
       <item itemvalue="Python tests.Python tests for cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.tests" />
         <item itemvalue="Python tests.Python tests for tests.ListOfCardsForUser.test_all_cards" />
         <item itemvalue="Python tests.Python tests for cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table" />
         <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" />
         <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests" />
-        <item itemvalue="Python tests.Python tests for cards.tests.CardCommentsTests" />
       </list>
     </recent_temporary>
   </component>
@@ -168,13 +177,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00005" summary="Added foreign key from Card to Template and improved Card serialization (__str__ method).">
-      <created>1677520520720</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1677520520721</updated>
     </task>
     <task id="LOCAL-00006" summary="Added adjacency list to Category.">
       <created>1677547699674</created>
@@ -512,7 +514,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681319863733</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="Added &quot;Location&quot; header to server response to the card reviewing.">
+      <created>1681320764634</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1681320764635</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -528,7 +537,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Card rendering with fall-back template embedded as a string." />
     <MESSAGE value="Reformatted api.urls." />
     <MESSAGE value="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template." />
     <MESSAGE value="Test for card rendering and sending through API." />
@@ -553,6 +561,7 @@
     <MESSAGE value="Added docstring to api.utils.helpers.extract_from_request_json." />
     <MESSAGE value="Moved comments into CardUserData." />
     <MESSAGE value="Added &quot;Location&quot; header to server response to the card memorization." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added &quot;Location&quot; header to server response to the card memorization." />
+    <MESSAGE value="Added &quot;Location&quot; header to server response to the card reviewing." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added &quot;Location&quot; header to server response to the card reviewing." />
   </component>
 </project>

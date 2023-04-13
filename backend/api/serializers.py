@@ -1,5 +1,4 @@
-import datetime
-
+from django.urls import reverse
 from rest_framework import serializers
 from cards.models import Card, Image, CardImage, CardUserData, Category
 
@@ -34,6 +33,18 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
     projected_review_data = serializers.SerializerMethodField()
     categories = CategoryForCardSerializer(source="card.categories",
                                            many=True)
+    cram_link = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_cram_link(obj):
+        """Returns cram_link whose non-null value signifies the card is
+        cram-queued and which in turn may be used for removing card from cram.
+        """
+        if not obj.crammed:
+            return None
+        return reverse("cram_single_card",
+                       kwargs={"card_pk": str(obj.card.id),
+                               "user_id": str(obj.user.id)})
 
     @staticmethod
     def get_projected_review_data(obj):
@@ -48,11 +59,11 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CardUserData
-        exclude = ("id", "user")
+        exclude = ("id", "user", "crammed",)
         read_only_fields = ("body", "computed_interval", "lapses",
                             "total_reviews", "last_reviewed", "introduced_on",
                             "review_date", "grade", "reviews",
-                            "easiness_factor", "card")
+                            "easiness_factor", "card", "cram_link")
 
 
 class CardUserNoReviewDataSerializer(serializers.ModelSerializer):

@@ -144,7 +144,8 @@ class CardUserData(models.Model):
 
     def get_absolute_url(self):
         return reverse("memorized_card",
-                       kwargs={"pk": str(self.card.id)})
+                       kwargs={"pk": self.card.id,
+                               "user_id": self.user.id})
 
     class Meta:
         unique_together = ("card", "user",)
