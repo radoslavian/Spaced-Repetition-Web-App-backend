@@ -9,16 +9,37 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from cards.models import Card, CardUserData, Category
 from cards.utils.exceptions import CardReviewDataExists
-
 from .permissions import UserPermission
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer)
 from cards.utils.exceptions import ReviewBeforeDue
-
 from .utils.helpers import extract_grade, no_review_data_response
 
 
-# Create your views here.
+class ListAPIAbstractView(ListAPIView):
+    query_ordering = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._user_categories = []
+
+    def query_set_filter(self, user_query_set):
+        pass
+
+    def get_base_queryset(self):
+        pass
+
+    def get_queryset(self):
+        user = self.request.user
+        user_query_set = self.get_base_queryset()
+
+        for selected_category in user.selected_categories.all():
+            self._user_categories.extend(selected_category.get_tree(
+                selected_category))
+        if self._user_categories:
+            user_query_set = self.query_set_filter(user_query_set)
+        return user_query_set.order_by(self.query_ordering)
+
 
 class ListCardsForBackendView(ListAPIView):
     queryset = Card.objects.all().order_by("created_on")
@@ -30,17 +51,20 @@ class SingleCardForBackendView(RetrieveAPIView):
     serializer_class = CardForEditingSerializer
 
 
-class QueuedCards(ListAPIView):
-    """list of the cards that are not yet memorized by a given user.
+class QueuedCards(ListAPIAbstractView):
+    """list cards that are not yet memorized by a given user.
     """
     filter_backends = [filters.SearchFilter]
     search_fields = ["front", "back", "template__body"]
     serializer_class = CardUserNoReviewDataSerializer
     permission_classes = [IsAuthenticated, UserPermission]
+    query_ordering = "created_on"
 
-    def get_queryset(self):
-        return Card.objects.exclude(reviewing_users=self.request.user) \
-            .order_by("created_on")
+    def get_base_queryset(self):
+        return Card.objects.exclude(reviewing_users=self.request.user)
+
+    def query_set_filter(self, user_query_set):
+        return user_query_set.filter(categories__in=self._user_categories)
 
 
 class QueuedCard(RetrieveUpdateAPIView):
@@ -76,44 +100,19 @@ class QueuedCard(RetrieveUpdateAPIView):
         return response
 
 
-class ListAPIAbstractView(ListAPIView):
-    def _get_base_queryset(self):
-        pass
-
-    def get_queryset(self):
-        user = self.request.user
-        user_query_set = self._get_base_queryset()
-        user_categories = []
-
-        for selected_category in user.selected_categories.all():
-            user_categories.extend(selected_category.get_tree(
-                selected_category))
-        if user_categories:
-            user_query_set = user_query_set.filter(
-                card__categories__in=user_categories)
-        return user_query_set.order_by("introduced_on")
-
-
-class MemorizedCards(ListAPIView):
+class MemorizedCards(ListAPIAbstractView):
     serializer_class = CardReviewDataSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["card__front", "card__back", "card__template__body"]
+    query_ordering = "introduced_on"
     permission_classes = [IsAuthenticated, UserPermission]
 
-    def get_queryset(self):
-        user = self.request.user
-        # no category selected or there are no categories -
-        # returns query with all cards
-        user_query_set = CardUserData.objects.all().filter(user=user)
-        user_categories = []
+    def query_set_filter(self, user_query_set):
+        return user_query_set.filter(
+            card__categories__in=self._user_categories)
 
-        for selected_category in user.selected_categories.all():
-            user_categories.extend(selected_category.get_tree(
-                selected_category))
-        if user_categories:
-            user_query_set = user_query_set.filter(
-                card__categories__in=user_categories)
-        return user_query_set.order_by("introduced_on")
+    def get_base_queryset(self):
+        return CardUserData.objects.all().filter(user=self.request.user)
 
 
 class MemorizedCard(RetrieveUpdateAPIView):
@@ -149,15 +148,20 @@ class MemorizedCard(RetrieveUpdateAPIView):
         return response
 
 
-class OutstandingCards(ListAPIView):
+class OutstandingCards(ListAPIAbstractView):
     serializer_class = CardReviewDataSerializer
     permission_classes = [IsAuthenticated, UserPermission]
+    query_ordering = "introduced_on"
 
-    def get_queryset(self):
+    def get_base_queryset(self):
         return CardUserData.objects.filter(
             user=self.request.user,
             review_date__lte=datetime.datetime.today().date()
-        ).order_by("introduced_on")
+        )
+
+    def query_set_filter(self, user_query_set):
+        return user_query_set.filter(
+            card__categories__in=self._user_categories)
 
 
 class CramQueue(ListAPIView):

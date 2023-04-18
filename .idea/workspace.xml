@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on API for card categories.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,13 +176,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00007" summary="Added adjacency list to Category.">
-      <created>1677547720733</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1677547720733</updated>
     </task>
     <task id="LOCAL-00008" summary="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin.">
       <created>1677616625361</created>
@@ -523,7 +513,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681427277373</updated>
     </task>
-    <option name="localTasksCounter" value="56" />
+    <task id="LOCAL-00056" summary="Working on API for card categories.">
+      <created>1681819082858</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1681819082859</updated>
+    </task>
+    <option name="localTasksCounter" value="57" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -539,7 +536,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template." />
     <MESSAGE value="Test for card rendering and sending through API." />
     <MESSAGE value="Added route for card with user review data." />
     <MESSAGE value="User.skipped_categories were converted to selected_categories with related name category_users." />
@@ -564,6 +560,7 @@
     <MESSAGE value="Added &quot;Location&quot; header to server response to the card memorization." />
     <MESSAGE value="Added &quot;Location&quot; header to server response to the card reviewing." />
     <MESSAGE value="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users." />
+    <MESSAGE value="Working on API for card categories." />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on API for card categories." />
   </component>
 </project>
