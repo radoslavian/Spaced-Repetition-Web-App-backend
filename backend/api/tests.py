@@ -35,7 +35,7 @@ def get_reverse_for(endpoint, key):
 
 
 reverse_memorized_cards = get_reverse_for("memorized_cards", "user_id")
-reverse_memorized_card = get_reverse_for("memorized_card", "pk")
+reverse_queued_cards = get_reverse_for("queued_cards", "user_id")
 
 
 def convert_zulu_timestamp(timestamp: str):
@@ -1154,3 +1154,164 @@ class TestFilterQueuedCards(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response_json["count"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.selected_card.id))
+
+
+class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.parent = Category(name="first parent category")
+        self.parent.save()
+        self.first_sub_category = Category(name="first sibling category",
+                                           parent=self.parent)
+        self.first_sub_category.save()
+        self.second_sub_category = Category(name="second sibling category",
+                                            parent=self.parent)
+        self.second_sub_category.save()
+        self.third_sub_category = Category(name="third sibling category",
+                                           parent=self.parent)
+        self.third_sub_category.save()
+        self.card_1, self.card_2, self.card_3 = self.make_fake_cards(3)
+        self.card_1.categories.add(self.first_sub_category)
+        self.card_2.categories.add(self.second_sub_category)
+        self.card_2.categories.add(self.third_sub_category)
+
+    def memorize_cards(self):
+        for card in self.card_1, self.card_2, self.card_3:
+            card.memorize(self.user)
+
+    def test_parent_category_selected_queued_cards(self):
+        self.user.selected_categories.add(self.parent)
+        self.user.save()
+        response = self.client.get(reverse_queued_cards(self.user.id))
+
+        self.assertEqual(response.json()["count"], 3)
+
+    def test_single_subcategory_selected_queued_cards(self):
+        self.user.selected_categories.set([self.first_sub_category])
+        self.user.save()
+        # additional card attached to the root category
+        card = self.make_fake_cards(1)[0]
+        card.categories.add(self.parent)
+        card.save()
+        response_all_cards = self.client.get(
+            reverse_queued_cards(self.user.id))
+        response_card_1 = self.client.get(
+            reverse("queued_card", kwargs={
+                "user_id": self.user.id,
+                "pk": self.card_1.id
+            }))
+
+        # print(json.dumps(response_all_cards.json(), indent=3))
+        self.assertDictEqual(response_card_1.json(),
+                             response_all_cards.json()["results"][0])
+        self.assertEqual(response_all_cards.json()["count"], 1)
+        self.assertEqual(response_all_cards.json()["results"][0]["card"],
+                         str(self.card_1.id))
+
+    def test_parent_category_selected_memorized_cards(self):
+        self.memorize_cards()
+        self.user.selected_categories.add(self.parent)
+        self.user.save()
+        response = self.client.get(reverse_memorized_cards(self.user.id))
+
+        self.assertEqual(response.json()["count"], 3)
+
+    def test_single_subcategory_selected_memorized_cards(self):
+        self.memorize_cards()
+        self.user.selected_categories.set([self.first_sub_category])
+        self.user.save()
+        # additional card attached to the root category
+        card = self.make_fake_cards(1)[0]
+        card.categories.add(self.parent)
+        card.save()
+        card.memorize(self.user)
+        response_all_cards = self.client.get(
+            reverse_memorized_cards(self.user.id))
+        response_card_1 = self.client.get(
+            reverse("memorized_card", kwargs={
+                "user_id": self.user.id,
+                "pk": self.card_1.id
+            }))
+
+        # print(json.dumps(response_all_cards.json(), indent=3))
+        self.assertDictEqual(response_card_1.json(),
+                             response_all_cards.json()["results"][0])
+        self.assertEqual(response_all_cards.json()["count"], 1)
+        self.assertEqual(response_all_cards.json()["results"][0]["card"],
+                         str(self.card_1.id))
+
+    def test_two_sibling_categories_selected(self):
+        self.memorize_cards()
+        self.user.selected_categories.set([self.second_sub_category,
+                                           self.third_sub_category])
+        self.user.save()
+        response_all_cards = self.client.get(
+            reverse_memorized_cards(self.user.id))
+
+        self.assertEqual(response_all_cards.json()["count"], 2)
+
+
+class CategoryTree(ApiTestHelpersMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.top_level_category = Category(name="Toplevel")
+        self.top_level_category.save()
+        self.sub_category = Category(name="Top-level's subcategory",
+                                     parent=self.top_level_category)
+        self.sub_category.save()
+        self.sibling_2nd_level_category = Category(
+            name="Top-level subcategory's sibling",
+            parent=self.top_level_category)
+        self.sibling_2nd_level_category.save()
+        self.sub_sub_category = Category(name="Sub-category's subcategory",
+                                         parent=self.sub_category)
+        self.sub_sub_category.save()
+        (self.card_top_level, self.card_sub_category,
+         self.card_sibling_category,
+         self.card_lowest_category) = cards = self.make_fake_cards(4)
+
+        self.card_top_level.categories.add(self.top_level_category)
+        self.card_sub_category.categories.add(self.sub_category)
+        self.card_lowest_category.categories.add(self.sub_sub_category)
+        # card in two categories
+        self.card_sibling_category.categories.set([
+            self.sub_category,
+            self.sibling_2nd_level_category])
+        for card in cards:
+            card.memorize(self.user)
+
+    def test_middle_category_is_selected(self):
+        self.user.selected_categories.add(self.sub_category)
+        self.user.save()
+        response = self.client.get(reverse_memorized_cards(self.user.id))
+        card_ids_from_response = {
+            card["card"] for card in response.json()["results"]
+        }
+        card_ids = {
+            str(card.id) for card in (self.card_sub_category,
+                                      self.card_lowest_category,
+                                      self.card_sibling_category)
+        }
+
+        self.assertEqual(response.json()["count"], 3)
+        self.assertEqual(card_ids_from_response, card_ids)
+
+    def test_lowest_level_category_is_selected(self):
+        self.user.selected_categories.add(self.sub_sub_category)
+        self.user.save()
+        response = self.client.get(reverse_memorized_cards(self.user.id))
+        card_id = response.json()["results"][0]["card"]
+
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(str(self.card_lowest_category.id), card_id)
+
+    def test_card_in_two_categories(self):
+        """Test adding card into two categories.
+        """
+        self.user.selected_categories.add(self.sibling_2nd_level_category)
+        self.user.save()
+        response = self.client.get(reverse_memorized_cards(self.user.id))
+        card_id = response.json()["results"][0]["card"]
+
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(str(self.card_sibling_category.id), card_id)

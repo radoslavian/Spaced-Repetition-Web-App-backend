@@ -43,8 +43,8 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
         if not obj.crammed:
             return None
         return reverse("cram_single_card",
-                       kwargs={"card_pk": str(obj.card.id),
-                               "user_id": str(obj.user.id)})
+                       kwargs={"card_pk": obj.card.id,
+                               "user_id": obj.user.id})
 
     @staticmethod
     def get_projected_review_data(obj):

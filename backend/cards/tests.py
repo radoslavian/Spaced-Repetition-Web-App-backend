@@ -1087,6 +1087,7 @@ class AbsoluteUrls(HelpersMixin, TestCase):
     def test_card_user_data_canonical_url(self):
         card_user_data = self.card.memorize(self.user)
         canonical_url = reverse("memorized_card",
-                                kwargs={"pk": str(self.card.id)})
+                                kwargs={"pk": self.card.id,
+                                        "user_id": self.user.id})
 
         self.assertEqual(card_user_data.get_absolute_url(), canonical_url)

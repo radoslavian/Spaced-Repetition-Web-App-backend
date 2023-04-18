@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added &quot;Location&quot; header to server response to the card reviewing.">
-      <change afterPath="$PROJECT_DIR$/backend/api/permissions.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,6 +66,9 @@
       <module name="web_spaced_repetition_app" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/backend/api" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -177,13 +179,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00006" summary="Added adjacency list to Category.">
-      <created>1677547699674</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1677547699674</updated>
     </task>
     <task id="LOCAL-00007" summary="Added adjacency list to Category.">
       <created>1677547720733</created>
@@ -521,7 +516,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681320764635</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users.">
+      <created>1681427277373</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1681427277373</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -537,7 +539,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Reformatted api.urls." />
     <MESSAGE value="Top-level templates for extending shall be loaded from the template directory.&#10;Rendering template from the database extending from the top-level template." />
     <MESSAGE value="Test for card rendering and sending through API." />
     <MESSAGE value="Added route for card with user review data." />
@@ -562,6 +563,7 @@
     <MESSAGE value="Moved comments into CardUserData." />
     <MESSAGE value="Added &quot;Location&quot; header to server response to the card memorization." />
     <MESSAGE value="Added &quot;Location&quot; header to server response to the card reviewing." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added &quot;Location&quot; header to server response to the card reviewing." />
+    <MESSAGE value="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users." />
   </component>
 </project>

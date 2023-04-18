@@ -7,7 +7,7 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView, \
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from cards.models import Card, CardUserData
+from cards.models import Card, CardUserData, Category
 from cards.utils.exceptions import CardReviewDataExists
 
 from .permissions import UserPermission
@@ -76,6 +76,24 @@ class QueuedCard(RetrieveUpdateAPIView):
         return response
 
 
+class ListAPIAbstractView(ListAPIView):
+    def _get_base_queryset(self):
+        pass
+
+    def get_queryset(self):
+        user = self.request.user
+        user_query_set = self._get_base_queryset()
+        user_categories = []
+
+        for selected_category in user.selected_categories.all():
+            user_categories.extend(selected_category.get_tree(
+                selected_category))
+        if user_categories:
+            user_query_set = user_query_set.filter(
+                card__categories__in=user_categories)
+        return user_query_set.order_by("introduced_on")
+
+
 class MemorizedCards(ListAPIView):
     serializer_class = CardReviewDataSerializer
     filter_backends = [filters.SearchFilter]
@@ -83,8 +101,19 @@ class MemorizedCards(ListAPIView):
     permission_classes = [IsAuthenticated, UserPermission]
 
     def get_queryset(self):
-        return CardUserData.objects.filter(user=self.request.user) \
-            .order_by("introduced_on")
+        user = self.request.user
+        # no category selected or there are no categories -
+        # returns query with all cards
+        user_query_set = CardUserData.objects.all().filter(user=user)
+        user_categories = []
+
+        for selected_category in user.selected_categories.all():
+            user_categories.extend(selected_category.get_tree(
+                selected_category))
+        if user_categories:
+            user_query_set = user_query_set.filter(
+                card__categories__in=user_categories)
+        return user_query_set.order_by("introduced_on")
 
 
 class MemorizedCard(RetrieveUpdateAPIView):
