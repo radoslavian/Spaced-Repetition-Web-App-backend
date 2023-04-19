@@ -227,3 +227,10 @@ class UserCategories(RetrieveAPIView):
             "categories": categories
         }
         return Response(output)
+
+
+class SelectedCategories(RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated, UserPermission]
+
+    def get(self, request, **kwargs):
+        return Response(request.user.selected_categories_ids)

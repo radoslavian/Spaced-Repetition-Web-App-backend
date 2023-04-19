@@ -38,6 +38,7 @@ def get_reverse_for(endpoint, key):
 reverse_memorized_cards = get_reverse_for("memorized_cards", "user_id")
 reverse_queued_cards = get_reverse_for("queued_cards", "user_id")
 reverse_outstanding_cards = get_reverse_for("outstanding_cards", "user_id")
+reverse_selected_categories = get_reverse_for("selected_categories", "user_id")
 
 
 def convert_zulu_timestamp(timestamp: str):
@@ -1426,6 +1427,10 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
             name="Sub-sub-category",
             parent=self.sub_category)
 
+    def select_category(self):
+        self.user.selected_categories.add(self.sub_sub_category)
+        self.user.save()
+
     def test_getting_user_categories_selected(self):
         """Test getting selected categories within endpoint's output.
         """
@@ -1472,11 +1477,6 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         self.assertEqual(len(categories), 1)
         self.assertDictEqual(expected_category_tree, categories[0])
 
-    def test_getting_user_categories_children(self):
-        """Test child-categories within downloaded categories.
-        """
-        pass
-
     def test_other_user_id(self):
         """Attempt to download categories using other user's id in the URL.
         """
@@ -1499,3 +1499,31 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
 
         self.assertDictEqual(expected_message, response.json())
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieving_selected_user_categories_forbidden(self):
+        """Attempt by unauthorized user to download other user's selected
+        categories.
+        """
+        self.select_category()
+        client = APIClient()
+        response = client.get(reverse_selected_categories(self.user.id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieving_selected_user_categories_wrong_id(self):
+        """Attempt to download selected user categories using another user's
+        id in the URL.
+        """
+        self.select_category()
+        user = self.make_fake_users(1)[0]
+        response = self.client.get(reverse_selected_categories(user.id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieving_selected_user_categories(self):
+        self.select_category()
+        response = self.client.get(reverse_selected_categories(self.user.id))
+        response_body = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_body), 1)
+        self.assertEqual(response_body[0], str(self.sub_sub_category.id))
+
