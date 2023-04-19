@@ -2,6 +2,7 @@ import json
 import uuid
 from math import ceil
 import time_machine
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
@@ -173,7 +174,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
         response_json = response.json()
 
         self.assertEqual(len(response_json["categories"]), 1)
-        self.assertEqual(response_json["categories"][0]["name"],
+        self.assertEqual(response_json["categories"][0]["title"],
                          category_name)
 
     def test_card_multiple_categories(self):
@@ -187,10 +188,10 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
         categories_from_response = response.json()["categories"]
 
         self.assertEqual(len(categories_from_response), 2)
-        self.assertNotEqual(categories_from_response[0]["id"],
-                            categories_from_response[1]["id"])
-        self.assertNotEqual(categories_from_response[0]["name"],
-                            categories_from_response[1]["name"])
+        self.assertNotEqual(categories_from_response[0]["key"],
+                            categories_from_response[1]["key"])
+        self.assertNotEqual(categories_from_response[0]["title"],
+                            categories_from_response[1]["title"])
 
 
 class UserCardsTests(ApiTestFakeUsersCardsMixin):
@@ -373,7 +374,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
                     kwargs={"pk": card.id,
                             "user_id": self.user.id}))
         categories_from_response = response.json()["categories"]
-        category_name_from_response = categories_from_response[0]["name"]
+        category_name_from_response = categories_from_response[0]["title"]
 
         self.assertEqual(len(categories_from_response), 1)
         self.assertEqual(category_name_from_response, category.name)
@@ -420,7 +421,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             reverse("queued_card", kwargs={"pk": card.id,
                                            "user_id": self.user.id}))
         categories_from_response = response.json()["categories"]
-        category_name_from_response = response.json()["categories"][0]["name"]
+        category_name_from_response = response \
+            .json()["categories"][0]["title"]
 
         self.assertEqual(len(categories_from_response), 1)
         self.assertEqual(category_name_from_response, category.name)
@@ -1223,7 +1225,6 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
                 "pk": self.card_1.id
             }))
 
-        # print(json.dumps(response_all_cards.json(), indent=3))
         self.assertDictEqual(response_card_1.json(),
                              response_all_cards.json()["results"][0])
         self.assertEqual(response_all_cards.json()["count"], 1)
@@ -1413,3 +1414,88 @@ class CategoryTree(ApiTestHelpersMixin, TestCase):
 
         self.assertEqual(response.json()["count"], 1)
         self.assertEqual(str(self.card_sibling_category.id), card_id)
+
+
+class CategoryApi(ApiTestHelpersMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.top_category = Category.objects.create(name="Top level category")
+        self.sub_category = Category.objects.create(name="Sub-category",
+                                                    parent=self.top_category)
+        self.sub_sub_category = Category.objects.create(
+            name="Sub-sub-category",
+            parent=self.sub_category)
+
+    def test_getting_user_categories_selected(self):
+        """Test getting selected categories within endpoint's output.
+        """
+        self.user.selected_categories.add(self.sub_sub_category)
+        response = self.client.get(
+            reverse("user_categories", kwargs={"user_id": self.user.id}))
+        response_body = response.json()
+        selected_categories = response_body.get("selected_categories", None)
+        expected = [str(self.sub_sub_category.id)]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(selected_categories)
+        self.assertEqual(len(selected_categories), 1)
+        self.assertEqual(selected_categories, expected)
+
+    def test_getting_user_categories(self):
+        """Test the 'categories' tree key from the endpoint.
+        """
+        self.user.selected_categories.add(self.sub_sub_category)
+        response = self.client.get(
+            reverse("user_categories", kwargs={"user_id": self.user.id}))
+        response_body = response.json()
+        categories = response_body.get("categories", None)
+        expected_category_tree = {
+                "key": str(self.top_category.id),
+                "title": self.top_category.name,
+                "children": [
+                    {
+                        "key": str(self.sub_category.id),
+                        "title": self.sub_category.name,
+                        "children": [
+                            {
+                                "key": str(self.sub_sub_category.id),
+                                "title": self.sub_sub_category.name,
+                                "children": []
+                            }
+                        ]
+                    }
+                ]
+            }
+
+        self.assertTrue(categories)
+        self.assertEqual(len(response_body), 2)
+        self.assertEqual(len(categories), 1)
+        self.assertDictEqual(expected_category_tree, categories[0])
+
+    def test_getting_user_categories_children(self):
+        """Test child-categories within downloaded categories.
+        """
+        pass
+
+    def test_other_user_id(self):
+        """Attempt to download categories using other user's id in the URL.
+        """
+        user = get_user_model()(username=fake.name(),
+                                email=fake.email())
+        response = self.client.get(
+            reverse("user_categories", kwargs={"user_id": user.id}))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_unauthorized(self):
+        """Unauthorized attempt to download (user) categories.
+        """
+        client = APIClient()
+        response = client.get(
+            reverse("user_categories", kwargs={"user_id": self.user.id}))
+        expected_message = {
+            # "status_code": status.HTTP_403_FORBIDDEN,
+            "detail": "Authentication credentials were not provided."
+        }
+
+        self.assertDictEqual(expected_message, response.json())
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

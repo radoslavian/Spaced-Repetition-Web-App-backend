@@ -28,5 +28,10 @@ class User(AbstractUser):
         "cards.Card",
         related_name="ignoring_users")
 
+    @property
+    def selected_categories_ids(self):
+        return [str(category.id) for category in
+                self.selected_categories.all()]
+
 
 from cards.models import CardUserData

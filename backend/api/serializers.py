@@ -1,5 +1,6 @@
 from django.urls import reverse
 from rest_framework import serializers
+from rest_framework_recursive.fields import RecursiveField
 from cards.models import Card, Image, CardImage, CardUserData, Category
 
 
@@ -10,9 +11,20 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class CategoryForCardSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source="name")
+    key = serializers.CharField(source="id")
+
     class Meta:
         model = Category
-        fields = ("id", "name",)
+        fields = ("key", "title",)
+
+
+class CategorySerializer(CategoryForCardSerializer):
+    children = RecursiveField(many=True, source="sub_categories")
+
+    class Meta:
+        model = Category
+        fields = ("key", "title", "children",)
 
 
 class CardForEditingSerializer(serializers.ModelSerializer):

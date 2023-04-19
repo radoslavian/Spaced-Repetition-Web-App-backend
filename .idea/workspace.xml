@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Working on API for card categories.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Implemented API for card categories: endpoints for lists return cards based on selected categories.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -176,13 +179,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00008" summary="Working on Category model: saving before dropping hashing in TriggeredUpdatesMixin.">
-      <created>1677616625361</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1677616625361</updated>
     </task>
     <task id="LOCAL-00009" summary="Added constraints against duplication to models.">
       <created>1677618001299</created>
@@ -520,7 +516,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681819082859</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="Implemented API for card categories: endpoints for lists return cards based on selected categories.">
+      <created>1681829338403</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1681829338403</updated>
+    </task>
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -536,7 +539,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Test for card rendering and sending through API." />
     <MESSAGE value="Added route for card with user review data." />
     <MESSAGE value="User.skipped_categories were converted to selected_categories with related name category_users." />
     <MESSAGE value="Implemented card categories." />
@@ -561,6 +563,7 @@
     <MESSAGE value="Added &quot;Location&quot; header to server response to the card reviewing." />
     <MESSAGE value="Added user ids to URLs for resources and permission verification for performing certain actions on resources - such as preventing some users from accessing card review data of other users." />
     <MESSAGE value="Working on API for card categories." />
-    <option name="LAST_COMMIT_MESSAGE" value="Working on API for card categories." />
+    <MESSAGE value="Implemented API for card categories: endpoints for lists return cards based on selected categories." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented API for card categories: endpoints for lists return cards based on selected categories." />
   </component>
 </project>

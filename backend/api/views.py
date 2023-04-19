@@ -11,7 +11,7 @@ from cards.models import Card, CardUserData, Category
 from cards.utils.exceptions import CardReviewDataExists
 from .permissions import UserPermission
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
-                          CardUserNoReviewDataSerializer)
+                          CardUserNoReviewDataSerializer, CategorySerializer)
 from cards.utils.exceptions import ReviewBeforeDue
 from .utils.helpers import extract_grade, no_review_data_response
 
@@ -34,7 +34,7 @@ class ListAPIAbstractView(ListAPIView):
         user_query_set = self.get_base_queryset()
 
         for selected_category in user.selected_categories.all():
-            self._user_categories.extend(selected_category.get_tree(
+            self._user_categories.extend(Category.get_tree(
                 selected_category))
         if self._user_categories:
             user_query_set = self.query_set_filter(user_query_set)
@@ -131,9 +131,9 @@ class MemorizedCard(RetrieveUpdateAPIView):
         """Patching grade on a memorized card means reviewing it.
         """
         card = get_object_or_404(Card, id=self.kwargs["pk"])
-        grade = extract_grade(request)
         card_review_data = get_object_or_404(
             CardUserData, user=request.user, card=card)
+        grade = extract_grade(request)
         try:
             card_review_data.review(grade)
         except ReviewBeforeDue as e:
@@ -212,3 +212,18 @@ class CramSingleCard(APIView):
             response = Response(status=status.HTTP_204_NO_CONTENT)
             response["Location"] = card_review_data.get_absolute_url()
         return response
+
+
+class UserCategories(RetrieveAPIView):
+    permission_classes = [IsAuthenticated, UserPermission]
+    queryset = Category.objects.filter(parent=None)
+    serializer_class = CategorySerializer
+
+    def get(self, request, **kwargs):
+        categories = self.serializer_class(self.queryset.all(),
+                                           many=True).data
+        output = {
+            "selected_categories": request.user.selected_categories_ids,
+            "categories": categories
+        }
+        return Response(output)

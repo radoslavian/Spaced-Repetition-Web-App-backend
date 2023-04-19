@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (SingleCardForBackendView, ListCardsForBackendView,
                     MemorizedCards, QueuedCards, CramQueue,
                     OutstandingCards, CramSingleCard, QueuedCard,
-                    MemorizedCard)
+                    MemorizedCard, UserCategories)
 
 urlpatterns = [
     path("staff/cards", ListCardsForBackendView.as_view(),
@@ -25,4 +25,7 @@ urlpatterns = [
     path("users/<uuid:user_id>/cards/cram-queue/<uuid:card_pk>",
          CramSingleCard.as_view(),
          name="cram_single_card"),
+    path("users/<uuid:user_id>/categories",
+         UserCategories.as_view(),
+         name="user_categories"),
 ]
