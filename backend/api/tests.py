@@ -1,3 +1,4 @@
+import hashlib
 import json
 import uuid
 from math import ceil
@@ -10,7 +11,6 @@ from random import choice, shuffle
 from cards.models import Card, CardImage, CardTemplate, Category, CardUserData
 from faker import Faker
 from rest_framework import status
-
 from .utils.helpers import add_url_params
 
 if __name__ == "__main__" and __package__ is None:
@@ -38,7 +38,8 @@ def get_reverse_for(endpoint, key):
 reverse_memorized_cards = get_reverse_for("memorized_cards", "user_id")
 reverse_queued_cards = get_reverse_for("queued_cards", "user_id")
 reverse_outstanding_cards = get_reverse_for("outstanding_cards", "user_id")
-reverse_selected_categories = get_reverse_for("selected_categories", "user_id")
+reverse_selected_categories = get_reverse_for("selected_categories",
+                                              "user_id")
 
 
 def convert_zulu_timestamp(timestamp: str):
@@ -1427,9 +1428,23 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
             name="Sub-sub-category",
             parent=self.sub_category)
 
+    def send_selected_categories(self, categories_ids, client=None):
+        local_client = client or self.client
+        return local_client.put(
+            reverse_selected_categories(self.user.id),
+            json.dumps(categories_ids), format="json"
+        )
+
     def select_category(self):
         self.user.selected_categories.add(self.sub_sub_category)
         self.user.save()
+
+    def get_categories_ids(self):
+        return {
+            str(category.id) for category in (self.top_category,
+                                              self.sub_category,
+                                              self.sub_sub_category)
+        }
 
     def test_getting_user_categories_selected(self):
         """Test getting selected categories within endpoint's output.
@@ -1455,22 +1470,22 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         response_body = response.json()
         categories = response_body.get("categories", None)
         expected_category_tree = {
-                "key": str(self.top_category.id),
-                "title": self.top_category.name,
-                "children": [
-                    {
-                        "key": str(self.sub_category.id),
-                        "title": self.sub_category.name,
-                        "children": [
-                            {
-                                "key": str(self.sub_sub_category.id),
-                                "title": self.sub_sub_category.name,
-                                "children": []
-                            }
-                        ]
-                    }
-                ]
-            }
+            "key": str(self.top_category.id),
+            "title": self.top_category.name,
+            "children": [
+                {
+                    "key": str(self.sub_category.id),
+                    "title": self.sub_category.name,
+                    "children": [
+                        {
+                            "key": str(self.sub_sub_category.id),
+                            "title": self.sub_sub_category.name,
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
 
         self.assertTrue(categories)
         self.assertEqual(len(response_body), 2)
@@ -1527,3 +1542,65 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         self.assertEqual(len(response_body), 1)
         self.assertEqual(response_body[0], str(self.sub_sub_category.id))
 
+    def test_saving_selected_categories_forbidden(self):
+        """Attempt to save selected categories from an unauthorized user.
+        """
+        client = APIClient()
+        categories_ids = self.get_categories_ids()
+        response = self.send_selected_categories(list(categories_ids),
+                                                 client=client)
+        response_body = response.json()
+
+        # self.assertEqual(response_body["status_code"], "403")
+        self.assertEqual(response_body["detail"],
+                         "Authentication credentials were not provided.")
+        self.assertTrue(status.is_client_error(response.status_code))
+
+    def test_saving_selected_categories_wrong_user_id(self):
+        """Attempt to save selected categories using other user's id
+        in the URL.
+        """
+        categories_ids = self.get_categories_ids()
+        user = self.make_fake_users(1)[0]
+        response = self.client.put(
+            reverse_selected_categories(user.id),
+            json.dumps(list(categories_ids)), format="json"
+        )
+        response_body = response.json()
+
+        self.assertTrue(status.is_client_error(response.status_code))
+        self.assertEqual(response_body["detail"],
+                         "You do not have permission to perform this action.")
+        self.assertEqual(response_body["status_code"],
+                         str(status.HTTP_403_FORBIDDEN))
+
+    def test_saving_selected_categories_malformed_data(self):
+        keys_amount = 3
+        categories_ids = [fake.text(10) for _ in range(keys_amount)]
+        response = self.send_selected_categories(categories_ids)
+        response_detail = response.json()["detail"]
+
+        self.assertEqual(response_detail, "Malformed data.")
+        self.assertTrue((status.is_client_error(response.status_code)))
+
+    def test_saving_selected_categories_fake_ids(self):
+        """Test fake category keys uploaded to the server.
+        """
+        keys_amount = 3
+        categories_ids = [str(uuid.uuid4()) for _ in range(keys_amount)]
+        response = self.send_selected_categories(categories_ids)
+        response_detail = response.json()["detail"]
+
+        self.assertTrue(status.is_client_error(response.status_code))
+        self.assertEqual(response_detail, "Invalid input.")
+
+    def test_saving_selected_categories(self):
+        categories_ids = self.get_categories_ids()
+        response = self.send_selected_categories(list(categories_ids))
+        selected_categories_id = {
+            str(category.id) for category
+            in self.user.selected_categories.all()
+        }
+
+        self.assertTrue(status.is_success(response.status_code))
+        self.assertEqual(categories_ids, selected_categories_id)

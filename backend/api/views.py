@@ -1,7 +1,10 @@
 import datetime
+import json
+import uuid
+
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
-from rest_framework import status, filters
+from rest_framework import status, filters, serializers
 from rest_framework.generics import RetrieveAPIView, ListAPIView, \
     RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -220,6 +223,7 @@ class UserCategories(RetrieveAPIView):
     serializer_class = CategorySerializer
 
     def get(self, request, **kwargs):
+        # self.get_serializer()
         categories = self.serializer_class(self.queryset.all(),
                                            many=True).data
         output = {
@@ -234,3 +238,28 @@ class SelectedCategories(RetrieveUpdateAPIView):
 
     def get(self, request, **kwargs):
         return Response(request.user.selected_categories_ids)
+
+    @staticmethod
+    def validate_uuids(uuids: list | set | tuple):
+        try:
+            for single_uuid in uuids:
+                uuid.UUID(single_uuid)
+        except ValueError:
+            raise serializers.ValidationError({"detail": "Malformed data."})
+
+    @staticmethod
+    def load_categories_from_ids(category_ids):
+        return [Category.objects.filter(id=category_id).first()
+                for category_id in category_ids]
+
+    def update(self, request, **kwargs):
+        user = request.user
+        category_ids = set(json.loads(request.data))
+        self.validate_uuids(category_ids)
+        selected_categories = self.load_categories_from_ids(category_ids)
+        if all(selected_categories):
+            user.selected_categories.set(selected_categories)
+            user.save()
+        else:
+            raise serializers.ValidationError({"detail": "Invalid input."})
+        return Response(status=status.HTTP_204_NO_CONTENT)
