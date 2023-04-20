@@ -3,10 +3,10 @@
 {% extends "_base.html" %}
 {% block content %}
 <div class="question">
-    <p>{{ card.front }}</p>
+    <p>{{ card.front|safe }}</p>
 </div>
 <hr />
 <div class="answer">
-    <p>{{ card.back }}</p>
+    <p>{{ card.back|safe }}</p>
 </div>
 {% endblock content %}

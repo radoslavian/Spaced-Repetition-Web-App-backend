@@ -4,10 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added route for retrieving user-selected categories from the server.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added route for saving user-selected categories to server.">
+      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0006_rename_sound_sound_sound_file.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/templates/fallback.html" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/templates/fallback.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/wsra/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -176,13 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00011" summary="Added constraints against duplication to models.">
-      <created>1677619352073</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1677619352073</updated>
     </task>
     <task id="LOCAL-00012" summary="Added skipped card categories to the User model.">
       <created>1677703131019</created>
@@ -520,7 +518,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681910511311</updated>
     </task>
-    <option name="localTasksCounter" value="60" />
+    <task id="LOCAL-00060" summary="Added route for saving user-selected categories to server.">
+      <created>1681936999014</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1681936999033</updated>
+    </task>
+    <option name="localTasksCounter" value="61" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -536,7 +541,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Implemented card categories." />
     <MESSAGE value="CardReviewDataSerializer.categories no longer uses SerializerMethodField." />
     <MESSAGE value="Added routes for memorizing and grading cards." />
     <MESSAGE value="Moved Card.review and helper methods into ReviewDataSM2." />
@@ -561,6 +565,7 @@
     <MESSAGE value="Implemented API for card categories: endpoints for lists return cards based on selected categories." />
     <MESSAGE value="Added route for categories together with user-selected category keys." />
     <MESSAGE value="Added route for retrieving user-selected categories from the server." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added route for retrieving user-selected categories from the server." />
+    <MESSAGE value="Added route for saving user-selected categories to server." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added route for saving user-selected categories to server." />
   </component>
 </project>

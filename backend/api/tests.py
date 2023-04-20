@@ -1432,7 +1432,9 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         local_client = client or self.client
         return local_client.put(
             reverse_selected_categories(self.user.id),
-            json.dumps(categories_ids), format="json"
+            categories_ids,
+            format="json"
+            # content_type="application/json"
         )
 
     def select_category(self):
@@ -1580,7 +1582,7 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         response = self.send_selected_categories(categories_ids)
         response_detail = response.json()["detail"]
 
-        self.assertEqual(response_detail, "Malformed data.")
+        self.assertEqual(response_detail, "Malformed data or invalid UUIDs.")
         self.assertTrue((status.is_client_error(response.status_code)))
 
     def test_saving_selected_categories_fake_ids(self):
@@ -1593,6 +1595,18 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
 
         self.assertTrue(status.is_client_error(response.status_code))
         self.assertEqual(response_detail, "Invalid input.")
+
+    def test_saving_selected_categories_malformed_body(self):
+        """Test saving malformed request body to the server: text/plain
+        instead of text/json.
+        """
+        malformed_data = fake.text(50)
+        response = self.client.put(
+            reverse_selected_categories(self.user.id),
+            malformed_data,
+            content_type="application/x-www-form-urlencoded"
+        )
+        self.assertTrue(status.is_client_error(response.status_code))
 
     def test_saving_selected_categories(self):
         categories_ids = self.get_categories_ids()

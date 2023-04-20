@@ -1,6 +1,7 @@
 import datetime
 import json
 import uuid
+from json import JSONDecodeError
 
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -233,7 +234,7 @@ class UserCategories(RetrieveAPIView):
         return Response(output)
 
 
-class SelectedCategories(RetrieveUpdateAPIView):
+class SelectedCategories(APIView):
     permission_classes = [IsAuthenticated, UserPermission]
 
     def get(self, request, **kwargs):
@@ -245,21 +246,24 @@ class SelectedCategories(RetrieveUpdateAPIView):
             for single_uuid in uuids:
                 uuid.UUID(single_uuid)
         except ValueError:
-            raise serializers.ValidationError({"detail": "Malformed data."})
+            raise serializers.ValidationError(
+                {"detail": "Malformed data: invalid UUIDs."})
 
     @staticmethod
     def load_categories_from_ids(category_ids):
         return [Category.objects.filter(id=category_id).first()
                 for category_id in category_ids]
 
-    def update(self, request, **kwargs):
+    def put(self, request, **kwargs):
         user = request.user
-        category_ids = set(json.loads(request.data))
+        category_ids = request.data
         self.validate_uuids(category_ids)
         selected_categories = self.load_categories_from_ids(category_ids)
         if all(selected_categories):
             user.selected_categories.set(selected_categories)
             user.save()
         else:
-            raise serializers.ValidationError({"detail": "Invalid input."})
+            raise serializers.ValidationError(
+                {"detail": "Invalid input: "
+                           "one or more categories was not found."})
         return Response(status=status.HTTP_204_NO_CONTENT)

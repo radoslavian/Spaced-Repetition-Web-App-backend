@@ -342,12 +342,11 @@ class CardImage(models.Model):
         ]
 
 
-# not tested !
 class Sound(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
     )
-    sound = models.FileField(upload_to="sounds/")
+    sound_file = models.FileField(upload_to="sounds/")
     description = models.CharField(max_length=1000)

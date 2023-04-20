@@ -10,7 +10,7 @@ from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
 from .models import (Card, CardTemplate, Category, CardUserData,
-                     Image, CardImage)
+                     Image, CardImage, Sound)
 from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue
@@ -1091,3 +1091,58 @@ class AbsoluteUrls(HelpersMixin, TestCase):
                                         "user_id": self.user.id})
 
         self.assertEqual(card_user_data.get_absolute_url(), canonical_url)
+
+
+class SoundFiles(HelpersMixin, TestCase):
+    def setUp(self):
+        (self.sound,
+         self.audio_filename) = self.add_soundfile_to_database()
+
+    @staticmethod
+    def add_soundfile_to_database():
+        placeholder_audio = (
+            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
+            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
+            b'\x01\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00'
+            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
+            b'\x00\x00\x00'
+        )
+        file_name = fake.file_name(extension="mp3")
+        audio_file = SimpleUploadedFile(
+            name=file_name,
+            content=placeholder_audio,
+            content_type="audio/mpeg")
+        database_audio_entry = Sound(sound_file=audio_file,
+                                     description=fake.text(999))
+        database_audio_entry.save()
+        return database_audio_entry, file_name
+
+    def test_adding_audio_to_database(self):
+        filename_no_extension = self.audio_filename.split(".")[0]
+        file_retrieved_from_db = Sound.objects.filter(
+            sound_file__contains=filename_no_extension).first()
+        self.assertTrue(file_retrieved_from_db)
+
+    def test_audio_tag_in_cards(self):
+        """Test audio files embedding in cards.
+        """
+        card = self.make_fake_cards(1)[0]
+        sound_file_url = self.sound.sound_file.url
+        audio_player_tags = f'''
+        <audio controls autoplay>
+          <source src="{sound_file_url}" type="audio/mpeg"
+           preload="auto"/>
+          Your browser does not support the audio tag.
+        </audio>\n'''
+        card.front += audio_player_tags
+        card.save()
+        expected_string = f'<source src="{sound_file_url}'
+        self.assertTrue(expected_string in card.body)
+
+
+class ImageTests(HelpersMixin, TestCase):
+    def test_image_embedding_in_card(self):
+        pass
+
+    def test_image_embedding_in_templates(self):
+        pass
