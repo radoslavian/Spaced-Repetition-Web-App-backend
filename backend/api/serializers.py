@@ -46,6 +46,7 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
     categories = CategoryForCardSerializer(source="card.categories",
                                            many=True)
     cram_link = serializers.SerializerMethodField()
+    id = serializers.CharField(source="card.id")
 
     @staticmethod
     def get_cram_link(obj):
@@ -71,11 +72,11 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CardUserData
-        exclude = ("id", "user", "crammed",)
+        exclude = ("user", "crammed", "card")
         read_only_fields = ("body", "computed_interval", "lapses",
                             "total_reviews", "last_reviewed", "introduced_on",
                             "review_date", "grade", "reviews",
-                            "easiness_factor", "card", "cram_link")
+                            "easiness_factor", "card", "cram_link", "id")
 
 
 class CardUserNoReviewDataSerializer(serializers.ModelSerializer):

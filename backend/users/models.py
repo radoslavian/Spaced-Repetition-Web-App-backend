@@ -33,5 +33,15 @@ class User(AbstractUser):
         return [str(category.id) for category in
                 self.selected_categories.all()]
 
+    def get_user_categories_trees(self):
+        """Returns user categories together with categories included
+        in trees.
+        """
+        user_categories = []
+        for selected_category in self.selected_categories.all():
+            user_categories.extend(Category.get_tree(
+                selected_category))
+        return user_categories
 
-from cards.models import CardUserData
+
+from cards.models import CardUserData, Category

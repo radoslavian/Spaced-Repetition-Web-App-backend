@@ -1,10 +1,9 @@
 import datetime
-import json
 import uuid
-from json import JSONDecodeError
-
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
+from drf_multiple_model.views import FlatMultipleModelAPIView
+from drf_multiple_model.pagination import MultipleModelLimitOffsetPagination
 from rest_framework import status, filters, serializers
 from rest_framework.generics import RetrieveAPIView, ListAPIView, \
     RetrieveUpdateAPIView
@@ -36,10 +35,7 @@ class ListAPIAbstractView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         user_query_set = self.get_base_queryset()
-
-        for selected_category in user.selected_categories.all():
-            self._user_categories.extend(Category.get_tree(
-                selected_category))
+        self._user_categories = user.get_user_categories_trees()
         if self._user_categories:
             user_query_set = self.query_set_filter(user_query_set)
         return user_query_set.order_by(self.query_ordering)
@@ -53,6 +49,41 @@ class ListCardsForBackendView(ListAPIView):
 class SingleCardForBackendView(RetrieveAPIView):
     queryset = Card.objects.all()
     serializer_class = CardForEditingSerializer
+
+
+class LimitPagination(MultipleModelLimitOffsetPagination):
+    """Paginator for AllCards view class.
+    """
+    default_limit = 20
+
+
+class AllCards(FlatMultipleModelAPIView):
+    pagination_class = LimitPagination
+
+    def get_querylist(self):
+        user_categories = self.request.user.get_user_categories_trees()
+        queued_queryset = Card.objects.exclude(
+                    reviewing_users=self.request.user)
+        memorized_queryset = CardUserData.objects.filter(
+                    user=self.request.user)
+        if user_categories:
+            queued_queryset = queued_queryset.filter(
+                categories__in=user_categories)
+            memorized_queryset = memorized_queryset.filter(
+                categories__in=user_categories)
+        querylist = [
+            {
+                "queryset": queued_queryset.order_by("created_on"),
+                "serializer_class": CardUserNoReviewDataSerializer,
+                "label": "queued",
+            },
+            {
+                "queryset": memorized_queryset.order_by("introduced_on"),
+                "serializer_class": CardReviewDataSerializer,
+                "label": "memorized",
+            }
+        ]
+        return querylist
 
 
 class QueuedCards(ListAPIAbstractView):

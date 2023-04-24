@@ -1,4 +1,3 @@
-import hashlib
 import json
 import uuid
 from math import ceil
@@ -40,6 +39,7 @@ reverse_queued_cards = get_reverse_for("queued_cards", "user_id")
 reverse_outstanding_cards = get_reverse_for("outstanding_cards", "user_id")
 reverse_selected_categories = get_reverse_for("selected_categories",
                                               "user_id")
+reverse_all_cards = get_reverse_for("all_cards", "user_id")
 
 
 def convert_zulu_timestamp(timestamp: str):
@@ -298,7 +298,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             "reviews": review_data.reviews,
             "categories": [],
             "easiness_factor": review_data.easiness_factor,
-            "card": str(card.id)
+            "id": str(card.id)
         }
         received_data = response.json()
         received_data.pop("body")
@@ -802,6 +802,20 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
                                            kwargs={"user_id": user.id}))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_list_all_cards(self):
+        """Test making list composed of both memorized and queued cards.
+        """
+        card_memorized, card_queued = self.make_fake_cards(2)
+        card_memorized.memorize(self.user)
+        response = self.client.get(reverse_all_cards(self.user.id))
+        response_json = response.json()
+        card_ids = [card["id"] for card in response_json["results"]]
+
+        self.assertTrue(str(card_memorized.id) in card_ids)
+        self.assertTrue(str(card_queued.id) in card_ids)
+        self.assertTrue(status.is_success(response.status_code))
+        self.assertEqual(response_json["overall_total"], 2)
+
 
 class CramTests(ApiTestHelpersMixin, TestCase):
     def test_adding_to_cram_success(self):
@@ -864,7 +878,7 @@ class CramTests(ApiTestHelpersMixin, TestCase):
             kwargs={"user_id": str(user.id)}))
         response_json = response.json()
         card_selected_from_response = choice(response_json["results"])
-        retrieved_card_id = card_selected_from_response["card"]
+        retrieved_card_id = card_selected_from_response["id"]
         cram_link = reverse("cram_single_card",
                             kwargs={"card_pk": str(retrieved_card_id),
                                     "user_id": str(self.user.id)})
@@ -1072,7 +1086,7 @@ class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
 
         self.assertEqual(response_user.status_code, status.HTTP_200_OK)
         self.assertEqual(response_user.json()["count"], 1)
-        self.assertEqual(response_json["results"][0]["card"],
+        self.assertEqual(response_json["results"][0]["id"],
                          str(self.selected_card.id))
 
     def test_card_back_search(self):
@@ -1083,7 +1097,7 @@ class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_json["count"], 1)
-        self.assertEqual(response_json["results"][0]["card"],
+        self.assertEqual(response_json["results"][0]["id"],
                          str(self.selected_card.id))
 
     def test_card_template_search(self):
@@ -1109,7 +1123,7 @@ class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response_for_other_user.status_code,
                          status.HTTP_403_FORBIDDEN)
         self.assertEqual(response_json["count"], 1)
-        self.assertEqual(response_json["results"][0]["card"],
+        self.assertEqual(response_json["results"][0]["id"],
                          str(self.selected_card.id))
 
 
@@ -1230,7 +1244,7 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         self.assertDictEqual(response_card_1.json(),
                              response_all_cards.json()["results"][0])
         self.assertEqual(response_all_cards.json()["count"], 1)
-        self.assertEqual(response_all_cards.json()["results"][0]["card"],
+        self.assertEqual(response_all_cards.json()["results"][0]["id"],
                          str(self.card_1.id))
 
     def test_single_subcategory_selected_outstanding_cards(self):
@@ -1255,7 +1269,7 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response_all_cards.json()["count"], 1)
         self.assertDictEqual(response_card_1.json(),
                              response_all_cards.json()["results"][0])
-        self.assertEqual(response_all_cards.json()["results"][0]["card"],
+        self.assertEqual(response_all_cards.json()["results"][0]["id"],
                          str(self.card_1.id))
 
     def test_single_subcategory_selected_queued_cards(self):
@@ -1348,7 +1362,7 @@ class CategoryTree(ApiTestHelpersMixin, TestCase):
         self.user.save()
         response = self.client.get(reverse_memorized_cards(self.user.id))
         card_ids_from_response = {
-            card["card"] for card in response.json()["results"]
+            card["id"] for card in response.json()["results"]
         }
         card_ids = {
             str(card.id) for card in (self.card_sub_category,
@@ -1380,7 +1394,7 @@ class CategoryTree(ApiTestHelpersMixin, TestCase):
         self.user.selected_categories.add(self.sub_sub_category)
         self.user.save()
         response = self.client.get(reverse_memorized_cards(self.user.id))
-        card_id = response.json()["results"][0]["card"]
+        card_id = response.json()["results"][0]["id"]
 
         self.assertEqual(response.json()["count"], 1)
         self.assertEqual(str(self.card_lowest_category.id), card_id)
@@ -1401,7 +1415,7 @@ class CategoryTree(ApiTestHelpersMixin, TestCase):
         self.user.selected_categories.add(self.sibling_2nd_level_category)
         self.user.save()
         response = self.client.get(reverse_memorized_cards(self.user.id))
-        card_id = response.json()["results"][0]["card"]
+        card_id = response.json()["results"][0]["id"]
 
         self.assertEqual(response.json()["count"], 1)
         self.assertEqual(str(self.card_sibling_category.id), card_id)
@@ -1582,7 +1596,7 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         response = self.send_selected_categories(categories_ids)
         response_detail = response.json()["detail"]
 
-        self.assertEqual(response_detail, "Malformed data or invalid UUIDs.")
+        self.assertEqual(response_detail, "Malformed data: invalid UUIDs.")
         self.assertTrue((status.is_client_error(response.status_code)))
 
     def test_saving_selected_categories_fake_ids(self):
@@ -1594,7 +1608,8 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         response_detail = response.json()["detail"]
 
         self.assertTrue(status.is_client_error(response.status_code))
-        self.assertEqual(response_detail, "Invalid input.")
+        self.assertEqual(response_detail, "Invalid input: one or more"
+                                          " categories was not found.")
 
     def test_saving_selected_categories_malformed_body(self):
         """Test saving malformed request body to the server: text/plain

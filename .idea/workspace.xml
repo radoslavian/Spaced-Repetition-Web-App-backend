@@ -4,15 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added route for saving user-selected categories to server.">
-      <change afterPath="$PROJECT_DIR$/backend/cards/migrations/0006_rename_sound_sound_sound_file.py" afterDir="false" />
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Sound files embedding in cards.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/templates/fallback.html" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/templates/fallback.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/cards/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/cards/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/wsra/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/wsra/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -181,13 +181,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00012" summary="Added skipped card categories to the User model.">
-      <created>1677703131019</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1677703131019</updated>
     </task>
     <task id="LOCAL-00013" summary="Added fields for cards ignored/disabled from reviews by users.">
       <created>1677707637743</created>
@@ -525,7 +518,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681936999033</updated>
     </task>
-    <option name="localTasksCounter" value="61" />
+    <task id="LOCAL-00061" summary="Sound files embedding in cards.">
+      <created>1681998081611</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1681998081611</updated>
+    </task>
+    <option name="localTasksCounter" value="62" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -541,7 +541,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="CardReviewDataSerializer.categories no longer uses SerializerMethodField." />
     <MESSAGE value="Added routes for memorizing and grading cards." />
     <MESSAGE value="Moved Card.review and helper methods into ReviewDataSM2." />
     <MESSAGE value="Code refactoring." />
@@ -566,6 +565,7 @@
     <MESSAGE value="Added route for categories together with user-selected category keys." />
     <MESSAGE value="Added route for retrieving user-selected categories from the server." />
     <MESSAGE value="Added route for saving user-selected categories to server." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added route for saving user-selected categories to server." />
+    <MESSAGE value="Sound files embedding in cards." />
+    <option name="LAST_COMMIT_MESSAGE" value="Sound files embedding in cards." />
   </component>
 </project>
