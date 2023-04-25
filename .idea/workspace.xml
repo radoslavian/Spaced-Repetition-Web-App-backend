@@ -4,15 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Sound files embedding in cards.">
+    <list default="true" id="7d0f2541-d22f-4df1-841d-0e175ddea11f" name="Changes" comment="Added single list route for getting all cards.">
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/public/favicon.ico" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/public/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/public/logo192.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/public/logo512.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/public/manifest.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/public/robots.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/App.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/App.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/App.test.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/index.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/index.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/logo.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/reportWebVitals.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wsra_frontend/src/setupTests.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/users/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/wsra/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/wsra/settings.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,17 +57,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/backend/api/utils/helpers.py&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "/home/radoslaw/Dokumenty/Programy/web_spaced_repetition_app/wsra_frontend",
+    "settings.editor.selected.configurable": "Errors"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/backend/api" />
@@ -158,10 +169,10 @@
     <list>
       <item itemvalue="Python.tests" />
       <item itemvalue="Python tests.Test cards" />
-      <item itemvalue="Python tests.Python tests for tests.ListOfCardsForUser.test_all_cards" />
       <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests" />
       <item itemvalue="Python tests.Python tests for cards.tests.CramQueueTests.test_add_card_to_cram" />
       <item itemvalue="Python tests.Python tests for cards.tests.RepetitionDataSM2Tests.test_foreign_keys_in_join_table" />
+      <item itemvalue="Python tests.Python tests for tests.ListOfCardsForUser.test_all_cards" />
     </list>
     <recent_temporary>
       <list>
@@ -181,13 +192,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676305235781</updated>
-    </task>
-    <task id="LOCAL-00013" summary="Added fields for cards ignored/disabled from reviews by users.">
-      <created>1677707637743</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1677707637743</updated>
     </task>
     <task id="LOCAL-00014" summary="Added database model: for comments (CardComment) and for queueing cards for cramming.">
       <created>1678133803736</created>
@@ -525,7 +529,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681998081611</updated>
     </task>
-    <option name="localTasksCounter" value="62" />
+    <task id="LOCAL-00062" summary="Added single list route for getting all cards.">
+      <created>1682345015215</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1682345015215</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -541,7 +552,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Added routes for memorizing and grading cards." />
     <MESSAGE value="Moved Card.review and helper methods into ReviewDataSM2." />
     <MESSAGE value="Code refactoring." />
     <MESSAGE value="Wrote routes for lists of cards (memorized and not yet memorized) for logged-in users." />
@@ -566,6 +576,7 @@
     <MESSAGE value="Added route for retrieving user-selected categories from the server." />
     <MESSAGE value="Added route for saving user-selected categories to server." />
     <MESSAGE value="Sound files embedding in cards." />
-    <option name="LAST_COMMIT_MESSAGE" value="Sound files embedding in cards." />
+    <MESSAGE value="Added single list route for getting all cards." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added single list route for getting all cards." />
   </component>
 </project>
