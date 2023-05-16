@@ -70,7 +70,7 @@ class AllCards(FlatMultipleModelAPIView):
             queued_queryset = queued_queryset.filter(
                 categories__in=user_categories)
             memorized_queryset = memorized_queryset.filter(
-                categories__in=user_categories)
+                card__categories__in=user_categories)
         querylist = [
             {
                 "queryset": queued_queryset.order_by("created_on"),

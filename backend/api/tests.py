@@ -636,7 +636,7 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
 
 
 class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
-    def test_no_permission(self):
+    def test_memorized_no_permission(self):
         cards = self.make_fake_cards(2)
         user = self.make_fake_users(1)[0]
         for card in cards:
@@ -723,11 +723,11 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response.json()["count"], 1)
         self.assertEqual(card_2.body, response_results[0]["body"])
 
-    def test_all_cards(self):
+    def test_sum_memorized_queued_cards(self):
         """Test if number of cards for both endpoints:
         for memorized and not memorized cards - equals total number of cards.
         """
-        NUMBER_OF_CARDS = 50
+        NUMBER_OF_CARDS = 20
         portion_of_cards = ceil(NUMBER_OF_CARDS / 2)
         cards = self.make_fake_cards(NUMBER_OF_CARDS)
         for card in cards[:portion_of_cards]:
@@ -802,7 +802,12 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
                                            kwargs={"user_id": user.id}))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_list_all_cards(self):
+
+class ListAllCards(ApiTestHelpersMixin, TestCase):
+    """Tests for endpoint returning all cards:
+    /users/{id}/cards/
+    """
+    def test_cards_memorized_queued(self):
         """Test making list composed of both memorized and queued cards.
         """
         card_memorized, card_queued = self.make_fake_cards(2)
@@ -816,8 +821,61 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         self.assertTrue(status.is_success(response.status_code))
         self.assertEqual(response_json["overall_total"], 2)
 
+    def test_memorized_only(self):
+        """Test endpoint when only memorized card is to be returned.
+        """
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user)
+        response = self.client.get(reverse_all_cards(self.user.id))
+        response_json = response.json()
 
-class CramTests(ApiTestHelpersMixin, TestCase):
+        self.assertEqual(response_json["overall_total"], 1)
+
+    def test_queued_only(self):
+        card = self.make_fake_cards(1)[0]
+        response = self.client.get(reverse_all_cards(self.user.id))
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 1)
+
+    def test_cards_with_categories_selected(self):
+        """Test for returning cards with categories attached and user-selected
+        category.
+        """
+        category = Category(name="main category")
+        category.save()
+        self.user.selected_categories.add(category)
+        card_memorized, card_queued = self.make_fake_cards(2)
+        card_memorized.categories.add(category)
+        card_queued.categories.add(category)
+        card_queued.save()
+        card_memorized.save()
+        response = self.client.get(reverse_all_cards(self.user.id))
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 2)
+
+    def test_cards_with_categories_unselected(self):
+        """Cards have categories attached, user has different (than cards')
+        category selected.
+        """
+        card_category = Category(name="card category")
+        user_category = Category(name="user category")
+        card_category.save()
+        user_category.save()
+        self.user.selected_categories.add(user_category)
+        card_memorized, card_queued = self.make_fake_cards(2)
+        card_memorized.categories.add(card_category)
+        card_queued.categories.add(card_category)
+        card_queued.save()
+        card_memorized.save()
+        response = self.client.get(reverse_all_cards(self.user.id))
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 0)
+
+
+class Cram(ApiTestHelpersMixin, TestCase):
     def test_adding_to_cram_success(self):
         card_1 = self.make_fake_cards(1)[0]
         user_2 = self.make_fake_users(1)[0]

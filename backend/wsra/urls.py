@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('api/auth/', include('djoser.urls')),
     path('api/auth/', include('djoser.urls.authtoken')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 if settings.DEBUG:
