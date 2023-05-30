@@ -201,7 +201,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
     """
 
     def test_request_no_user(self):
-        """Test an unauthorized response for a card.
+        """Test response to an attempt to unauthorized access to a card.
         """
         client = APIClient()
         card = self.make_fake_cards(1)[0]
@@ -294,6 +294,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             "cram_link": None,
             "introduced_on": introduced_on,
             "review_date": str(review_data.review_date),
+            "created_on": str(review_data.card.created_on),
             "grade": review_data.grade,
             "reviews": review_data.reviews,
             "categories": [],
@@ -444,13 +445,21 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertNotEqual(categories_from_response[0],
                             categories_from_response[1])
 
-    def test_user_queued_card_id(self):
+    def test_user_queued_card(self):
+        """Test fields from the queued card: id and created_on.
+        """
         card = self.make_fake_cards(1)[0]
         response = self.client.get(
             reverse("queued_card", kwargs={"pk": card.id,
                                            "user_id": self.user.id}))
-        card_id = response.json()["id"]
-        self.assertEqual(str(card.id), card_id)
+        card_from_response = response.json()
+        card_created_on = datetime.fromisoformat(
+            card_from_response["created_on"])
+        response_card_created_on = convert_zulu_timestamp(
+            card_from_response["created_on"])
+
+        self.assertEqual(str(card.id), card_from_response["id"])
+        self.assertEqual(card_created_on, response_card_created_on)
 
     def test_access_other_user_queued_card(self):
         user = self.make_fake_users(1)[0]
@@ -539,6 +548,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
                                            "user_id": self.user.id}),
             json.dumps({"grade": grade}),
             content_type="application/json")
+        print(json.dumps(response.json(), indent=3))
         location_header = response.get("Location")
         user_card_data = CardUserData.objects.get(card=card, user=self.user)
 

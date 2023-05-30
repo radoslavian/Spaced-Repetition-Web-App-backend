@@ -46,6 +46,7 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
     categories = CategoryForCardSerializer(source="card.categories",
                                            many=True)
     cram_link = serializers.SerializerMethodField()
+    created_on = serializers.CharField(source="card.created_on")
     id = serializers.CharField(source="card.id")
 
     @staticmethod
@@ -84,5 +85,5 @@ class CardUserNoReviewDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Card
-        fields = ("id", "body", "categories",)
+        fields = ("id", "body", "categories", "created_on")
         read_only_fields = ("id", "body", "categories",)
