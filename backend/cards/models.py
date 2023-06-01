@@ -124,9 +124,13 @@ class CardUserData(models.Model):
             review_date=new_review.review_date,
             days_range=days_range)
 
+        if grade < 4:
+            self.add_to_cram()
+
         if grade < 3:
             # updating object's value using F() expression (see below)
             self.lapses = F("lapses") + 1
+
         self.total_reviews = F("total_reviews") + 1
         self.review_date = optimal_review_date
         self.grade = grade

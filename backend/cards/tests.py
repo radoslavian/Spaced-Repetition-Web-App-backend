@@ -635,13 +635,16 @@ class CardReviewsTests(FakeUsersCards):
         days_delta = 7
         destination_date = datetime.date.today() + timedelta(days_delta)
         card, user = self.get_card_user()
-        first_review = card.memorize(user, grade=4)
+        first_review_grade = 4
+        # with grade < 4 card is added to cram
+        second_review_grade = 3
+        first_review = card.memorize(user, grade=first_review_grade)
 
         with time_machine.travel(destination_date):
             self.assertEqual(first_review.current_real_interval,
                              days_delta)
 
-            second_review = card.review(user=user, grade=3)
+            second_review = card.review(user=user, grade=second_review_grade)
             second_review_obtained_data = {
                 "introduced_on": second_review.introduced_on.date(),
                 "easiness": second_review.easiness_factor,
@@ -649,7 +652,8 @@ class CardReviewsTests(FakeUsersCards):
                 "grade": second_review.grade,
                 "last_comp_interval": second_review.computed_interval,
                 "repetitions": second_review.reviews,
-                "next_review": second_review.review_date
+                "next_review": second_review.review_date,
+                "crammed": second_review.crammed
             }
             second_review_expected_data = {
                 "introduced_on": today() - timedelta(days_delta),
@@ -658,7 +662,8 @@ class CardReviewsTests(FakeUsersCards):
                 "grade": 3,
                 "last_comp_interval": 6,
                 "repetitions": 2,
-                "next_review": (today() + timedelta(6))
+                "next_review": (today() + timedelta(6)),
+                "crammed": True
             }
 
         self.assertDictEqual(second_review_obtained_data,
