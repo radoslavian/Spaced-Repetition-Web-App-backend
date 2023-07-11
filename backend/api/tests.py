@@ -817,6 +817,16 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
     """Tests for endpoint returning all cards:
     /users/{id}/cards/
     """
+    def test_sorting(self):
+        """List for "all cards" should be ordered (sorted) by
+        the card creation date.
+        """
+        card_1, card_2 = self.make_fake_cards(2)
+        card_1.memorize(self.user)
+        response = self.client.get(reverse_all_cards(self.user.id))
+        results = response.json()["results"]
+        self.assertEqual(results[0]["id"], str(card_1.id))
+
     def test_cards_memorized_queued(self):
         """Test making list composed of both memorized and queued cards.
         """

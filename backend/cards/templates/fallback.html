@@ -2,11 +2,11 @@
 <!-- used when the Card instance does not supply template for rendering -->
 {% extends "_base.html" %}
 {% block content %}
-<div class="question">
+<div class="card-question">
     <p>{{ card.front|safe }}</p>
 </div>
 <hr />
-<div class="answer">
+<div class="card-answer">
     <p>{{ card.back|safe }}</p>
 </div>
 {% endblock content %}

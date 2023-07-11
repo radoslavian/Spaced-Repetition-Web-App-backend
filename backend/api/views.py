@@ -59,6 +59,11 @@ class LimitPagination(MultipleModelLimitOffsetPagination):
 
 class AllCards(FlatMultipleModelAPIView):
     pagination_class = LimitPagination
+    # this way doesn't keep order of cards in the list
+    # when memorizing cards (card memorized will be returned in
+    # the different position on next reload):
+    # sorting_fields = ["created_on", "body"]
+    sorting_fields = ["id", "created_on"]
 
     def get_querylist(self):
         user_categories = self.request.user.get_user_categories_trees()
@@ -73,12 +78,12 @@ class AllCards(FlatMultipleModelAPIView):
                 card__categories__in=user_categories)
         querylist = [
             {
-                "queryset": queued_queryset.order_by("created_on"),
+                "queryset": queued_queryset,
                 "serializer_class": CardUserNoReviewDataSerializer,
                 "label": "queued",
             },
             {
-                "queryset": memorized_queryset.order_by("introduced_on"),
+                "queryset": memorized_queryset,
                 "serializer_class": CardReviewDataSerializer,
                 "label": "memorized",
             }
@@ -255,7 +260,6 @@ class UserCategories(RetrieveAPIView):
     serializer_class = CategorySerializer
 
     def get(self, request, **kwargs):
-        # self.get_serializer()
         categories = self.serializer_class(self.queryset.all(),
                                            many=True).data
         output = {
