@@ -3,6 +3,7 @@ import uuid
 from math import ceil
 import time_machine
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
@@ -571,6 +572,50 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         self.assertEqual(location_header, user_card_data.get_absolute_url())
         self.assertEqual(response.json()["grade"], default_grade)
 
+    def test_forgetting_card_success(self):
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user)
+        request_url = reverse("memorized_card",
+                              kwargs={"pk": card.id,
+                                      "user_id": self.user.id})
+        response_delete = self.client.delete(request_url)
+        memorized_card = lambda: CardUserData.objects.get(card=card,
+                                                          user=self.user)
+
+        self.assertEqual(response_delete.status_code,
+                         status.HTTP_204_NO_CONTENT)
+        self.assertRaises(ObjectDoesNotExist, memorized_card)
+
+    def test_forgetting_not_memorized(self):
+        """Response to attempt to forget not memorized card.
+        """
+        card = self.make_fake_cards(1)[0]
+        request_url = reverse("memorized_card",
+                              kwargs={"pk": card.id,
+                                      "user_id": self.user.id})
+        response_delete = self.client.delete(request_url)
+        expected_reason_phrase = f"card with id {card.id} is not memorized"
+        response_reason_phrase = response_delete.json()["detail"]
+
+        self.assertEqual(response_delete.status_code,
+                         status.HTTP_404_NOT_FOUND)
+        self.assertEqual(expected_reason_phrase, response_reason_phrase)
+
+    def test_forgetting_no_card(self):
+        """Response to attempt to forget non-existent card.
+        """
+        card_id = "337f4ea1-9159-49bd-a429-619e1a8ee052"
+        request_url = reverse("memorized_card",
+                              kwargs={"pk": card_id,
+                                      "user_id": self.user.id})
+        response_delete = self.client.delete(request_url)
+        expected_reason_phrase = "Not found."
+        response_reason_phrase = response_delete.json()["detail"]
+
+        self.assertEqual(response_delete.status_code,
+                         status.HTTP_404_NOT_FOUND)
+        self.assertEqual(expected_reason_phrase, response_reason_phrase)
+
 
 class ReviewingCard(ApiTestFakeUsersCardsMixin):
     def test_review_forbidden_for_other_users(self):
@@ -817,10 +862,12 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
     """Tests for endpoint returning all cards:
     /users/{id}/cards/
     """
+
     def test_sorting(self):
         """List for "all cards" should be ordered (sorted) by
         the card creation date.
         """
+        # needs work
         card_1, card_2 = self.make_fake_cards(2)
         card_1.memorize(self.user)
         response = self.client.get(reverse_all_cards(self.user.id))

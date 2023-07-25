@@ -1,5 +1,7 @@
 import datetime
 import uuid
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from drf_multiple_model.views import FlatMultipleModelAPIView
@@ -166,6 +168,17 @@ class MemorizedCard(RetrieveUpdateAPIView):
                                            card=card)
         data = self.serializer_class(card_user_data).data
         return Response(data)
+
+    def delete(self, request, **kwargs):
+        card = get_object_or_404(Card, id=kwargs["pk"])
+        try:
+            card.forget(self.request.user)
+        except ObjectDoesNotExist:
+            return Response({
+                "status_code": status.HTTP_404_NOT_FOUND,
+                "detail": f"card with id {card.id} is not memorized"
+            }, status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def patch(self, request, **kwargs):
         """Patching grade on a memorized card means reviewing it.
