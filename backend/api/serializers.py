@@ -40,32 +40,21 @@ class CardForEditingSerializer(serializers.ModelSerializer):
                             "back_images", "categories")
 
 
-class CardReviewDataSerializer(serializers.ModelSerializer):
+class CrammedCardReviewDataSerializer(serializers.ModelSerializer):
     body = serializers.SerializerMethodField()
-    projected_review_data = serializers.SerializerMethodField()
     categories = CategoryForCardSerializer(source="card.categories",
                                            many=True)
     cram_link = serializers.SerializerMethodField()
     created_on = serializers.CharField(source="card.created_on")
     id = serializers.CharField(source="card.id")
 
-    @staticmethod
-    def get_cram_link(obj):
+    def get_cram_link(self, obj):
         """Returns cram_link whose non-null value signifies the card is
         cram-queued and which in turn may be used for removing card from cram.
         """
-        if not obj.crammed:
-            return None
         return reverse("cram_single_card",
                        kwargs={"card_pk": obj.card.id,
                                "user_id": obj.user.id})
-
-    @staticmethod
-    def get_projected_review_data(obj):
-        """Returns reviews simulation for currently scheduled cards only.
-        """
-        if obj.current_real_interval > 0:
-            return obj.card.simulate_reviews(user=obj.user)
 
     @staticmethod
     def get_body(obj):
@@ -78,6 +67,22 @@ class CardReviewDataSerializer(serializers.ModelSerializer):
                             "total_reviews", "last_reviewed", "introduced_on",
                             "review_date", "grade", "reviews",
                             "easiness_factor", "card", "cram_link", "id")
+
+
+class CardReviewDataSerializer(CrammedCardReviewDataSerializer):
+    projected_review_data = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_projected_review_data(obj):
+        """Returns reviews simulation for currently scheduled cards only.
+        """
+        if obj.current_real_interval > 0:
+            return obj.card.simulate_reviews(user=obj.user)
+
+    def get_cram_link(self, obj):
+        if not obj.crammed:
+            return None
+        return super().get_cram_link(obj)
 
 
 class CardUserNoReviewDataSerializer(serializers.ModelSerializer):

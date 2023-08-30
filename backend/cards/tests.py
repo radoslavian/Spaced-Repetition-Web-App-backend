@@ -402,19 +402,22 @@ class CategoryJoinsTests(TestCase):
 
 
 class CramQueueTests(TestCase, HelpersMixin):
+    def setUp(self):
+        self.card_1, self.card_2, self.card_3 = self.make_fake_cards(3)
+
     def test_cram(self):
         user = self.make_fake_users(1)[0]
         # TODO: split into several tests
         # TODO: following should go into setUp
         # memorizing adds cards to cram
-        card_1, card_2, card_3 = self.make_fake_cards(3)
-        for card in card_1, card_2, card_3:
+        for card in self.card_1, self.card_2, self.card_3:
             card.memorize(user, 3)
 
         self.assertEqual(len(user.crammed_cards), 3)
 
         # removing from cram - status change
-        card_review_data = CardUserData.objects.get(user=user, card=card_1)
+        card_review_data = CardUserData.objects.get(user=user,
+                                                    card=self.card_1)
         self.assertTrue(card_review_data.crammed)
         status = card_review_data.remove_from_cram()
         self.assertFalse(status)

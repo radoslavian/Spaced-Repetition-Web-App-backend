@@ -16,7 +16,8 @@ from cards.models import Card, CardUserData, Category
 from cards.utils.exceptions import CardReviewDataExists
 from .permissions import UserPermission
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
-                          CardUserNoReviewDataSerializer, CategorySerializer)
+                          CardUserNoReviewDataSerializer, CategorySerializer,
+                          CrammedCardReviewDataSerializer)
 from cards.utils.exceptions import ReviewBeforeDue
 from .utils.helpers import extract_grade, no_review_data_response
 
@@ -218,7 +219,7 @@ class OutstandingCards(ListAPIAbstractView):
 
 
 class CramQueue(ListAPIView):
-    serializer_class = CardReviewDataSerializer
+    serializer_class = CrammedCardReviewDataSerializer
     permission_classes = [IsAuthenticated, UserPermission]
 
     def get_queryset(self):

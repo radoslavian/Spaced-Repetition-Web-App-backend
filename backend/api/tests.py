@@ -1179,6 +1179,20 @@ class Cram(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response_json_status_code,
                          status.HTTP_403_FORBIDDEN)
 
+    def test_crammed_card_no_projected_reviews(self):
+        """Crammed cards shouldn't have projected intervals.
+        """
+        card = self.make_fake_cards(1)[0]
+        card_review_data = card.memorize(self.user, 1)
+        with time_machine.travel(card_review_data.review_date):
+            response = self.client.get(reverse(
+                "cram_queue",
+                kwargs={"user_id": str(self.user.id)}))
+        card_from_response = response.json()["results"][0]
+
+        self.assertRaises(
+            KeyError, lambda: card_from_response["projected_review_data"])
+
 
 class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
     """Test DRF's searching-filtering functionality for memorized cards.
