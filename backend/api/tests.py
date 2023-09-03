@@ -1194,7 +1194,108 @@ class Cram(ApiTestHelpersMixin, TestCase):
             KeyError, lambda: card_from_response["projected_review_data"])
 
 
-class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
+class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.memorized_front_text = ("Lorem ipsum dolor sit amet, "
+                                     "consectetur adipiscing elit. Cras "
+                                     "porttitor mauris ut odio auctor "
+                                     "ullamcorper.")
+        self.memorized_back_text = ("Curabitur eleifend vitae nunc dapibus "
+                                    "fringilla. Curabitur tincidunt "
+                                    "pharetra ante.")
+        self.queued_front_text = ("Maecenas lobortis sapien non consectetur "
+                                  "mattis. Suspendisse luctus fringilla "
+                                  "lectus vel cursus.")
+        self.queued_back_text = ("Suspendisse et velit et quam eleifend "
+                                 "mattis. Nam vehicula est lectus, "
+                                 "ut lobortis libero luctus non.")
+        self.memorized_card = Card(front=self.memorized_front_text,
+                                   back=self.memorized_back_text)
+        self.queued_card = Card(front=self.queued_front_text,
+                                back=self.queued_back_text)
+        self.template_search_text = ("<p>Example's template body and search "
+                                     "text.</p>")
+        template_body = """{% extends "_base.html" %}
+{% block content %}
+<div class="card-question">
+<p></p>
+<p>{{ card.front|safe }}</p>
+</div>
+<hr />
+<div class="card-answer">
+<p>{{ card.back|safe }}</p>
+</div>
+{% endblock content %}
+""" + self.template_search_text
+        self.template = CardTemplate.objects.create(
+            title="test template",
+            description="test template's description",
+            body=template_body
+        )
+        self.template.save()
+        self.memorized_card.template = self.template
+        self.memorized_card.save()
+        self.queued_card.save()
+        self.memorized_card.memorize(self.user)
+
+    def test_searching_front_memorized(self):
+        url = add_url_params(reverse("all_cards",
+                                     kwargs={"user_id": self.user.id}),
+                             {"search": self.memorized_front_text})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.memorized_card.id))
+
+    def test_searching_front_queued(self):
+        url = add_url_params(reverse("all_cards",
+                                     kwargs={"user_id": self.user.id}),
+                             {"search": self.queued_front_text})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.queued_card.id))
+
+    def test_searching_back_memorized(self):
+        url = add_url_params(reverse("all_cards",
+                                     kwargs={"user_id": self.user.id}),
+                             {"search": self.memorized_back_text})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.memorized_card.id))
+
+    def test_searching_back_queued(self):
+        url = add_url_params(reverse("all_cards",
+                                     kwargs={"user_id": self.user.id}),
+                             {"search": self.queued_back_text})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.queued_card.id))
+
+    def test_searching_by_template(self):
+        url = add_url_params(reverse("all_cards",
+                                     kwargs={"user_id": self.user.id}),
+                             {"search": self.template_search_text})
+        response = self.client.get(url)
+        response_json = response.json()
+
+        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["results"][0]["id"],
+                         str(self.memorized_card.id))
+
+
+class MemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
     """Test DRF's searching-filtering functionality for memorized cards.
     """
 
@@ -1266,7 +1367,7 @@ class TestMemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
                          str(self.selected_card.id))
 
 
-class TestFilterQueuedCards(ApiTestHelpersMixin, TestCase):
+class QueuedCardsFiltering(ApiTestHelpersMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.cards = self.make_fake_cards(5)

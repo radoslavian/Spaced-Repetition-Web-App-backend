@@ -1,6 +1,5 @@
 import datetime
 import uuid
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -19,6 +18,7 @@ from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer, CategorySerializer,
                           CrammedCardReviewDataSerializer)
 from cards.utils.exceptions import ReviewBeforeDue
+from .utils.custom_search_filters import search_all_cards
 from .utils.helpers import extract_grade, no_review_data_response
 
 
@@ -84,11 +84,13 @@ class AllCards(FlatMultipleModelAPIView):
                 "queryset": queued_queryset,
                 "serializer_class": CardUserNoReviewDataSerializer,
                 "label": "queued",
+                "filter_fn": search_all_cards
             },
             {
                 "queryset": memorized_queryset,
                 "serializer_class": CardReviewDataSerializer,
                 "label": "memorized",
+                "filter_fn": search_all_cards
             }
         ]
         return querylist
