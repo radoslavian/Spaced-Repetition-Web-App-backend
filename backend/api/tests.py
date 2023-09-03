@@ -1249,6 +1249,7 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response_json["overall_total"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.memorized_card.id))
+        self.assertTrue(response_json["results"][0]["grade"])
 
     def test_searching_front_queued(self):
         url = add_url_params(reverse("all_cards",
@@ -1260,6 +1261,8 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response_json["overall_total"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.queued_card.id))
+        self.assertRaises(KeyError,
+                          lambda: response_json["results"][0]["grade"])
 
     def test_searching_back_memorized(self):
         url = add_url_params(reverse("all_cards",
