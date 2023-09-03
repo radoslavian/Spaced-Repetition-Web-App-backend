@@ -18,7 +18,8 @@ from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer, CategorySerializer,
                           CrammedCardReviewDataSerializer)
 from cards.utils.exceptions import ReviewBeforeDue
-from .utils.custom_search_filters import search_all_cards
+from .utils.custom_search_filters import (filter_queued_cards,
+                                          filter_memorized_cards)
 from .utils.helpers import extract_grade, no_review_data_response
 
 
@@ -84,13 +85,13 @@ class AllCards(FlatMultipleModelAPIView):
                 "queryset": queued_queryset,
                 "serializer_class": CardUserNoReviewDataSerializer,
                 "label": "queued",
-                "filter_fn": search_all_cards
+                "filter_fn": filter_queued_cards
             },
             {
                 "queryset": memorized_queryset,
                 "serializer_class": CardReviewDataSerializer,
                 "label": "memorized",
-                "filter_fn": search_all_cards
+                "filter_fn": filter_memorized_cards
             }
         ]
         return querylist
