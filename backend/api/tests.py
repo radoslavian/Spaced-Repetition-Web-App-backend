@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
-from random import choice, shuffle
+from random import choice, shuffle, randint
 from cards.models import Card, CardImage, CardTemplate, Category, CardUserData
 from faker import Faker
 from rest_framework import status
@@ -2024,6 +2024,23 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertDictEqual(received_data, expected_data)
+
+    def test_grades_distribution(self):
+        cards = self.make_fake_cards(10)
+        self.client.force_authenticate(user=self.user)
+        grades_distribution = {str(grade): 0 for grade in range(0, 6)}
+
+        for card in cards:
+            grade = randint(0, 5)
+            grades_distribution[str(grade)] += 1
+            card.memorize(self.user, grade)
+
+        url = reverse("distribution", kwargs={
+            "user_id": self.user.id}) + "?type=grades"
+        response = self.client.get(url)
+        response_data = response.json()
+
+        self.assertDictEqual(grades_distribution, response_data)
 
     def cards_distribution_url(self, days_range):
         url = reverse("distribution", kwargs={

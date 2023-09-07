@@ -332,6 +332,10 @@ class Distribution(ListAPIView):
                 case "daily-cards" | None:
                     # this should execute each time other options fail
                     return self.daily_cards_distribution()
+                case "grades":
+                    grades_distribution = CardUserData \
+                        .get_grades_distribution(request.user)
+                    return Response(grades_distribution)
         except ValueError:
             error_message = {
                 "status_code": 400,

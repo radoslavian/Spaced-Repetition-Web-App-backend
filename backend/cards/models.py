@@ -103,6 +103,8 @@ class CardUserData(models.Model):
         """Returns cards reviews distribution for days in selected
         range.
         """
+        # this method is executed in API tests only
+
         max_range = 31
         if days_range > max_range:
             raise CardsDistributionRangeExceeded(
@@ -120,6 +122,17 @@ class CardUserData(models.Model):
             ).count()
             for review_date in dates
         }
+
+    @classmethod
+    def get_grades_distribution(cls, user):
+        grades_distribution = {str(grade): 0 for grade in range(0, 6)}
+        user_cards = cls.objects.filter(user=user)
+
+        for grade in grades_distribution.keys():
+            grades_distribution[grade] = user_cards \
+                .filter(grade=grade).count()
+
+        return grades_distribution
 
     def schedule_date_for_review(self, review_date,
                                  days_range=3) -> datetime.date:
