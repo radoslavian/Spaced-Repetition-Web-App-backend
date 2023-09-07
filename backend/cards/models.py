@@ -10,7 +10,8 @@ from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
 from django.urls import reverse
 from .apps import CardsConfig
-from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue
+from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue, \
+    CardsDistributionRangeExceeded
 from .utils.helpers import today, validate_grade
 from .utils.supermemo2 import SM2
 
@@ -96,6 +97,29 @@ class CardUserData(models.Model):
         else:
             days_range = 3
         return days_range
+
+    @classmethod
+    def get_cards_distribution(cls, user, days_range=3):
+        """Returns cards reviews distribution for days in selected
+        range.
+        """
+        max_range = 31
+        if days_range > max_range:
+            raise CardsDistributionRangeExceeded(
+                f"Allowed days range is set to {max_range} days.")
+
+        dates = [date.today() + datetime.timedelta(days=days)
+                 for days in range(1, days_range+1)]
+        selected_categories = user.get_user_categories_trees()
+
+        return {
+            str(review_date): cls.objects.filter(
+                user=user,
+                review_date=review_date,
+                card__categories__in=selected_categories
+            ).count()
+            for review_date in dates
+        }
 
     def schedule_date_for_review(self, review_date,
                                  days_range=3) -> datetime.date:

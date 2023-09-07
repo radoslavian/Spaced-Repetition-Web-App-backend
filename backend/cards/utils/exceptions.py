@@ -15,3 +15,7 @@ class ReviewBeforeDue(Exception):
     def __init__(self):
         self.message = "Reviewing before card's due review date is forbidden."
         super().__init__(self.message)
+
+
+class CardsDistributionRangeExceeded(ValueError):
+    pass

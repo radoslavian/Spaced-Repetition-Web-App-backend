@@ -1876,3 +1876,157 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
 
         self.assertTrue(status.is_success(response.status_code))
         self.assertEqual(categories_ids, selected_categories_id)
+
+
+class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
+    """Test responses to requests send to
+    /api/users/{user_id}/cards/distribution
+    """
+    def setUp(self):
+        ApiTestFakeUsersCardsMixin.setUp(self)
+        self.selected_category = Category.objects.create(
+            name="user selected category")
+        self.user.selected_categories.set([self.selected_category])
+        self.user.save()
+
+    def test_distribution_no_type(self):
+        """Behaviour when no ?type= argument is given: endpoint returns
+        data for 3 days range.
+        """
+        days_range = 3
+        dates = [date.today() + timedelta(days=days)
+                 for days in range(1, days_range + 1)]
+        url = reverse("distribution",
+                      kwargs={"user_id": self.user.id})
+        response = self.client.get(url)
+        received_data = response.json()
+        expected_data = {str(day): 0 for day in dates}
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertDictEqual(received_data, expected_data)
+
+    def test_cards_distribution_days(self):
+        """Test response to request for cards distribution (number of
+        reviews in the following days).
+        """
+        days_range = 4
+        timedelta_days = 1
+        expected_response = {}
+        number_of_cards = 5
+
+        for card in self.make_fake_cards(number_of_cards):
+            if timedelta_days > days_range:
+                timedelta_days = 1
+            card.categories.set([self.selected_category])
+            memorized_card = card.memorize(self.user)
+            review_date = date.today() + timedelta(timedelta_days)
+            memorized_card.review_date = review_date
+            memorized_card.save()
+            timedelta_days += 1
+            if expected_response.get(str(review_date)):
+                expected_response[str(review_date)] += 1
+            else:
+                expected_response[str(review_date)] = 1
+
+        url = self.cards_distribution_url(days_range)
+        response = self.client.get(url)
+        received_data = response.json()
+
+        self.assertDictEqual(expected_response, received_data)
+
+    def test_cards_with_categories_distribution(self):
+        days_range = 4
+        distribution_range = 3
+        number_of_cards = 5
+        cards_selected_category_number = ceil(number_of_cards/2)
+        cards = [card.memorize(self.user) for card in
+                 self.make_fake_cards(number_of_cards)]
+        self.unselected_category = Category.objects.create(
+            name="not selected category")
+        for card in cards[:cards_selected_category_number]:
+            card.card.categories.set([self.selected_category])
+            card.card.save()
+        for card in cards[cards_selected_category_number:]:
+            card.card.categories.set([self.unselected_category])
+            card.card.save()
+
+        expected_output = {
+            str(date.today() + timedelta(days)):
+                1 if days <= distribution_range else 0
+            for days in range(1, days_range+1)
+        }
+        url = self.cards_distribution_url(days_range)
+        response = self.client.get(url)
+        received_data = response.json()
+
+        self.assertDictEqual(expected_output, received_data)
+
+    def test_cards_distribution_more_than_limit(self):
+        """Should fail: attempt to get cards distribution beyond allowed
+        limit.
+        """
+        days_range = 40  # more than MAX_LIMIT = 31
+        url = self.cards_distribution_url(days_range)
+        response = self.client.get(url)
+        received_data = response.json()
+        expected_data = {
+            "status_code": 400,
+            "detail": "Allowed days range is set to 31 days."
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictEqual(received_data, expected_data)
+
+    def test_cards_distribution_malformed_query_floating_number(self):
+        """Should fail: attempt to dispatch malformed url:
+        floating point number as an argument for 'days_range'.
+        """
+        days_range = 1.5
+        url = self.cards_distribution_url(days_range)
+        response = self.client.get(url)
+        received_data = response.json()
+        expected_data = {
+            "status_code": 400,
+            "detail": "Malformed request."
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictEqual(received_data, expected_data)
+
+    def test_cards_distribution_malformed_query_negative_number(self):
+        """Should fail: attempt to dispatch malformed url:
+        negative number as an argument for 'days_range'.
+        """
+        days_range = -7
+        url = self.cards_distribution_url(days_range)
+        response = self.client.get(url)
+        received_data = response.json()
+        expected_data = {
+            "status_code": 400,
+            "detail": "Malformed request."
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictEqual(received_data, expected_data)
+
+    def test_cards_distribution_malformed_query_string(self):
+        """Should fail: attempt to dispatch malformed url:
+        floating point number as an argument for 'days_range'.
+        """
+        days_range = "seven days"
+        url = self.cards_distribution_url(days_range)
+        response = self.client.get(url)
+        received_data = response.json()
+        expected_data = {
+            "status_code": 400,
+            "detail": "Malformed request."
+        }
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictEqual(received_data, expected_data)
+
+    def cards_distribution_url(self, days_range):
+        url = reverse("distribution", kwargs={
+            "user_id": self.user.id}) + ("?type=daily-cards&days-"
+                                         f"range={days_range}")
+        return url

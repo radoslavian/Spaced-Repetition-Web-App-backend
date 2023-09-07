@@ -12,7 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from cards.models import Card, CardUserData, Category
-from cards.utils.exceptions import CardReviewDataExists
+from cards.utils.exceptions import CardReviewDataExists, \
+    CardsDistributionRangeExceeded
 from .permissions import UserPermission
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer, CategorySerializer,
@@ -319,3 +320,38 @@ class SelectedCategories(APIView):
                 {"detail": "Invalid input: "
                            "one or more categories was not found."})
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class Distribution(ListAPIView):
+    permission_classes = [IsAuthenticated, UserPermission]
+
+    def get(self, request, **kwargs):
+        distribution_type = self.request.query_params.get("type")
+        try:
+            match distribution_type:
+                case "daily-cards" | None:
+                    return self.daily_cards_distribution()
+        except ValueError:
+            error_message = {
+                "status_code": 400,
+                "detail": "Malformed request."
+            }
+            return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+
+    def daily_cards_distribution(self, default_range=3):
+        days_range_string = self.request.query_params.get(
+            "days-range", default_range)
+        days_range = int(days_range_string)
+        if days_range < 0:
+            raise ValueError("days-range must be a positive number")
+        try:
+            distribution = CardUserData.get_cards_distribution(
+                self.request.user, days_range)
+        except CardsDistributionRangeExceeded as e:
+            error_message = {
+                "status_code": 400,
+                "detail": str(e)
+            }
+            return Response(
+                error_message, status=status.HTTP_400_BAD_REQUEST)
+        return Response(distribution)
