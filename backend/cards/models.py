@@ -111,7 +111,7 @@ class CardUserData(models.Model):
                 f"Allowed days range is set to {max_range} days.")
 
         dates = [date.today() + datetime.timedelta(days=days)
-                 for days in range(1, days_range+1)]
+                 for days in range(1, days_range + 1)]
         selected_categories = user.get_user_categories_trees()
 
         return {
@@ -122,6 +122,22 @@ class CardUserData(models.Model):
             ).count()
             for review_date in dates
         }
+
+    @classmethod
+    def get_efactor_distribution(cls, user):
+        user_memorized_cards = cls.objects.filter(user=user)
+        e_factors = {
+            card.easiness_factor: str(round(card.easiness_factor, 2))
+            for card in user_memorized_cards
+        }
+
+        e_factors_distribution = [{
+            "e-factor": e_factors[e_factor],
+            "count": user_memorized_cards.filter(
+                easiness_factor=e_factor).count()
+        } for e_factor in sorted(e_factors.keys())]
+
+        return e_factors_distribution
 
     @classmethod
     def get_grades_distribution(cls, user):

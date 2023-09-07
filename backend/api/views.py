@@ -73,9 +73,9 @@ class AllCards(FlatMultipleModelAPIView):
     def get_querylist(self):
         user_categories = self.request.user.get_user_categories_trees()
         queued_queryset = Card.objects.exclude(
-                    reviewing_users=self.request.user)
+            reviewing_users=self.request.user)
         memorized_queryset = CardUserData.objects.filter(
-                    user=self.request.user)
+            user=self.request.user)
         if user_categories:
             queued_queryset = queued_queryset.filter(
                 categories__in=user_categories)
@@ -336,6 +336,10 @@ class Distribution(ListAPIView):
                     grades_distribution = CardUserData \
                         .get_grades_distribution(request.user)
                     return Response(grades_distribution)
+                case "e-factor":
+                    e_factor_distribution = CardUserData \
+                        .get_efactor_distribution(request.user)
+                    return Response(e_factor_distribution)
         except ValueError:
             error_message = {
                 "status_code": 400,

@@ -1,6 +1,7 @@
 import json
+import random
 import uuid
-from math import ceil
+from math import ceil, floor
 import time_machine
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -2041,6 +2042,32 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         response_data = response.json()
 
         self.assertDictEqual(grades_distribution, response_data)
+
+    def test_e_factor_distribution(self):
+        cards = self.make_fake_cards(10)
+        distribution = []
+        e_factors = {}
+        for i in range(len(cards)):
+            grade = i if i <= 5 else randint(0, 5)
+            memorized_card = cards[i].memorize(self.user, grade)
+            e_factor = memorized_card.easiness_factor
+            e_factors[e_factor] = str(
+                round(memorized_card.easiness_factor, 2))
+
+        for e_factor in sorted(e_factors.keys()):
+            distribution.append({
+                "e-factor": e_factors[e_factor],
+                "count": CardUserData.objects.filter(
+                    user=self.user,
+                    easiness_factor=e_factor).count()
+            })
+
+        url = reverse("distribution", kwargs={
+            "user_id": self.user.id}) + "?type=e-factor"
+        response = self.client.get(url)
+        response_data = response.json()
+
+        self.assertCountEqual(distribution, response_data)
 
     def cards_distribution_url(self, days_range):
         url = reverse("distribution", kwargs={
