@@ -330,6 +330,7 @@ class Distribution(ListAPIView):
         try:
             match distribution_type:
                 case "daily-cards" | None:
+                    # this should execute each time other options fail
                     return self.daily_cards_distribution()
         except ValueError:
             error_message = {
