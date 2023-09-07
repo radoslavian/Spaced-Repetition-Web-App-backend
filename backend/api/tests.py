@@ -2011,7 +2011,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
 
     def test_cards_distribution_malformed_query_string(self):
         """Should fail: attempt to dispatch malformed url:
-        floating point number as an argument for 'days_range'.
+        string as an argument for 'days_range'.
         """
         days_range = "seven days"
         url = self.cards_distribution_url(days_range)
