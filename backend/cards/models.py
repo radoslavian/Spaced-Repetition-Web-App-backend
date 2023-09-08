@@ -141,11 +141,12 @@ class CardUserData(models.Model):
 
     @classmethod
     def get_grades_distribution(cls, user):
-        user_cards = cls.objects.filter(user=user)
+        user_memorized_cards = cls.objects.filter(user=user)
+        grades = range(0, 6)  # grades are 0 to (including) 5
 
         return {
-            str(grade): user_cards.filter(grade=grade).count()
-            for grade in range(0, 6)
+            str(grade): user_memorized_cards.filter(grade=grade).count()
+            for grade in grades
         }
 
     def schedule_date_for_review(self, review_date,
