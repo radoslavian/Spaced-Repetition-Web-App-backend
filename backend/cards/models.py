@@ -73,6 +73,10 @@ class CardUserData(models.Model):
     crammed = models.BooleanField(default=False)
     comment = models.TextField(default=None, null=True)
 
+    # for getting memorized cards distribution (in the future) and
+    # cards memorization rate (value in days)
+    MAX_DISTRIBUTION_RANGE = 31
+
     def _set_crammed(self, status: bool = False):
         if self.crammed != status:
             self.crammed = status
@@ -104,15 +108,10 @@ class CardUserData(models.Model):
         range.
         """
         # this method is executed in API tests only
-
-        max_range = 31
-        if days_range > max_range:
-            raise CardsDistributionRangeExceeded(
-                f"Allowed days range is set to {max_range} days.")
-
+        cls.check_distribution_days_range(days_range)
+        selected_categories = user.get_user_categories_trees()
         dates = [date.today() + datetime.timedelta(days=days)
                  for days in range(1, days_range + 1)]
-        selected_categories = user.get_user_categories_trees()
 
         return {
             str(review_date): cls.objects.filter(
@@ -122,6 +121,29 @@ class CardUserData(models.Model):
             ).count()
             for review_date in dates
         }
+
+    @classmethod
+    def get_cards_memorization_distribution(cls, user, days_range=3):
+        cls.check_distribution_days_range(days_range)
+        selected_categories = user.get_user_categories_trees()
+        dates = [date.today() - datetime.timedelta(days=days)
+                 for days in range(1, days_range + 1)]
+
+        return {
+            str(introduction_date): cls.objects.filter(
+                user=user,
+                introduced_on__day=introduction_date.day,
+                card__categories__in=selected_categories
+            ).count()
+            for introduction_date in dates
+        }
+
+    @classmethod
+    def check_distribution_days_range(cls, days_range):
+        if days_range > cls.MAX_DISTRIBUTION_RANGE:
+            raise CardsDistributionRangeExceeded(
+                f"Allowed days range is set to {cls.MAX_DISTRIBUTION_RANGE} "
+                "days.")
 
     @classmethod
     def get_efactor_distribution(cls, user):
@@ -209,6 +231,7 @@ class CardUserData(models.Model):
     def __str__(self):
         return f"CardUserData(user='{str(self.user)}' " \
                f"card='{str(self.card)}')"
+
 
 
 class Card(models.Model):
