@@ -326,7 +326,7 @@ class Distribution(ListAPIView):
     permission_classes = [IsAuthenticated, UserPermission]
 
     def get(self, request, **kwargs):
-        distribution_type = self.request.query_params.get("type")
+        distribution_type = request.query_params.get("type")
         try:
             match distribution_type:
                 case "grades":
@@ -338,10 +338,11 @@ class Distribution(ListAPIView):
                         .get_efactor_distribution(request.user)
                     return Response(e_factor_distribution)
                 case "daily-cards-memorized":
-                    return self.daily_cards_memorized()
+                    return self.get_distribution(
+                        self.memorization_distribution)
                 case "daily-cards" | _:
                     # this should execute each time other options fail
-                    return self.daily_cards_distribution()
+                    return self.get_distribution(self.cards_distribution)
         except ValueError:
             error_message = {
                 "status_code": 400,
@@ -349,7 +350,15 @@ class Distribution(ListAPIView):
             }
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
-    def daily_cards_distribution(self, default_range=3):
+    def cards_distribution(self, days_range):
+        return CardUserData.get_cards_distribution(
+            self.request.user, days_range)
+
+    def memorization_distribution(self, days_range):
+        return CardUserData.get_cards_memorization_distribution(
+            self.request.user, days_range)
+
+    def get_distribution(self, distribution_fn, default_range=3):
         days_range_string = self.request.query_params.get(
             "days-range", default_range)
         # use serializer for validation
@@ -357,27 +366,7 @@ class Distribution(ListAPIView):
         if days_range < 0:
             raise ValueError("days-range must be a positive number")
         try:
-            distribution = CardUserData.get_cards_distribution(
-                self.request.user, days_range)
-        except CardsDistributionRangeExceeded as e:
-            error_message = {
-                "status_code": 400,
-                "detail": str(e)
-            }
-            return Response(
-                error_message, status=status.HTTP_400_BAD_REQUEST)
-        return Response(distribution)
-
-    def daily_cards_memorized(self, default_range=3):
-        days_range_string = self.request.query_params.get(
-            "days-range", default_range)
-        days_range = int(days_range_string)
-        if days_range < 0:
-            raise ValueError("days-range must be a positive number")
-        try:
-            distribution = CardUserData.get_cards_memorization_distribution(
-                self.request.user, days_range)
-        # copy-pasted from daily_cards_distribution
+            distribution = distribution_fn(days_range)
         except CardsDistributionRangeExceeded as e:
             error_message = {
                 "status_code": 400,
