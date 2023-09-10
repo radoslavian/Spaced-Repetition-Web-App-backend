@@ -37,4 +37,7 @@ urlpatterns = [
     path("users/<uuid:user_id>/cards/distribution/",
          Distribution.as_view(),
          name="distribution"),
+    path("users/<uuid:user_id>/cards/distribution/<str:dynamic_part>/",
+         Distribution.as_view(),
+         name="distribution_dynamic_part"),
 ]

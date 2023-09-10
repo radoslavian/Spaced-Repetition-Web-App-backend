@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from drf_multiple_model.views import FlatMultipleModelAPIView
 from drf_multiple_model.pagination import MultipleModelLimitOffsetPagination
 from rest_framework import status, filters, serializers
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.generics import RetrieveAPIView, ListAPIView, \
     RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -63,6 +64,7 @@ class LimitPagination(MultipleModelLimitOffsetPagination):
 
 
 class AllCards(FlatMultipleModelAPIView):
+    permission_classes = [IsAuthenticated, UserPermission]
     pagination_class = LimitPagination
     # this way doesn't keep order of cards in the list
     # when memorizing cards (card memorized will be returned in
@@ -322,33 +324,28 @@ class SelectedCategories(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class Distribution(ListAPIView):
+class Distribution(APIView):
     permission_classes = [IsAuthenticated, UserPermission]
 
     def get(self, request, **kwargs):
-        distribution_type = request.query_params.get("type")
-        try:
-            match distribution_type:
-                case "grades":
-                    grades_distribution = CardUserData \
-                        .get_grades_distribution(request.user)
-                    return Response(grades_distribution)
-                case "e-factor":
-                    e_factor_distribution = CardUserData \
-                        .get_efactor_distribution(request.user)
-                    return Response(e_factor_distribution)
-                case "daily-cards-memorized":
-                    return self.get_distribution(
-                        self.memorization_distribution)
-                case "daily-cards" | _:
-                    # this should execute each time other options fail
-                    return self.get_distribution(self.cards_distribution)
-        except ValueError:
-            error_message = {
-                "status_code": 400,
-                "detail": "Malformed request."
-            }
-            return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+        match kwargs.get("dynamic_part", "daily-cards"):
+            case "grades":
+                grades_distribution = CardUserData \
+                    .get_grades_distribution(request.user)
+                response = Response(grades_distribution)
+            case "e-factor":
+                e_factor_distribution = CardUserData \
+                    .get_efactor_distribution(request.user)
+                response = Response(e_factor_distribution)
+            case "memorized":
+                response = self.get_distribution_response(
+                    self.memorization_distribution)
+            case "daily-cards":
+                response = self.get_distribution_response(
+                    self.cards_distribution)
+            case _:
+                raise NotFound
+        return response
 
     def cards_distribution(self, days_range):
         return CardUserData.get_cards_distribution(
@@ -358,20 +355,21 @@ class Distribution(ListAPIView):
         return CardUserData.get_cards_memorization_distribution(
             self.request.user, days_range)
 
-    def get_distribution(self, distribution_fn, default_range=3):
+    def get_distribution_response(self, distribution_fn, default_range=3):
         days_range_string = self.request.query_params.get(
             "days-range", default_range)
         # use serializer for validation
-        days_range = int(days_range_string)
+        days_range_wrong_type = "days-range must be a positive number"
+        try:
+            days_range = int(days_range_string)
+        except ValueError:
+            raise ParseError(detail=days_range_wrong_type,
+                             code=status.HTTP_400_BAD_REQUEST)
         if days_range < 0:
-            raise ValueError("days-range must be a positive number")
+            raise ParseError(detail=days_range_wrong_type,
+                             code=status.HTTP_400_BAD_REQUEST)
         try:
             distribution = distribution_fn(days_range)
         except CardsDistributionRangeExceeded as e:
-            error_message = {
-                "status_code": 400,
-                "detail": str(e)
-            }
-            return Response(
-                error_message, status=status.HTTP_400_BAD_REQUEST)
+            raise ParseError(detail=str(e), code=status.HTTP_400_BAD_REQUEST)
         return Response(distribution)

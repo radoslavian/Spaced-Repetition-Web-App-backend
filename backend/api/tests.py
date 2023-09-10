@@ -1890,39 +1890,6 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.user.selected_categories.set([self.selected_category])
         self.user.save()
 
-    def default_response(self, url):
-        """API response when either no '?type=' parameter is given
-        or parameter value is unknown.
-        """
-        days_range = 3
-        dates = [date.today() + timedelta(days=days)
-                 for days in range(1, days_range + 1)]
-        response = self.client.get(url)
-        received_data = response.json()
-        expected_data = {str(day): 0 for day in dates}
-        return expected_data, received_data, response
-
-    def test_distribution_no_type(self):
-        """Behaviour when no ?type= argument is given: endpoint returns
-        data for 3 days range.
-        """
-        url = reverse("distribution",
-                      kwargs={"user_id": self.user.id})
-        expected_data, received_data, response = self.default_response(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(received_data, expected_data)
-
-    def test_distribution_unknown_type(self):
-        """Behaviour when ?type= query argument is unknown.
-        """
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + "?type=undefined"
-        expected_data, received_data, response = self.default_response(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(received_data, expected_data)
-
     def test_memorization_distribution(self):
         """Test request for memorization rate - cards memorized
         on a particular date.
@@ -1945,9 +1912,10 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
             else:
                 expected_response[str(introduction_date)] = 1
 
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + ("?type=daily-cards-memorized&days-"
-                                         f"range={abs(days_range)}")
+        url = (reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "memorized"})
+            + f"?days-range={abs(days_range)}")
 
         response = self.client.get(url)
         received_data = response.json()
@@ -1955,13 +1923,13 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
 
     def test_memorization_distribution_limit_exceeded(self):
         days_range = 40  # more than MAX_LIMIT = 31
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + ("?type=daily-cards-memorized&days-"
-                                         f"range={days_range}")
+        url = (reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "memorized"})
+               + f"?days-range={days_range}")
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
             "detail": "Allowed days range is set to 31 days."
         }
 
@@ -1971,14 +1939,13 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
     def test_memorization_distribution_float_in_query(self):
         """Should fail: floating point number as days-range argument.
         """
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + ("?type=daily-cards-memorized&days-"
-                                         "range=1.5")
+        url = reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "memorized"}) + "?days-range=1.5"
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
-            "detail": "Malformed request."
+            "detail": "days-range must be a positive number"
         }
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1987,14 +1954,13 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
     def test_memorization_distribution_negative_in_query(self):
         """Should fail: negative number as days-range argument.
         """
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + ("?type=daily-cards-memorized&days-"
-                                         "range=-3")
+        url = reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "memorized"}) + "?days-range=-3"
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
-            "detail": "Malformed request."
+            "detail": "days-range must be a positive number"
         }
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2003,14 +1969,14 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
     def test_memorization_distribution_string_in_query(self):
         """Should fail: string as days-range argument.
         """
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + ("?type=daily-cards-memorized&days-"
-                                         "range=seven+days")
+        url = (reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "memorized"})
+               + "?days-range=seven+days")
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
-            "detail": "Malformed request."
+            "detail": "days-range must be a positive number"
         }
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2081,7 +2047,6 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
             "detail": "Allowed days range is set to 31 days."
         }
 
@@ -2097,8 +2062,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
-            "detail": "Malformed request."
+            "detail": "days-range must be a positive number"
         }
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2113,8 +2077,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
-            "detail": "Malformed request."
+            "detail": "days-range must be a positive number"
         }
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2129,13 +2092,11 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         response = self.client.get(url)
         received_data = response.json()
         expected_data = {
-            "status_code": 400,
-            "detail": "Malformed request."
+            "detail": "days-range must be a positive number"
         }
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertDictEqual(received_data, expected_data)
-
 
     def test_grades_distribution(self):
         cards = self.make_fake_cards(10)
@@ -2147,8 +2108,9 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
             grades_distribution[str(grade)] += 1
             card.memorize(self.user, grade)
 
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + "?type=grades"
+        url = reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "grades"})
         response = self.client.get(url)
         response_data = response.json()
 
@@ -2173,8 +2135,9 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
                     easiness_factor=e_factor).count()
             })
 
-        url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + "?type=e-factor"
+        url = reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "e-factor"})
         response = self.client.get(url)
         response_data = response.json()
 
@@ -2182,6 +2145,5 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
 
     def cards_distribution_url(self, days_range):
         url = reverse("distribution", kwargs={
-            "user_id": self.user.id}) + ("?type=daily-cards&days-"
-                                         f"range={days_range}")
+            "user_id": self.user.id}) + f"?days-range={days_range}"
         return url
