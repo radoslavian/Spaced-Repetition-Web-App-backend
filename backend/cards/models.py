@@ -133,6 +133,8 @@ class CardUserData(models.Model):
             str(introduction_date): cls.objects.filter(
                 user=user,
                 introduced_on__day=introduction_date.day,
+                introduced_on__month=introduction_date.month,
+                introduced_on__year=introduction_date.year,
                 card__categories__in=selected_categories
             ).count()
             for introduction_date in dates
