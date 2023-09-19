@@ -1,6 +1,7 @@
 import datetime
 import uuid
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from drf_multiple_model.views import FlatMultipleModelAPIView
@@ -40,10 +41,9 @@ class ListAPIAbstractView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        user_query_set = self.get_base_queryset()
         self._user_categories = user.get_user_categories_trees()
-        if self._user_categories:
-            user_query_set = self.query_set_filter(user_query_set)
+        query_set = self.get_base_queryset()
+        user_query_set = self.query_set_filter(query_set)
         return user_query_set.order_by(self.query_ordering)
 
 
@@ -75,14 +75,14 @@ class AllCards(FlatMultipleModelAPIView):
     def get_querylist(self):
         user_categories = self.request.user.get_user_categories_trees()
         queued_queryset = Card.objects.exclude(
-            reviewing_users=self.request.user)
+            reviewing_users=self.request.user).filter(
+            Q(categories__in=user_categories) |
+            Q(categories__isnull=True))
         memorized_queryset = CardUserData.objects.filter(
-            user=self.request.user)
-        if user_categories:
-            queued_queryset = queued_queryset.filter(
-                categories__in=user_categories)
-            memorized_queryset = memorized_queryset.filter(
-                card__categories__in=user_categories)
+            user=self.request.user).filter(
+            Q(card__categories__in=user_categories) |
+            Q(card__categories__isnull=True))
+
         querylist = [
             {
                 "queryset": queued_queryset,
@@ -113,7 +113,9 @@ class QueuedCards(ListAPIAbstractView):
         return Card.objects.exclude(reviewing_users=self.request.user)
 
     def query_set_filter(self, user_query_set):
-        return user_query_set.filter(categories__in=self._user_categories)
+        return user_query_set.filter(
+            Q(categories__in=self._user_categories) |
+            Q(categories__isnull=True))
 
 
 class QueuedCard(RetrieveUpdateAPIView):
@@ -158,7 +160,8 @@ class MemorizedCards(ListAPIAbstractView):
 
     def query_set_filter(self, user_query_set):
         return user_query_set.filter(
-            card__categories__in=self._user_categories)
+            Q(card__categories__in=self._user_categories) |
+            Q(card__categories__isnull=True))
 
     def get_base_queryset(self):
         return CardUserData.objects.all().filter(user=self.request.user)
@@ -221,7 +224,8 @@ class OutstandingCards(ListAPIAbstractView):
 
     def query_set_filter(self, user_query_set):
         return user_query_set.filter(
-            card__categories__in=self._user_categories)
+            Q(card__categories__in=self._user_categories) |
+            Q(card__categories__isnull=True))
 
 
 class CramQueue(ListAPIView):

@@ -1,5 +1,4 @@
 import json
-import random
 import uuid
 from math import ceil, floor
 import time_machine
@@ -550,7 +549,6 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
                                            "user_id": self.user.id}),
             json.dumps({"grade": grade}),
             content_type="application/json")
-        print(json.dumps(response.json(), indent=3))
         location_header = response.get("Location")
         user_card_data = CardUserData.objects.get(card=card, user=self.user)
 
@@ -1424,6 +1422,8 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         super().setUp()
         self.parent = Category(name="first parent category")
         self.parent.save()
+        self.other_category = Category(name="sibling to first parent")
+        self.other_category.save()
         self.first_sub_category = Category(name="first sibling category",
                                            parent=self.parent)
         self.first_sub_category.save()
@@ -1437,6 +1437,7 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         self.card_1.categories.add(self.first_sub_category)
         self.card_2.categories.add(self.second_sub_category)
         self.card_2.categories.add(self.third_sub_category)
+        self.card_3.categories.add(self.other_category)
 
     def memorize_cards(self):
         for card in self.card_1, self.card_2, self.card_3:
@@ -1674,6 +1675,56 @@ class CategoryTree(ApiTestHelpersMixin, TestCase):
 
         self.assertEqual(response.json()["count"], 1)
         self.assertEqual(str(self.card_sibling_category.id), card_id)
+
+    def cards_for_no_categories_tests(self):
+        category = Category.objects.create(name="Test Category")
+        self.memorize_cards()
+        cards = self.make_fake_cards(3)
+        for card in [*self.cards, *cards]:
+            card.categories.add(category)
+            card.save()
+
+    def test_no_categories_selected_queued(self):
+        """Should return uncategorized card only.
+        """
+        self.cards_for_no_categories_tests()
+        uncategorized_card = self.make_fake_cards(1)[0]
+        response = self.client.get(reverse_queued_cards(self.user.id))
+        response_data = response.json()
+
+        self.assertEqual(response_data["count"], 1)
+        self.assertEqual(response_data["results"][0]["id"],
+                         str(uncategorized_card.id))
+
+    def test_no_categories_selected_memorized(self):
+        """Should return uncategorized card only.
+        """
+        self.cards_for_no_categories_tests()
+        uncategorized_card = self.make_fake_cards(1)[0]
+        uncategorized_card.memorize(self.user)
+        response = self.client.get(reverse_memorized_cards(self.user.id))
+        response_data = response.json()
+
+        self.assertEqual(response_data["count"], 1)
+        self.assertEqual(response_data["results"][0]["id"],
+                         str(uncategorized_card.id))
+
+    def test_no_categories_selected_all_cards(self):
+        """Should return uncategorized cards only.
+        """
+        self.cards_for_no_categories_tests()
+        uncategorized_queued_card = self.make_fake_cards(1)[0]
+        uncategorized_memorized_card = self.make_fake_cards(1)[0]
+        uncategorized_memorized_card.memorize(self.user)
+        card_ids = [str(card_id) for card_id
+                    in (uncategorized_queued_card.id,
+                        uncategorized_memorized_card.id)]
+        response = self.client.get(reverse_all_cards(self.user.id))
+        response_data = response.json()
+
+        self.assertEqual(response_data["overall_total"], 2)
+        self.assertIn(response_data["results"][0]["id"], card_ids)
+        self.assertIn(response_data["results"][1]["id"], card_ids)
 
 
 class CategoryApi(ApiTestHelpersMixin, TestCase):
