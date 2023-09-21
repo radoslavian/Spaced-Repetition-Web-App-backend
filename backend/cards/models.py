@@ -235,7 +235,6 @@ class CardUserData(models.Model):
                f"card='{str(self.card)}')"
 
 
-
 class Card(models.Model):
     images_number_limit_in_query = 15
     id = models.UUIDField(
@@ -254,6 +253,12 @@ class Card(models.Model):
                                         related_name="cards")
     images = models.ManyToManyField(
         "Image", through="CardImage")
+    front_audio = models.ForeignKey("Sound", on_delete=models.SET_NULL,
+                                    null=True,
+                                    related_name="cards_front")
+    back_audio = models.ForeignKey("Sound", on_delete=models.SET_NULL,
+                                   null=True,
+                                   related_name="cards_back")
 
     class Meta:
         unique_together = ("front", "back",)

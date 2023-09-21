@@ -64,6 +64,25 @@ class HelpersMixin:
             cards.append(card)
         return cards
 
+    @staticmethod
+    def add_soundfile_to_database():
+        placeholder_audio = (
+            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
+            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
+            b'\x01\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00'
+            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
+            b'\x00\x00\x00'
+        )
+        file_name = fake.file_name(extension="mp3")
+        audio_file = SimpleUploadedFile(
+            name=file_name,
+            content=placeholder_audio,
+            content_type="audio/mpeg")
+        database_audio_entry = Sound(sound_file=audio_file,
+                                     description=fake.text(999))
+        database_audio_entry.save()
+        return database_audio_entry, file_name
+
 
 class FakeUsersCards(TestCase):
     user_model = get_user_model()
@@ -1106,25 +1125,6 @@ class SoundFiles(HelpersMixin, TestCase):
         (self.sound,
          self.audio_filename) = self.add_soundfile_to_database()
 
-    @staticmethod
-    def add_soundfile_to_database():
-        placeholder_audio = (
-            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
-            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
-            b'\x01\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00'
-            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
-            b'\x00\x00\x00'
-        )
-        file_name = fake.file_name(extension="mp3")
-        audio_file = SimpleUploadedFile(
-            name=file_name,
-            content=placeholder_audio,
-            content_type="audio/mpeg")
-        database_audio_entry = Sound(sound_file=audio_file,
-                                     description=fake.text(999))
-        database_audio_entry.save()
-        return database_audio_entry, file_name
-
     def test_adding_audio_to_database(self):
         filename_no_extension = self.audio_filename.split(".")[0]
         file_retrieved_from_db = Sound.objects.filter(
@@ -1146,6 +1146,112 @@ class SoundFiles(HelpersMixin, TestCase):
         card.save()
         expected_string = f'<source src="{sound_file_url}'
         self.assertTrue(expected_string in card.body)
+
+
+class SoundsInCards(HelpersMixin, TestCase):
+    def setUp(self):
+        self.card_1, self.card_2 = self.make_fake_cards(2)
+        sound_entries = []
+        for _ in range(2):
+            entry_in_db, name = self.add_soundfile_to_database()
+            sound_entries.append({
+                "entry": entry_in_db,
+                "name": name
+            })
+        self.sound_entry_1 = sound_entries[0]["entry"]
+        self.sound_entry_2 = sound_entries[1]["entry"]
+
+    def test_sounds_front(self):
+        """Attaching one sound to multiple cards (front).
+        """
+        self.card_1.front_audio = self.sound_entry_1
+        self.card_2.front_audio = self.sound_entry_1
+        self.card_2.back_audio = self.sound_entry_2
+        self.card_1.save()
+        self.card_2.save()
+
+        self.assertEqual(self.sound_entry_1.cards_front.count(), 2)
+        self.assertFalse(self.sound_entry_2.cards_front.all())
+
+    def test_sounds_back(self):
+        """Attaching one sound to multiple cards (back).
+        """
+        self.card_1.back_audio = self.sound_entry_1
+        self.card_2.back_audio = self.sound_entry_1
+        self.card_2.front_audio = self.sound_entry_1
+        self.card_1.save()
+        self.card_2.save()
+
+        self.assertEqual(self.sound_entry_1.cards_back.count(), 2)
+        self.assertFalse(self.sound_entry_2.cards_back.all())
+
+    def test_related_name_front(self):
+        self.card_1.front_audio = self.sound_entry_1
+        self.card_2.back_audio = self.sound_entry_1
+        self.card_1.save()
+        self.card_2.save()
+
+        self.assertEqual(self.sound_entry_1.cards_front.count(), 1)
+        self.assertEqual(self.sound_entry_1.cards_front.first(), self.card_1)
+
+    def test_related_name_back(self):
+        self.card_1.back_audio = self.sound_entry_1
+        self.card_2.front_audio = self.sound_entry_1
+        self.card_1.save()
+        self.card_2.save()
+
+        self.assertEqual(self.sound_entry_1.cards_back.count(), 1)
+        self.assertEqual(self.sound_entry_1.cards_back.first(), self.card_1)
+
+    def test_removing_sound_front(self):
+        """Removing sound entry attached to card's front doesn't
+        delete the card.
+        """
+        self.card_1.back_audio = self.sound_entry_1
+        card_1_front = self.card_1.front
+        self.card_1.save()
+        self.sound_entry_1.delete()
+        card_from_db = Card.objects.filter(front=card_1_front).first()
+
+        self.assertEqual(card_from_db.front, card_1_front)
+        # check if field definition's on_delete=models.SET_NULL works:
+        self.assertIsNone(card_from_db.front_audio)
+
+    def test_removing_sound_back(self):
+        """Removing sound entry attached to card's back doesn't
+        delete the card.
+        """
+        self.card_1.back_audio = self.sound_entry_1
+        card_1_back = self.card_1.back
+        self.card_1.save()
+        self.sound_entry_1.delete()
+        card_from_db = Card.objects.filter(back=card_1_back).first()
+
+        self.assertEqual(card_from_db.back, card_1_back)
+        # check if field definition's on_delete=models.SET_NULL works:
+        self.assertIsNone(card_from_db.back_audio)
+
+    def test_removing_card_front(self):
+        """Removing card doesn't delete sound entry attached
+        to the card's front.
+        """
+        self.card_1.front_audio = self.sound_entry_1
+        self.card_1.save()
+        self.card_1.delete()
+        self.sound_entry_1.refresh_from_db()
+
+        self.assertTrue(self.sound_entry_1)
+
+    def test_removing_card_back(self):
+        """Removing card doesn't delete sound entry attached
+        to the card's back.
+        """
+        self.card_1.back_audio = self.sound_entry_1
+        self.card_1.save()
+        self.card_1.delete()
+        self.sound_entry_1.refresh_from_db()
+
+        self.assertTrue(self.sound_entry_1)
 
 
 class ImageTests(HelpersMixin, TestCase):
