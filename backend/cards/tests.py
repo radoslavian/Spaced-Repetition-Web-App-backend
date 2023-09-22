@@ -1006,6 +1006,20 @@ class CardsImagesTests(FakeUsersCards, HelpersMixin):
                   image=image_in_database,
                   side="back").save()
 
+    def test_deleting_card(self):
+        """Should keep image in the database after deleting the card.
+        """
+        card = self.make_fake_cards(1)[0]
+        image = self.get_image_instance()
+        card_image = CardImage(card=card,
+                               image=image,
+                               side="front")
+        card_image.save()
+        card.delete()
+        image.refresh_from_db()
+
+        self.assertTrue(image)
+
     def test_side_check_constraint(self):
         card, *_ = self.get_cards()
         image_in_database = self.get_image_instance()
