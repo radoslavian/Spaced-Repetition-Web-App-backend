@@ -60,7 +60,7 @@ class SingleCardForBackendView(RetrieveAPIView):
 class LimitPagination(MultipleModelLimitOffsetPagination):
     """Paginator for AllCards view class.
     """
-    default_limit = 20
+    default_limit = 10
 
 
 class AllCards(FlatMultipleModelAPIView):

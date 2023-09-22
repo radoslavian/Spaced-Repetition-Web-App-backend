@@ -248,16 +248,20 @@ class Card(models.Model):
     front = models.TextField()
     back = models.TextField()
     template = models.ForeignKey(CardTemplate, on_delete=models.PROTECT,
-                                 null=True, related_name="cards")
+                                 null=True,
+                                 blank=True,
+                                 related_name="cards")
     categories = models.ManyToManyField("cards.Category",
                                         related_name="cards")
     images = models.ManyToManyField(
         "Image", through="CardImage")
     front_audio = models.ForeignKey("Sound", on_delete=models.SET_NULL,
                                     null=True,
+                                    blank=True,
                                     related_name="cards_front")
     back_audio = models.ForeignKey("Sound", on_delete=models.SET_NULL,
                                    null=True,
+                                   blank=True,
                                    related_name="cards_back")
 
     class Meta:
