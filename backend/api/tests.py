@@ -200,6 +200,72 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
 class UserCardsTests(ApiTestFakeUsersCardsMixin):
     """Tests for cards with user data and rendered content.
     """
+    def audio_testing(self):
+        self.sound_front, _ = self.add_soundfile_to_database()
+        self.sound_back, _ = self.add_soundfile_to_database()
+        self.card = self.make_fake_cards(1)[0]
+
+    def test_audio_fields_in_memorized_card(self):
+        self.audio_testing()
+        self.card.front_audio = self.sound_front
+        self.card.back_audio = self.sound_back
+        self.card.save()
+        self.card.memorize(self.user)
+        response = self.client.get(reverse(
+            "memorized_card",
+            kwargs={"pk": self.card.id,
+                    "user_id": self.user.id}))
+        response_data = response.json()
+
+        self.assertEqual(response_data["front_audio"],
+                         self.sound_front.sound_file.url)
+        self.assertEqual(response_data["back_audio"],
+                         self.sound_back.sound_file.url)
+
+    def test_audio_fields_in_queued_card(self):
+        self.audio_testing()
+        self.card.front_audio = self.sound_front
+        self.card.back_audio = self.sound_back
+        self.card.save()
+        response = self.client.get(reverse(
+            "queued_card",
+            kwargs={"pk": self.card.id,
+                    "user_id": self.user.id}))
+        response_data = response.json()
+
+        self.assertEqual(response_data["front_audio"],
+                         self.sound_front.sound_file.url)
+        self.assertEqual(response_data["back_audio"],
+                         self.sound_back.sound_file.url)
+
+    def test_null_audio_fields_memorized_card(self):
+        """Test for null audio fields (audio files have not been added)
+         in memorized cards.
+         """
+        self.audio_testing()
+        self.card.memorize(self.user)
+        response = self.client.get(reverse(
+            "memorized_card",
+            kwargs={"pk": self.card.id,
+                    "user_id": self.user.id}))
+        response_data = response.json()
+
+        self.assertIsNone(response_data["front_audio"])
+        self.assertIsNone(response_data["back_audio"])
+
+    def test_null_audio_fields_queued_card(self):
+        """Test for null audio fields (audio files have not been added)
+        in queued cards.
+        """
+        self.audio_testing()
+        response = self.client.get(reverse(
+            "queued_card",
+            kwargs={"pk": self.card.id,
+                    "user_id": self.user.id}))
+        response_data = response.json()
+
+        self.assertIsNone(response_data["front_audio"])
+        self.assertIsNone(response_data["back_audio"])
 
     def test_request_no_user(self):
         """Test response to an attempt to unauthorized access to a card.
@@ -293,6 +359,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             "last_reviewed": str(review_data.last_reviewed),
             "comment": None,
             "cram_link": None,
+            "front_audio": None,
+            "back_audio": None,
             "introduced_on": introduced_on,
             "review_date": str(review_data.review_date),
             "created_on": str(review_data.card.created_on),

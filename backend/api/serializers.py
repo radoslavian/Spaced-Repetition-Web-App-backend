@@ -46,7 +46,19 @@ class CrammedCardReviewDataSerializer(serializers.ModelSerializer):
                                            many=True)
     cram_link = serializers.SerializerMethodField()
     created_on = serializers.CharField(source="card.created_on")
+    front_audio = serializers.SerializerMethodField()
+    back_audio = serializers.SerializerMethodField()
     id = serializers.CharField(source="card.id")
+
+    @staticmethod
+    def get_front_audio(obj):
+        if obj.card.front_audio:
+            return obj.card.front_audio.sound_file.url
+
+    @staticmethod
+    def get_back_audio(obj):
+        if obj.card.back_audio:
+            return obj.card.back_audio.sound_file.url
 
     def get_cram_link(self, obj):
         """Returns cram_link whose non-null value signifies the card is
@@ -87,8 +99,22 @@ class CardReviewDataSerializer(CrammedCardReviewDataSerializer):
 
 class CardUserNoReviewDataSerializer(serializers.ModelSerializer):
     categories = CategoryForCardSerializer(many=True)
+    front_audio = serializers.SerializerMethodField()
+    back_audio = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_front_audio(obj):
+        if obj.front_audio:
+            return obj.front_audio.sound_file.url
+
+    @staticmethod
+    def get_back_audio(obj):
+        if obj.back_audio:
+            return obj.back_audio.sound_file.url
 
     class Meta:
         model = Card
-        fields = ("id", "body", "categories", "created_on")
-        read_only_fields = ("id", "body", "categories",)
+        fields = ("id", "body", "categories", "created_on", "front_audio",
+                  "back_audio")
+        read_only_fields = ("id", "body", "categories", "front_audio",
+                            "back_audio")
