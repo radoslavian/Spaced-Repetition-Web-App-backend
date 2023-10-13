@@ -3,7 +3,7 @@ from .views import (SingleCardForBackendView, ListCardsForBackendView,
                     MemorizedCards, QueuedCards, CramQueue,
                     OutstandingCards, CramSingleCard, QueuedCard,
                     MemorizedCard, UserCategories, SelectedCategories,
-                    AllCards, Distribution)
+                    AllCards, Distribution, GeneralStatistics)
 
 urlpatterns = [
     path("staff/cards/", ListCardsForBackendView.as_view(),
@@ -40,4 +40,7 @@ urlpatterns = [
     path("users/<uuid:user_id>/cards/distribution/<str:dynamic_part>/",
          Distribution.as_view(),
          name="distribution_dynamic_part"),
+    path("users/<uuid:user_id>/cards/general-statistics/",
+         GeneralStatistics.as_view(),
+         name="general_statistics")
 ]
