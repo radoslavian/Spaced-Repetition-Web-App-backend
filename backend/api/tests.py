@@ -1999,7 +1999,7 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
 
 
 class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
-    """Test responses to requests send to
+    """Test responses to requests sent to
     /api/users/{user_id}/cards/distribution
     """
     def setUp(self):
@@ -2266,3 +2266,63 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         url = reverse("distribution", kwargs={
             "user_id": self.user.id}) + f"?days-range={days_range}"
         return url
+
+
+class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
+    def setUp(self):
+        ApiTestFakeUsersCardsMixin.setUp(self)
+        # deleting 3 extra cards that were added elsewhere
+        # in the inheritance hierarchy
+        Card.objects.all().delete()
+        self.number_of_cards = 20
+        self.number_of_memorized_cards = int(self.number_of_cards / 2)
+        self.number_of_failed_cards = int(self.number_of_memorized_cards / 2)
+
+        self.cards = self.make_fake_cards(self.number_of_cards)
+
+        # half of the cards is memorized
+        self.memorized_cards = self.cards[:self.number_of_memorized_cards]
+        self.failed_cards = self.memorized_cards[
+                            :self.number_of_failed_cards]
+        self.successful_cards = self.memorized_cards[
+                                self.number_of_failed_cards:]
+        self.pending_cards = self.cards[self.number_of_memorized_cards:]
+
+        for card in self.failed_cards:
+            card.memorize(self.user, randint(0, 2))
+
+        for card in self.successful_cards:
+            card.memorize(self.user, randint(3, 5))
+
+        url = reverse("general_statistics",
+                                kwargs={"user_id": self.user.id})
+        self.response = self.client.get(url)
+
+    def test_status_code(self):
+        self.assertEqual(self.response.status_code, status.HTTP_200_OK)
+
+    def test_retention_score(self):
+        """Retention score (percentage of successful card reviews).
+        """
+        received_retention_score = self.response.json()["retention_score"]
+        expected_retention_score = 50
+        self.assertEqual(received_retention_score, expected_retention_score)
+
+    def test_total_cards(self):
+        received_total_cards = self.response.json()["total_cards"]
+        self.assertEqual(self.number_of_cards, received_total_cards)
+
+    def test_number_of_memorized_cards(self):
+        received_number_of_memorized = self.response.json()[
+            "number_of_memorized"]
+        self.assertEqual(self.number_of_memorized_cards,
+                         received_number_of_memorized)
+
+    def test_retention_score_zero_division(self):
+        CardUserData.objects.all().delete()
+        url = reverse("general_statistics",
+                      kwargs={"user_id": self.user.id})
+        self.response = self.client.get(url)
+        received_retention_score = self.response.json()["retention_score"]
+        expected_retention_score = None
+        self.assertEqual(received_retention_score, expected_retention_score)

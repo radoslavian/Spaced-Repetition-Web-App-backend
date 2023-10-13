@@ -377,3 +377,26 @@ class Distribution(APIView):
         except CardsDistributionRangeExceeded as e:
             raise ParseError(detail=str(e), code=status.HTTP_400_BAD_REQUEST)
         return Response(distribution)
+
+
+class GeneralStatistics(APIView):
+    permission_classes = [IsAuthenticated, UserPermission]
+
+    def get(self, request, **kwargs):
+        number_of_memorized = CardUserData.objects.filter(
+            user=request.user).count()
+        total_cards = Card.objects.count()
+        number_successful_reviews = CardUserData.objects.filter(
+            user=request.user, grade__gt=2).count()
+        if number_successful_reviews == 0:
+            retention_score = None
+        else:
+            retention_score = round(number_successful_reviews /
+                                    number_of_memorized * 100, 2)
+        response = {
+            "retention_score": retention_score,
+            "number_of_memorized": number_of_memorized,
+            "total_cards": total_cards
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
