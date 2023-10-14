@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_recursive.fields import RecursiveField
-from cards.models import Card, Image, CardImage, CardUserData, Category
+from cards.models import Card, Image, CardUserData, Category
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -45,7 +45,7 @@ class CrammedCardReviewDataSerializer(serializers.ModelSerializer):
     categories = CategoryForCardSerializer(source="card.categories",
                                            many=True)
     cram_link = serializers.SerializerMethodField()
-    created_on = serializers.CharField(source="card.created_on")
+    created_on = serializers.DateTimeField(source="card.created_on")
     front_audio = serializers.SerializerMethodField()
     back_audio = serializers.SerializerMethodField()
     id = serializers.CharField(source="card.id")
@@ -116,5 +116,5 @@ class CardUserNoReviewDataSerializer(serializers.ModelSerializer):
         model = Card
         fields = ("id", "body", "categories", "created_on", "front_audio",
                   "back_audio")
-        read_only_fields = ("id", "body", "categories", "front_audio",
-                            "back_audio")
+        read_only_fields = ("id", "body", "categories", "created_on",
+                            "front_audio", "back_audio")

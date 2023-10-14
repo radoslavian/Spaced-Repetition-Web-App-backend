@@ -204,6 +204,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
 class UserCardsTests(ApiTestFakeUsersCardsMixin):
     """Tests for cards with user data and rendered content.
     """
+
     def audio_testing(self):
         self.sound_front, _ = self.add_soundfile_to_database()
         self.sound_back, _ = self.add_soundfile_to_database()
@@ -356,6 +357,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             }))
         introduced_on = review_data.introduced_on \
             .isoformat().replace("+00:00", "Z")
+        created_on = card.created_on \
+            .isoformat().replace("+00:00", "Z")
         expected_data = {
             "computed_interval": review_data.computed_interval,
             "lapses": review_data.lapses,
@@ -367,7 +370,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             "back_audio": None,
             "introduced_on": introduced_on,
             "review_date": str(review_data.review_date),
-            "created_on": str(review_data.card.created_on),
+            "created_on": created_on,
             "grade": review_data.grade,
             "reviews": review_data.reviews,
             "categories": [],
@@ -938,12 +941,12 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
         """List for "all cards" should be ordered (sorted) by
         the card creation date.
         """
-        # needs work
         card_1, card_2, card_3, card_4 = self.make_fake_cards(4)
         card_1.memorize(self.user)
         card_3.memorize(self.user)
-        expected_ids_order = [str(card.id) for card
-                              in (card_1, card_2, card_3, card_4)]
+        sorted_cards = sorted([card_1, card_2, card_3, card_4],
+                              key=lambda card: card.created_on)
+        expected_ids_order = [str(card.id) for card in sorted_cards]
         response = self.client.get(reverse_all_cards(self.user.id))
         received_ids_order = get_card_ids(response)
 
@@ -2073,6 +2076,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
     """Test responses to requests sent to
     /api/users/{user_id}/cards/distribution
     """
+
     def setUp(self):
         ApiTestFakeUsersCardsMixin.setUp(self)
         self.selected_category = Category.objects.create(
@@ -2105,7 +2109,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         url = (reverse("distribution_dynamic_part", kwargs={
             "user_id": self.user.id,
             "dynamic_part": "memorized"})
-            + f"?days-range={abs(days_range)}")
+               + f"?days-range={abs(days_range)}")
 
         response = self.client.get(url)
         received_data = response.json()
@@ -2205,7 +2209,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         days_range = 4
         distribution_range = 3
         number_of_cards = 5
-        cards_selected_category_number = ceil(number_of_cards/2)
+        cards_selected_category_number = ceil(number_of_cards / 2)
         cards = [card.memorize(self.user) for card in
                  self.make_fake_cards(number_of_cards)]
         self.unselected_category = Category.objects.create(
@@ -2220,7 +2224,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         expected_output = {
             str(date.today() + timedelta(days)):
                 1 if days <= distribution_range else 0
-            for days in range(1, days_range+1)
+            for days in range(1, days_range + 1)
         }
         url = self.cards_distribution_url(days_range)
         response = self.client.get(url)
@@ -2366,7 +2370,7 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
             card.memorize(self.user, randint(3, 5))
 
         url = reverse("general_statistics",
-                                kwargs={"user_id": self.user.id})
+                      kwargs={"user_id": self.user.id})
         self.response = self.client.get(url)
 
     def test_status_code(self):
