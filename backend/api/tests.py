@@ -28,6 +28,10 @@ from cards.tests import FakeUsersCards, HelpersMixin
 fake = Faker()
 
 
+def get_card_ids(response):
+    return [card["id"] for card in response.json()["results"]]
+
+
 def get_reverse_for(endpoint, key):
     def reverse_fn(value):
         return reverse(endpoint, kwargs={key: value})
@@ -935,11 +939,16 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
         the card creation date.
         """
         # needs work
-        card_1, card_2 = self.make_fake_cards(2)
+        card_1, card_2, card_3, card_4 = self.make_fake_cards(4)
         card_1.memorize(self.user)
+        card_3.memorize(self.user)
+        expected_ids_order = [str(card.id) for card
+                              in (card_1, card_2, card_3, card_4)]
         response = self.client.get(reverse_all_cards(self.user.id))
-        results = response.json()["results"]
-        self.assertEqual(results[0]["id"], str(card_1.id))
+        received_ids_order = get_card_ids(response)
+
+        self.assertEqual(len(expected_ids_order), len(received_ids_order))
+        self.assertEqual(expected_ids_order, received_ids_order)
 
     def test_cards_memorized_queued(self):
         """Test making list composed of both memorized and queued cards.
@@ -1501,7 +1510,9 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         self.third_sub_category = Category(name="third sibling category",
                                            parent=self.parent)
         self.third_sub_category.save()
+
         self.card_1, self.card_2, self.card_3 = self.make_fake_cards(3)
+
         self.card_1.categories.add(self.first_sub_category)
         self.card_2.categories.add(self.second_sub_category)
         self.card_2.categories.add(self.third_sub_category)
@@ -1511,13 +1522,29 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         for card in self.card_1, self.card_2, self.card_3:
             card.memorize(self.user)
 
-    def test_parent_category_selected_memorized_cards(self):
+    def testing_data_parent_category_memorized(self):
         self.memorize_cards()
-        self.user.selected_categories.add(self.parent)
+        self.user.selected_categories.set([self.parent])
         self.user.save()
         response = self.client.get(reverse_memorized_cards(self.user.id))
+        card_ids = get_card_ids(response)
+        return card_ids, response
 
-        self.assertEqual(response.json()["count"], 3)
+    def test_parent_category_selected_memorized_cards(self):
+        card_ids, response = self.testing_data_parent_category_memorized()
+
+        self.assertTrue(str(self.card_1.id) in card_ids)
+        self.assertTrue(str(self.card_2.id) in card_ids)
+        self.assertFalse(str(self.card_3.id) in card_ids)
+
+    def test_parent_category_memorized_distinct(self):
+        """Test if response returns unique (distinct) cards.
+        """
+        card_ids, response = self.testing_data_parent_category_memorized()
+
+        self.assertEqual(len(card_ids), 2)
+        self.assertEqual(len(set(card_ids)), 2)
+        self.assertEqual(response.json()["count"], 2)
 
     def test_parent_category_selected_outstanding_cards(self):
         self.memorize_cards()
@@ -1527,15 +1554,50 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         with time_machine.travel(travel_date):
             response = self.client.get(
                 reverse_outstanding_cards(self.user.id))
+        cards_ids = get_card_ids(response)
 
-        self.assertEqual(response.json()["count"], 3)
+        self.assertEqual(len(cards_ids), 2)
+        self.assertEqual(len(set(cards_ids)), 2)
+        self.assertEqual(response.json()["count"], 2)
+        self.assertFalse(str(self.card_3.id) in cards_ids)
 
     def test_parent_category_selected_queued_cards(self):
-        self.user.selected_categories.add(self.parent)
+        self.user.selected_categories.set([self.parent])
         self.user.save()
         response = self.client.get(reverse_queued_cards(self.user.id))
+        card_ids = get_card_ids(response)
 
-        self.assertEqual(response.json()["count"], 3)
+        self.assertEqual(len(card_ids), 2)
+        self.assertEqual(len(set(card_ids)), 2)
+        self.assertEqual(response.json()["count"], 2)
+        self.assertFalse(str(self.card_3.id) in card_ids)
+
+    def test_multiple_categories_selected_all_cards_memorized(self):
+        self.user.selected_categories.set(
+            [self.first_sub_category, self.second_sub_category,
+             self.third_sub_category])
+        self.user.save()
+        self.card_2.memorize(self.user)
+        response = self.client.get(reverse_all_cards(self.user.id))
+        cards_ids = get_card_ids(response)
+        expected_cards_ids = set([str(card.id) for card
+                                  in (self.card_1, self.card_2)])
+
+        self.assertEqual(len(cards_ids), 2)
+        self.assertEqual(set(cards_ids), expected_cards_ids)
+
+    def test_multiple_categories_selected_all_cards_queued(self):
+        self.user.selected_categories.set(
+            [self.first_sub_category, self.second_sub_category,
+             self.third_sub_category])
+        self.user.save()
+        response = self.client.get(reverse_all_cards(self.user.id))
+        cards_ids = get_card_ids(response)
+        expected_cards_ids = set([str(card.id) for card
+                                  in (self.card_1, self.card_2)])
+
+        self.assertEqual(len(cards_ids), 2)
+        self.assertEqual(set(cards_ids), expected_cards_ids)
 
     def test_single_subcategory_selected_memorized_cards(self):
         self.memorize_cards()
@@ -1613,8 +1675,11 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         self.user.save()
         response_all_cards = self.client.get(
             reverse_memorized_cards(self.user.id))
+        card_ids = get_card_ids(response_all_cards)
 
-        self.assertEqual(response_all_cards.json()["count"], 2)
+        self.assertEqual(len(card_ids), 1)
+        self.assertEqual(len(set(card_ids)), 1)
+        self.assertEqual(response_all_cards.json()["count"], 1)
 
     def test_two_sibling_categories_selected_outstanding_cards(self):
         self.memorize_cards()
@@ -1625,17 +1690,23 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         with time_machine.travel(travel_time):
             response_all_cards = self.client.get(
                 reverse_memorized_cards(self.user.id))
+        card_ids = get_card_ids(response_all_cards)
 
-        self.assertEqual(response_all_cards.json()["count"], 2)
+        self.assertEqual(len(card_ids), 1)
+        self.assertEqual(response_all_cards.json()["count"], 1)
+        self.assertEqual(card_ids[0], str(self.card_2.id))
 
     def test_two_sibling_categories_selected_queued_cards(self):
         self.user.selected_categories.set([self.second_sub_category,
                                            self.third_sub_category])
         self.user.save()
-        response_all_cards = self.client.get(
+        response = self.client.get(
             reverse_queued_cards(self.user.id))
+        card_ids = get_card_ids(response)
 
-        self.assertEqual(response_all_cards.json()["count"], 2)
+        self.assertEqual(len(card_ids), 1)
+        self.assertEqual(str(card_ids[0]), str(self.card_2.id))
+        self.assertEqual(response.json()["count"], 1)
 
 
 class CategoryTree(ApiTestHelpersMixin, TestCase):

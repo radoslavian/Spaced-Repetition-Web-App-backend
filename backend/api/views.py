@@ -66,22 +66,22 @@ class LimitPagination(MultipleModelLimitOffsetPagination):
 class AllCards(FlatMultipleModelAPIView):
     permission_classes = [IsAuthenticated, UserPermission]
     pagination_class = LimitPagination
-    # this way doesn't keep order of cards in the list
+    # both options don't keep order of cards in the list
     # when memorizing cards (card memorized will be returned in
     # the different position on next reload):
     # sorting_fields = ["created_on", "body"]
-    sorting_fields = ["id", "created_on"]
+    sorting_fields = ["created_on"]
 
     def get_querylist(self):
         user_categories = self.request.user.get_user_categories_trees()
         queued_queryset = Card.objects.exclude(
             reviewing_users=self.request.user).filter(
             Q(categories__in=user_categories) |
-            Q(categories__isnull=True))
+            Q(categories__isnull=True)).distinct()
         memorized_queryset = CardUserData.objects.filter(
             user=self.request.user).filter(
             Q(card__categories__in=user_categories) |
-            Q(card__categories__isnull=True))
+            Q(card__categories__isnull=True)).distinct()
 
         querylist = [
             {
@@ -115,7 +115,7 @@ class QueuedCards(ListAPIAbstractView):
     def query_set_filter(self, user_query_set):
         return user_query_set.filter(
             Q(categories__in=self._user_categories) |
-            Q(categories__isnull=True))
+            Q(categories__isnull=True)).distinct()
 
 
 class QueuedCard(RetrieveUpdateAPIView):
@@ -161,7 +161,7 @@ class MemorizedCards(ListAPIAbstractView):
     def query_set_filter(self, user_query_set):
         return user_query_set.filter(
             Q(card__categories__in=self._user_categories) |
-            Q(card__categories__isnull=True))
+            Q(card__categories__isnull=True)).distinct()
 
     def get_base_queryset(self):
         return CardUserData.objects.all().filter(user=self.request.user)
@@ -225,7 +225,7 @@ class OutstandingCards(ListAPIAbstractView):
     def query_set_filter(self, user_query_set):
         return user_query_set.filter(
             Q(card__categories__in=self._user_categories) |
-            Q(card__categories__isnull=True))
+            Q(card__categories__isnull=True)).distinct()
 
 
 class CramQueue(ListAPIView):
