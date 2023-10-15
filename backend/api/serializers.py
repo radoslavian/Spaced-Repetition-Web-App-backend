@@ -1,18 +1,19 @@
 from django.urls import reverse
-from rest_framework import serializers
+from rest_framework.serializers import CharField, ModelSerializer, \
+SerializerMethodField, DateTimeField
 from rest_framework_recursive.fields import RecursiveField
 from cards.models import Card, Image, CardUserData, Category
 
 
-class ImageSerializer(serializers.ModelSerializer):
+class ImageSerializer(ModelSerializer):
     class Meta:
         model = Image
         fields = ("id", "image",)
 
 
-class CategoryForCardSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(source="name")
-    key = serializers.CharField(source="id")
+class CategoryForCardSerializer(ModelSerializer):
+    title = CharField(source="name")
+    key = CharField(source="id")
 
     class Meta:
         model = Category
@@ -27,7 +28,7 @@ class CategorySerializer(CategoryForCardSerializer):
         fields = ("key", "title", "children",)
 
 
-class CardForEditingSerializer(serializers.ModelSerializer):
+class CardForEditingSerializer(ModelSerializer):
     front_images = ImageSerializer(many=True)
     back_images = ImageSerializer(many=True)
     categories = CategoryForCardSerializer(many=True)
@@ -40,15 +41,15 @@ class CardForEditingSerializer(serializers.ModelSerializer):
                             "back_images", "categories")
 
 
-class CrammedCardReviewDataSerializer(serializers.ModelSerializer):
-    body = serializers.SerializerMethodField()
+class CrammedCardReviewDataSerializer(ModelSerializer):
+    body = SerializerMethodField()
     categories = CategoryForCardSerializer(source="card.categories",
                                            many=True)
-    cram_link = serializers.SerializerMethodField()
-    created_on = serializers.DateTimeField(source="card.created_on")
-    front_audio = serializers.SerializerMethodField()
-    back_audio = serializers.SerializerMethodField()
-    id = serializers.CharField(source="card.id")
+    cram_link = SerializerMethodField()
+    created_on = DateTimeField(source="card.created_on")
+    front_audio = SerializerMethodField()
+    back_audio = SerializerMethodField()
+    id = CharField(source="card.id")
 
     @staticmethod
     def get_front_audio(obj):
@@ -83,7 +84,7 @@ class CrammedCardReviewDataSerializer(serializers.ModelSerializer):
 
 
 class CardReviewDataSerializer(CrammedCardReviewDataSerializer):
-    projected_review_data = serializers.SerializerMethodField()
+    projected_review_data = SerializerMethodField()
 
     @staticmethod
     def get_projected_review_data(obj):
@@ -98,10 +99,10 @@ class CardReviewDataSerializer(CrammedCardReviewDataSerializer):
         return super().get_cram_link(obj)
 
 
-class CardUserNoReviewDataSerializer(serializers.ModelSerializer):
+class CardUserNoReviewDataSerializer(ModelSerializer):
     categories = CategoryForCardSerializer(many=True)
-    front_audio = serializers.SerializerMethodField()
-    back_audio = serializers.SerializerMethodField()
+    front_audio = SerializerMethodField()
+    back_audio = SerializerMethodField()
 
     @staticmethod
     def get_front_audio(obj):
@@ -122,17 +123,17 @@ class CardUserNoReviewDataSerializer(serializers.ModelSerializer):
 
 
 class AllCardsSerializer(CardUserNoReviewDataSerializer):
-    computed_interval = serializers.SerializerMethodField()
-    type = serializers.SerializerMethodField()
-    lapses = serializers.SerializerMethodField()
-    total_reviews = serializers.SerializerMethodField()
-    last_reviewed = serializers.SerializerMethodField()
-    introduced_on = serializers.SerializerMethodField()
-    review_date = serializers.SerializerMethodField()
-    grade = serializers.SerializerMethodField()
-    reviews = serializers.SerializerMethodField()
-    easiness_factor = serializers.SerializerMethodField()
-    cram_link = serializers.SerializerMethodField()
+    computed_interval = SerializerMethodField()
+    type = SerializerMethodField()
+    lapses = SerializerMethodField()
+    total_reviews = SerializerMethodField()
+    last_reviewed = SerializerMethodField()
+    introduced_on = SerializerMethodField()
+    review_date = SerializerMethodField()
+    grade = SerializerMethodField()
+    reviews = SerializerMethodField()
+    easiness_factor = SerializerMethodField()
+    cram_link = SerializerMethodField()
 
     def get_cram_link(self, card: Card):
         card_user_data = self.get_card_user_data(card)
