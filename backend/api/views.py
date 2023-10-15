@@ -4,8 +4,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
-from drf_multiple_model.views import FlatMultipleModelAPIView
-from drf_multiple_model.pagination import MultipleModelLimitOffsetPagination
 from rest_framework import status, filters, serializers
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.generics import RetrieveAPIView, ListAPIView, \
@@ -21,8 +19,6 @@ from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer, CategorySerializer,
                           CrammedCardReviewDataSerializer, AllCardsSerializer)
 from cards.utils.exceptions import ReviewBeforeDue
-from .utils.custom_search_filters import (filter_queued_cards,
-                                          filter_memorized_cards)
 from .utils.helpers import extract_grade, no_review_data_response
 
 
@@ -55,12 +51,6 @@ class ListCardsForBackendView(ListAPIView):
 class SingleCardForBackendView(RetrieveAPIView):
     queryset = Card.objects.all()
     serializer_class = CardForEditingSerializer
-
-
-class LimitPagination(MultipleModelLimitOffsetPagination):
-    """Paginator for AllCards view class.
-    """
-    default_limit = 10
 
 
 class AllCards(ListAPIView):
