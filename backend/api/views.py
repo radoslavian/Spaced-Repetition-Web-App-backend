@@ -54,6 +54,9 @@ class SingleCardForBackendView(RetrieveAPIView):
 
 
 class AllCards(ListAPIView):
+    """Returns a single, ordered list of both types of cards:
+    memorized and pending.
+    """
     filter_backends = [filters.SearchFilter]
     search_fields = ["front", "back", "template__body"]
     permission_classes = [IsAuthenticated, UserPermission]
