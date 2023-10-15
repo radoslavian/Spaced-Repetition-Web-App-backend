@@ -1,6 +1,6 @@
 from django.urls import reverse
 from rest_framework.serializers import CharField, ModelSerializer, \
-SerializerMethodField, DateTimeField
+    SerializerMethodField, DateTimeField
 from rest_framework_recursive.fields import RecursiveField
 from cards.models import Card, Image, CardUserData, Category
 
