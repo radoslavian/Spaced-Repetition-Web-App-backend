@@ -118,7 +118,7 @@ class CardUserData(models.Model):
                 user=user,
                 review_date=review_date,
                 card__categories__in=selected_categories
-            ).count()
+            ).distinct().count()
             for review_date in dates
         }
 
@@ -136,7 +136,7 @@ class CardUserData(models.Model):
                 introduced_on__month=introduction_date.month,
                 introduced_on__year=introduction_date.year,
                 card__categories__in=selected_categories
-            ).count()
+            ).distinct().count()
             for introduction_date in dates
         }
 

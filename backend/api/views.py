@@ -19,7 +19,7 @@ from cards.utils.exceptions import CardReviewDataExists, \
 from .permissions import UserPermission
 from .serializers import (CardForEditingSerializer, CardReviewDataSerializer,
                           CardUserNoReviewDataSerializer, CategorySerializer,
-                          CrammedCardReviewDataSerializer)
+                          CrammedCardReviewDataSerializer, AllCardsSerializer)
 from cards.utils.exceptions import ReviewBeforeDue
 from .utils.custom_search_filters import (filter_queued_cards,
                                           filter_memorized_cards)
@@ -63,41 +63,18 @@ class LimitPagination(MultipleModelLimitOffsetPagination):
     default_limit = 10
 
 
-class AllCards(FlatMultipleModelAPIView):
+class AllCards(ListAPIView):
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["front", "back", "template__body"]
     permission_classes = [IsAuthenticated, UserPermission]
-    pagination_class = LimitPagination
-    # both options don't keep order of cards in the list
-    # when memorizing cards (card memorized will be returned in
-    # the different position on next reload):
-    # sorting_fields = ["created_on", "body"]
-    sorting_fields = ["created_on"]
+    serializer_class = AllCardsSerializer
 
-    def get_querylist(self):
+    def get_queryset(self):
         user_categories = self.request.user.get_user_categories_trees()
-        queued_queryset = Card.objects.exclude(
-            reviewing_users=self.request.user).filter(
+        return Card.objects.filter(
             Q(categories__in=user_categories) |
-            Q(categories__isnull=True)).distinct()
-        memorized_queryset = CardUserData.objects.filter(
-            user=self.request.user).filter(
-            Q(card__categories__in=user_categories) |
-            Q(card__categories__isnull=True)).distinct()
-
-        querylist = [
-            {
-                "queryset": queued_queryset,
-                "serializer_class": CardUserNoReviewDataSerializer,
-                "label": "queued",
-                "filter_fn": filter_queued_cards
-            },
-            {
-                "queryset": memorized_queryset,
-                "serializer_class": CardReviewDataSerializer,
-                "label": "memorized",
-                "filter_fn": filter_memorized_cards
-            }
-        ]
-        return querylist
+            Q(categories__isnull=True)
+        ).distinct().order_by("created_on")
 
 
 class QueuedCards(ListAPIAbstractView):

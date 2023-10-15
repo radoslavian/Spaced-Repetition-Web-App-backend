@@ -965,7 +965,7 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
         self.assertTrue(str(card_memorized.id) in card_ids)
         self.assertTrue(str(card_queued.id) in card_ids)
         self.assertTrue(status.is_success(response.status_code))
-        self.assertEqual(response_json["overall_total"], 2)
+        self.assertEqual(response_json["count"], 2)
 
     def test_memorized_only(self):
         """Test endpoint when only memorized card is to be returned.
@@ -975,14 +975,14 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
         response = self.client.get(reverse_all_cards(self.user.id))
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["count"], 1)
 
     def test_queued_only(self):
         card = self.make_fake_cards(1)[0]
         response = self.client.get(reverse_all_cards(self.user.id))
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["count"], 1)
 
     def test_cards_with_categories_selected(self):
         """Test for returning cards with categories attached and user-selected
@@ -999,7 +999,7 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
         response = self.client.get(reverse_all_cards(self.user.id))
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 2)
+        self.assertEqual(response_json["count"], 2)
 
     def test_cards_with_categories_unselected(self):
         """Cards have categories attached, user has different (than cards')
@@ -1018,7 +1018,7 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
         response = self.client.get(reverse_all_cards(self.user.id))
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 0)
+        self.assertEqual(response_json["count"], 0)
 
 
 class Cram(ApiTestHelpersMixin, TestCase):
@@ -1325,7 +1325,7 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
         response = self.client.get(url)
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["count"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.memorized_card.id))
         self.assertTrue(response_json["results"][0]["grade"])
@@ -1337,11 +1337,10 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
         response = self.client.get(url)
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["count"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.queued_card.id))
-        self.assertRaises(KeyError,
-                          lambda: response_json["results"][0]["grade"])
+        self.assertEqual(response_json["results"][0]["grade"], None)
 
     def test_searching_back_memorized(self):
         url = add_url_params(reverse("all_cards",
@@ -1350,7 +1349,7 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
         response = self.client.get(url)
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["count"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.memorized_card.id))
 
@@ -1361,7 +1360,7 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
         response = self.client.get(url)
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["count"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.queued_card.id))
 
@@ -1372,7 +1371,7 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
         response = self.client.get(url)
         response_json = response.json()
 
-        self.assertEqual(response_json["overall_total"], 1)
+        self.assertEqual(response_json["count"], 1)
         self.assertEqual(response_json["results"][0]["id"],
                          str(self.memorized_card.id))
 
@@ -1864,7 +1863,7 @@ class CategoryTree(ApiTestHelpersMixin, TestCase):
         response = self.client.get(reverse_all_cards(self.user.id))
         response_data = response.json()
 
-        self.assertEqual(response_data["overall_total"], 2)
+        self.assertEqual(response_data["count"], 2)
         self.assertIn(response_data["results"][0]["id"], card_ids)
         self.assertIn(response_data["results"][1]["id"], card_ids)
 
@@ -2084,8 +2083,57 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.user.selected_categories.set([self.selected_category])
         self.user.save()
 
+    def prepare_test_data_distinct_cards(self):
+        card1, card2 = self.make_fake_cards(2)
+        category1 = self.create_category()
+        category2 = self.create_category()
+        categories = [category1, category2]
+        card1.categories.set(categories)
+        card2.categories.set(categories)
+        self.user.selected_categories.set(categories)
+        self.user.save()
+        for card in (card1, card2,):
+            card.memorize(self.user)
+
+    def count_cards_in_response(self, response_data):
+        total_cards_in_response = 0
+        for key in response_data.keys():
+            total_cards_in_response += response_data[key]
+        return total_cards_in_response
+
+    def test_distinct_number_cards_distribution(self):
+        """Test if cards are not count multiple times.
+        """
+        days_range = 3
+        expected_number_of_cards = 2
+        self.prepare_test_data_distinct_cards()
+        distribution_url = self.cards_distribution_url(days_range)
+        response = self.client.get(distribution_url)
+        response_data = response.json()
+        total_cards_in_response = self.count_cards_in_response(response_data)
+
+        self.assertEqual(total_cards_in_response, expected_number_of_cards)
+
+    def test_distinct_number_memorization_distribution(self):
+        """Test if cards are not count multiple times.
+        """
+        days_travel = -1
+        expected_number_of_cards = 2
+        destination_date = date.today() + timedelta(days_travel)
+        with time_machine.travel(destination_date):
+            self.prepare_test_data_distinct_cards()
+        url = (reverse("distribution_dynamic_part", kwargs={
+            "user_id": self.user.id,
+            "dynamic_part": "memorized"})
+               + f"?days-range={abs(days_travel)}")
+        response = self.client.get(url)
+        received_data = response.json()
+        total_cards_in_response = self.count_cards_in_response(received_data)
+
+        self.assertEqual(total_cards_in_response, expected_number_of_cards)
+
     def test_memorization_distribution(self):
-        """Test request for memorization rate - cards memorized
+        """Test response to request for memorization rate - cards memorized
         on a particular date.
         """
         days_range = -4
