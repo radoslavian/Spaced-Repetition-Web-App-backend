@@ -2421,6 +2421,37 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
                       kwargs={"user_id": self.user.id})
         self.response = self.client.get(url)
 
+    def test_furthest_scheduled_review(self):
+        furthest_scheduled_card = self.make_fake_cards(1)[0]
+        future_date = date.today() + timedelta(days=10)
+        with time_machine.travel(future_date):
+            furthest_scheduled_card.memorize(self.user)
+        url = reverse("general_statistics",
+                      kwargs={"user_id": self.user.id})
+        card_user_data = CardUserData.objects.filter(
+            user=self.user, card=furthest_scheduled_card).first()
+        response = self.client.get(url)
+        response_data = response.json()
+        expected_output = {
+            "card_id": str(furthest_scheduled_card.id),
+            "card_title": str(furthest_scheduled_card),
+            "review_date": str(card_user_data.review_date)
+        }
+
+        self.assertDictEqual(response_data["furthest_scheduled_review"],
+                             expected_output)
+
+    def test_furthest_scheduled_review_no_cards(self):
+        """Response when no cards are memorized.
+        """
+        CardUserData.objects.all().delete()
+        url = reverse("general_statistics",
+                      kwargs={"user_id": self.user.id})
+        response = self.client.get(url)
+        review_data = response.json()["furthest_scheduled_review"]
+
+        self.assertIsNone(review_data)
+
     def test_status_code(self):
         self.assertEqual(self.response.status_code, status.HTTP_200_OK)
 

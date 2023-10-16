@@ -363,10 +363,27 @@ class GeneralStatistics(APIView):
         else:
             retention_score = round(number_successful_reviews /
                                     number_of_memorized * 100, 2)
+        furthest_scheduled_card_data = self._get_furthest_scheduled_card(
+            request.user)
         response = {
             "retention_score": retention_score,
             "number_of_memorized": number_of_memorized,
-            "total_cards": total_cards
+            "total_cards": total_cards,
+            "furthest_scheduled_review": furthest_scheduled_card_data
         }
-
         return Response(response, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _get_furthest_scheduled_card(user):
+        try:
+            furthest_scheduled_card = CardUserData.objects.filter(
+                user=user).latest("review_date")
+        except ObjectDoesNotExist:
+            furthest_scheduled_card_data = None
+        else:
+            furthest_scheduled_card_data = {
+                "card_id": furthest_scheduled_card.card.id,
+                "card_title": str(furthest_scheduled_card.card),
+                "review_date": furthest_scheduled_card.review_date
+            }
+        return furthest_scheduled_card_data
