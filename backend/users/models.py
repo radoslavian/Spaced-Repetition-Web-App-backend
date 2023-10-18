@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save
 
 
 # Create your models here.
@@ -13,7 +14,7 @@ class User(AbstractUser):
     )
 
     def _get_crammed_cards(self):
-        return CardUserData.objects.filter(user=self, crammed=True)\
+        return CardUserData.objects.filter(user=self, crammed=True) \
             .order_by("introduced_on")
 
     crammed_cards = property(fget=_get_crammed_cards)
@@ -43,5 +44,15 @@ class User(AbstractUser):
                 selected_category))
         return user_categories
 
+
+def set_default_selected_user_categories(sender, instance, created, **kwargs):
+    """Sets root categories as selected by default when creating new user.
+    """
+    if created:
+        root_nodes = list(Category.get_root_nodes())
+        instance.selected_categories.set(root_nodes)
+
+
+post_save.connect(set_default_selected_user_categories, sender=User)
 
 from cards.models import CardUserData, Category
