@@ -2071,7 +2071,7 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         self.assertEqual(categories_ids, selected_categories_id)
 
 
-class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
+class DistributionCharts(ApiTestFakeUsersCardsMixin, TestCase):
     """Test responses to requests sent to
     /api/users/{user_id}/cards/distribution
     """
@@ -2095,7 +2095,8 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         for card in (card1, card2,):
             card.memorize(self.user)
 
-    def count_cards_in_response(self, response_data):
+    @staticmethod
+    def count_cards_in_response(response_data):
         total_cards_in_response = 0
         for key in response_data.keys():
             total_cards_in_response += response_data[key]
@@ -2115,7 +2116,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.assertEqual(total_cards_in_response, expected_number_of_cards)
 
     def test_distinct_number_memorization_distribution(self):
-        """Test if cards are not count multiple times.
+        """Test if cards are not counted multiple times.
         """
         days_travel = -1
         expected_number_of_cards = 2
@@ -2125,7 +2126,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         url = (reverse("distribution_dynamic_part", kwargs={
             "user_id": self.user.id,
             "dynamic_part": "memorized"})
-               + f"?days-range={abs(days_travel)}")
+               + f"?days-range={abs(days_travel)+1}")
         response = self.client.get(url)
         received_data = response.json()
         total_cards_in_response = self.count_cards_in_response(received_data)
@@ -2137,13 +2138,13 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         on a particular date.
         """
         days_range = -4
-        timedelta_days = -1
+        timedelta_days = 0
         expected_response = {}
         number_of_cards = 5
 
         for card in self.make_fake_cards(number_of_cards):
-            if timedelta_days < days_range:
-                timedelta_days = -1
+            if timedelta_days <= days_range:
+                timedelta_days = 0
             card.categories.set([self.selected_category])
             introduction_date = date.today() + timedelta(timedelta_days)
             with time_machine.travel(introduction_date):

@@ -124,10 +124,11 @@ class CardUserData(models.Model):
 
     @classmethod
     def get_cards_memorization_distribution(cls, user, days_range=3):
+        # this method is executed in API tests only
         cls.check_distribution_days_range(days_range)
         selected_categories = user.get_user_categories_trees()
         dates = [date.today() - datetime.timedelta(days=days)
-                 for days in range(1, days_range + 1)]
+                 for days in range(days_range)]
 
         return {
             str(introduction_date): cls.objects.filter(
