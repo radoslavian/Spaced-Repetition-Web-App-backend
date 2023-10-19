@@ -441,3 +441,6 @@ class Sound(models.Model):
     )
     sound_file = models.FileField(upload_to="sounds/")
     description = models.CharField(max_length=1000)
+
+    def __str__(self):
+        return str(self.sound_file)
