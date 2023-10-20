@@ -4,6 +4,7 @@ from math import ceil, floor
 import time_machine
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpRequest
 from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
@@ -11,7 +12,7 @@ from random import choice, shuffle, randint
 from cards.models import Card, CardImage, CardTemplate, Category, CardUserData
 from faker import Faker
 from rest_framework import status
-from .utils.helpers import add_url_params
+from .utils.helpers import add_url_params, get_card_body
 
 if __name__ == "__main__" and __package__ is None:
     # overcoming sibling module imports problem
@@ -45,6 +46,7 @@ reverse_outstanding_cards = get_reverse_for("outstanding_cards", "user_id")
 reverse_selected_categories = get_reverse_for("selected_categories",
                                               "user_id")
 reverse_all_cards = get_reverse_for("all_cards", "user_id")
+reverse_cram = get_reverse_for("cram_queue", "user_id")
 
 
 def convert_zulu_timestamp(timestamp: str):
@@ -341,7 +343,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
                                            "user_id": self.user.id}))
         received_card_body = response.json()["body"]
 
-        self.assertTrue("<!-- base template for cards-->"
+        self.assertTrue("<!-- base template for cards -->"
                         in received_card_body)
         self.assertTrue("<!-- test template -->" in received_card_body)
         self.assertTrue(card.front in received_card_body)
@@ -561,6 +563,45 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(status_code_from_message, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.json()["detail"], response_detail)
+
+    def test_get_card_body_rendering_absolute_url_memorized(self):
+        """Absolute url in memorized cards (which are serialized using
+        CardReviewDataSerializer).
+        """
+        template = CardTemplate.objects.create(
+            title="Template with absolute url.",
+            description="This template renders absolute url "
+                        "(scheme and host)",
+            body="Absolute url: {{ request.build_absolute_uri }}"
+        )
+        Card.objects.all().delete()
+        card = self.make_fake_cards(1)[0]
+        card.template = template
+        card.save()
+        card.memorize(self.user)
+        response = self.client.get(reverse_memorized_cards(self.user.id))
+        card_body = response.json()["results"][0]["body"]
+        self.assertIn(f"http://testserver/api/users/{self.user.id}/cards/",
+                      card_body)
+
+    def test_get_card_body_rendering_absolute_url_queued(self):
+        """Absolute url in queued cards (which are serialized using
+        CardUserNoReviewDataSerializer).
+        """
+        template = CardTemplate.objects.create(
+            title="Template with absolute url.",
+            description="This template renders absolute url "
+                        "(scheme and host)",
+            body="Absolute url: {{ request.build_absolute_uri }}"
+        )
+        Card.objects.all().delete()
+        card = self.make_fake_cards(1)[0]
+        card.template = template
+        card.save()
+        response = self.client.get(reverse_queued_cards(self.user.id))
+        card_body = response.json()["results"][0]["body"]
+        self.assertIn(f"http://testserver/api/users/{self.user.id}/cards/",
+                      card_body)
 
 
 class CardMemorization(ApiTestFakeUsersCardsMixin):
@@ -791,8 +832,12 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_content["count"], half_of_cards)
         self.assertFalse(response_content["results"][0]["cram_link"])
-        self.assertEqual(response_content["results"][0]["body"],
-                         memorized_cards[0].card.body)
+        self.assertIn(memorized_cards[0].card.front,
+                      response_content["results"][0]["body"])
+        self.assertIn(memorized_cards[0].card.back,
+                      response_content["results"][0]["body"])
+        self.assertIn("<!-- fallback card template -->",
+                      response_content["results"][0]["body"])
 
     def test_get_list_of_memorized_cards_unauthorized_user(self):
         cards = self.make_fake_cards(2)
@@ -834,8 +879,13 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_body["count"], number_of_queued_cards)
-        self.assertEqual(not_memorized_cards[0].body,
-                         response_body["results"][0]["body"])
+
+        self.assertIn(not_memorized_cards[0].front,
+                      response_body["results"][0]["body"])
+        self.assertIn(not_memorized_cards[0].back,
+                      response_body["results"][0]["body"])
+        self.assertIn("<!-- fallback card template -->",
+                      response_body["results"][0]["body"])
 
     def test_list_of_queued_cards_single_user(self):
         """Test if only cards for currently authorized user are returned.
@@ -850,7 +900,10 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         response_results = response.json()["results"]
 
         self.assertEqual(response.json()["count"], 1)
-        self.assertEqual(card_2.body, response_results[0]["body"])
+        self.assertIn(card_2.front, response_results[0]["body"])
+        self.assertIn(card_2.back, response_results[0]["body"])
+        self.assertIn("<!-- fallback card template -->",
+                      response_results[0]["body"])
 
     def test_sum_memorized_queued_cards(self):
         """Test if number of cards for both endpoints:
@@ -911,7 +964,10 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
                          NUMBER_OF_MEMORIZED_CARDS)
         self.assertEqual(response_cards_for_review.json()["count"],
                          NUMBER_OF_MEMORIZED_CARDS + NUMBER_OF_REVIEWED_CARDS)
-        self.assertEqual(card_for_review_body, memorized_cards[0].body)
+        self.assertIn(memorized_cards[0].front, card_for_review_body)
+        self.assertIn(memorized_cards[0].back, card_for_review_body)
+        self.assertIn("<!-- fallback card template -->",
+                      card_for_review_body)
 
     def test_outstanding_cards_unauthorized(self):
         """Attempt to download outstanding cards without authorization.
@@ -936,6 +992,35 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
     """Tests for endpoint returning all cards:
     /users/{id}/cards/
     """
+    def test_get_card_body_rendering_absolute_url(self):
+        template = CardTemplate.objects.create(
+            title="Template with absolute url.",
+            description="This template renders absolute url "
+                        "(scheme and host)",
+            body="Absolute url: {{ request.build_absolute_uri }}"
+        )
+        card = self.make_fake_cards(1)[0]
+        card.template = template
+        card.save()
+        response = self.client.get(reverse_all_cards(self.user.id))
+        card_body = response.json()["results"][0]["body"]
+        self.assertIn(f"http://testserver/api/users/{self.user.id}/cards/",
+                      card_body)
+
+    def test_body_memorized(self):
+        card = self.make_fake_cards(1)[0]
+        card.memorize(self.user)
+        response = self.client.get(reverse_all_cards(self.user.id))
+        card_body = response.json()["results"][0]["body"]
+        self.assertIn(card.front, card_body)
+        self.assertIn(card.back, card_body)
+
+    def test_body_queried(self):
+        card = self.make_fake_cards(1)[0]
+        response = self.client.get(reverse_all_cards(self.user.id))
+        card_body = response.json()["results"][0]["body"]
+        self.assertIn(card.front, card_body)
+        self.assertIn(card.back, card_body)
 
     def test_sorting(self):
         """List for "all cards" should be ordered (sorted) by
@@ -1047,7 +1132,11 @@ class Cram(ApiTestHelpersMixin, TestCase):
         self.assertTrue(response.status_code, status.HTTP_200_OK)
         self.assertEqual(card_1_location, response["Location"])
         self.assertEqual(len(self.user.crammed_cards), 1)
-        self.assertEqual(card_1.body, response_card_body)
+
+        # assert card fields were rendered into card body
+        self.assertIn(card_1.front, response_card_body)
+        self.assertIn(card_1.back, response_card_body)
+        self.assertIn("<!-- fallback card template -->", response_card_body)
 
     def test_adding_to_cram_bad_request(self):
         card = self.make_fake_cards(1)[0]
@@ -1271,6 +1360,27 @@ class Cram(ApiTestHelpersMixin, TestCase):
 
         self.assertRaises(
             KeyError, lambda: card_from_response["projected_review_data"])
+
+    def test_get_card_body_rendering_absolute_url_cram(self):
+        """Absolute url in crammed cards (which are serialized using
+        CrammedCardReviewDataSerializer).
+        """
+        template = CardTemplate.objects.create(
+            title="Template with absolute url.",
+            description="This template renders absolute url "
+                        "(scheme and host)",
+            body="Absolute url: {{ request.build_absolute_uri }}"
+        )
+        Card.objects.all().delete()
+        card = self.make_fake_cards(1)[0]
+        card.template = template
+        card.save()
+        card_user_data = card.memorize(self.user)
+        card_user_data.add_to_cram()
+        response = self.client.get(reverse_cram(self.user.id))
+        card_body = response.json()["results"][0]["body"]
+        self.assertIn(f"http://testserver/api/users/{self.user.id}/cards/",
+                      card_body)
 
 
 class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
@@ -2126,7 +2236,7 @@ class DistributionCharts(ApiTestFakeUsersCardsMixin, TestCase):
         url = (reverse("distribution_dynamic_part", kwargs={
             "user_id": self.user.id,
             "dynamic_part": "memorized"})
-               + f"?days-range={abs(days_travel)+1}")
+               + f"?days-range={abs(days_travel) + 1}")
         response = self.client.get(url)
         received_data = response.json()
         total_cards_in_response = self.count_cards_in_response(received_data)
@@ -2481,3 +2591,42 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
         received_retention_score = self.response.json()["retention_score"]
         expected_retention_score = None
         self.assertEqual(received_retention_score, expected_retention_score)
+
+
+class UtilsTests(ApiTestFakeUsersCardsMixin, TestCase):
+    def test_get_card_body_base_template(self):
+        """get_card_body:
+        test rendering template in database that extends base template.
+        """
+        template = CardTemplate.objects.create(
+            title="test template",
+            description="Test rendering template in database " \
+                        "that extends base template.",
+            body="""
+                <!-- database template extending base template -->
+                {% extends '_base.html' %}
+                {% block content %}
+                <p>{{ card.front }}</p>
+                <p>{{ card.back }}</p>
+                {% endblock content %}
+                """
+        )
+        card = self.make_fake_cards(1)[0]
+        card.template = template
+        card.save()
+        card_body = get_card_body(card, {})
+
+        self.assertIn("<!-- base template for cards -->", card_body)
+        self.assertIn("<!-- database template extending base template -->",
+                        card_body)
+        self.assertIn(card.front, card_body)
+        self.assertIn(card.back, card_body)
+
+    def test_get_card_body_fallback_template(self):
+        card = self.make_fake_cards(1)[0]
+        card_body = get_card_body(card, {})
+
+        self.assertIn("<!-- base template for cards -->", card_body)
+        self.assertIn("<!-- fallback card template -->", card_body)
+        self.assertIn(card.front, card_body)
+        self.assertIn(card.back, card_body)

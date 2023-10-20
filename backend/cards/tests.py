@@ -1029,43 +1029,6 @@ class CardsImagesTests(FakeUsersCards, HelpersMixin):
             CardImage(card=card, image=image_in_database, side="fff").save)
 
 
-class CardRendering(FakeUsersCards):
-    def test_fallback_template_rendering(self):
-        card, *_ = self.get_cards()
-        card_body = card.body
-
-        self.assertTrue(card.front in card_body)
-        self.assertTrue(card.back in card_body)
-        self.assertTrue("<!-- fallback card template -->" in card_body)
-
-    def test_base_template(self):
-        """Test rendering template in database that extends base template.
-        """
-        template = CardTemplate()
-        template.title = "test template"
-        template.description = "Test rendering template in database " \
-                               "that extends base template."
-        template.body = """
-        <!-- database template extending base template -->
-        {% extends '_base.html' %}
-        {% block content %}
-        <p>{{ card.front }}</p>
-        <p>{{ card.back }}</p>
-        {% endblock content %}
-        """
-        template.save()
-        card, *_ = self.get_cards()
-        card.template = template
-        card.save()
-        card_body = card.body
-
-        self.assertTrue("<!-- base template for cards-->" in card_body)
-        self.assertTrue("<!-- database template extending base template -->"
-                        in card_body)
-        self.assertTrue(card.front in card_body)
-        self.assertTrue(card.back in card_body)
-
-
 class CardCategories(FakeUsersCards, HelpersMixin):
     def test_card_single_category(self):
         category_name = fake.text(20)
@@ -1144,22 +1107,6 @@ class SoundFiles(HelpersMixin, TestCase):
         file_retrieved_from_db = Sound.objects.filter(
             sound_file__contains=filename_no_extension).first()
         self.assertTrue(file_retrieved_from_db)
-
-    def test_audio_tag_in_cards(self):
-        """Test audio files embedding in cards.
-        """
-        card = self.make_fake_cards(1)[0]
-        sound_file_url = self.sound.sound_file.url
-        audio_player_tags = f'''
-        <audio controls autoplay>
-          <source src="{sound_file_url}" type="audio/mpeg"
-           preload="auto"/>
-          Your browser does not support the audio tag.
-        </audio>\n'''
-        card.front += audio_player_tags
-        card.save()
-        expected_string = f'<source src="{sound_file_url}'
-        self.assertTrue(expected_string in card.body)
 
 
 class SoundsInCards(HelpersMixin, TestCase):

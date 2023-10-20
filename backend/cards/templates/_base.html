@@ -1,5 +1,17 @@
-<!-- base template for cards-->
-<div class="container" id="card-body">
-    {% block content %}
-    {% endblock content %}
+<!-- base template for cards -->
+<style type="text/css">
+  {% block styles %}
+  {% endblock styles %} 
+</style>
+<div class="card-body">
+  {% block content %}
+    <div class="card-question">
+      {% block question %}
+      {% endblock question %}
+    </div>
+    <div class="card-answer">
+      {% block answer %}
+      {% endblock answer %}
+    </div>
+  {% endblock content %}
 </div>

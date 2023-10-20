@@ -4,8 +4,6 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CheckConstraint, Q, F
-from django.template import Template, Context
-from django.template.loader import render_to_string
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
 from django.urls import reverse
@@ -14,6 +12,7 @@ from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue, \
     CardsDistributionRangeExceeded
 from .utils.helpers import today, validate_grade
 from .utils.supermemo2 import SM2
+from wsra.settings import ENVIRONMENT
 
 encoding = CardsConfig.default_encoding
 max_comment_len = CardsConfig.max_comment_len
@@ -286,21 +285,8 @@ class Card(models.Model):
 
         return getter
 
-    def _body_getter(self):
-        """Renders body using fields: Card.front Card.back and Card.template.
-        """
-        context_data = {"card": self}
-        if self.template:
-            context = Context(context_data)
-            template = Template(self.template.body, context)
-            card_rendering = template.render(context)
-        else:
-            card_rendering = render_to_string("fallback.html", context_data)
-        return card_rendering
-
     front_images = property(fget=_make_images_getter("front"))
     back_images = property(fget=_make_images_getter("back"))
-    body = property(fget=_body_getter)
 
     def memorize(self, user, grade: int = 4) -> CardUserData:
         """Generate initial review data for a particular user and (this) card
@@ -414,6 +400,9 @@ class Image(models.Model):
     image = models.ImageField(upload_to="images/")
     description = models.CharField(max_length=1000)
     cards = models.ManyToManyField("Card", through="CardImage")
+
+    def __str__(self):
+        return str(self.image)
 
 
 class CardImage(models.Model):
