@@ -1,10 +1,9 @@
 import json
 import uuid
-from math import ceil, floor
+from math import ceil
 import time_machine
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpRequest
 from django.test import TestCase
 from datetime import date, timedelta
 from datetime import datetime
