@@ -51,13 +51,13 @@
     padding: 10px;
 }
 
-.card-body .card-answer  .answer {
+.card-body .card-answer .answer {
     text-align: left;
     padding-left: 5px;
     font-weight: bold;
-    font-size:12pt;
+    font-size: 12pt;
     padding-right: 5px;
-    line-height: 12pt
+    line-height: 14pt
 }
 
 .card-body .phonetic-spelling:hover {
@@ -70,5 +70,49 @@
 
 .card-body div.answer-example-sentences span:hover {
     background-color: #eded5c;
-}
+  }
+
+{% if card.front_images|length > 0 %}
+    .card-question {
+      display: flex;
+    /* flex-wrap: wrap; */  /* folding boxes - if necessary */
+    }
+  {% endif %}
+
+  {% if card.back_images|length > 0 %}
+    .card-answer {
+      display: flex;
+      /* flex-wrap: wrap; */  /* folding boxes - if necessary */
+  }
+  {% endif %}
 {% endblock styles %}
+
+{% block question %}
+  {% if card.front_images|length > 0 %}
+    <div id="card-definition-with-example">
+  {% endif %}
+  <p>{{ card.front | safe }}</p>
+  {% if card.front_images|length > 0 %}
+    </div>
+  {% endif %}
+  {% if card.front_images|length > 0 %}
+    <div id="card-question-image">
+      <img src="{{ request.build_absolute_url }}{{ card.front_images.0.image.url }}" />
+    </div>
+  {% endif %}
+{% endblock question %}
+
+{% block answer %}
+  {% if card.back_images|length > 0 %}
+  <div id="card-answer-image">
+    <img src="{{ request.build_absolute_url }}{{ card.back_images.0.image.url }}" />
+  </div>
+{% endif %}
+{% if card.back_images|length > 0 %}
+  <div id="card-answer-text">
+{% endif %}
+{{ card.back | safe}}
+{% if card.back_images|length > 0 %}
+  </div>
+{% endif %}
+{% endblock answer %}
