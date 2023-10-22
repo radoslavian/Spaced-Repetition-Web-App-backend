@@ -694,7 +694,7 @@ class CardReviewsTests(FakeUsersCards):
     def test_subsequent_reviews(self):
         card, user = self.get_card_user()
         grades = (3, 4, 5, 3, 2, 4,)
-        expected_comp_intervals = (6, 38, 114, 306, 1, 1,)
+        expected_comp_intervals = (6, 38, 119, 300, 1, 1,)
 
         review = card.memorize(user=user, grade=4)
         next_review_date = review.review_date
@@ -864,7 +864,6 @@ class CardReviewsTests(FakeUsersCards):
         with time_machine.travel(review_date):
             simulation = card.simulate_reviews(user)
         next_review_failed = review_date + timedelta(days=1)
-        next_review_success = review_date + timedelta(days=138)
         expected_output = {
             0: {'easiness': 1.3,
                 'interval': 1,
@@ -879,17 +878,17 @@ class CardReviewsTests(FakeUsersCards):
                 'reviews': 0,
                 'review_date': next_review_failed},
             3: {'easiness': 1.7999999999999998,
-                'interval': 138,
+                'interval': 107,
                 'reviews': 6,
-                'review_date': next_review_success},
+                'review_date': review_date + timedelta(days=107)},
             4: {'easiness': 1.9399999999999997,
-                'interval': 138,
+                'interval': 115,
                 'reviews': 6,
-                'review_date': next_review_success},
+                'review_date': review_date + timedelta(days=115)},
             5: {'easiness': 2.0399999999999996,
-                'interval': 138,
+                'interval': 121,
                 'reviews': 6,
-                'review_date': next_review_success}}
+                'review_date': review_date + timedelta(days=121)}}
 
         self.assertDictEqual(expected_output, simulation)
 

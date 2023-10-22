@@ -47,11 +47,16 @@ class SM2:
     ) -> "SM2":
         # TODO: shall assert/raise exception if "quality" (grade)
         # TODO: is out of 0-5 range (test 1st, then code)
+
         if not review_date:
             review_date = date.today()
 
         if not date_fmt:
             date_fmt = year_mon_day
+
+        self.easiness += 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)
+        if self.easiness < 1.3:
+            self.easiness = 1.3
 
         if isinstance(review_date, str):
             review_date = datetime.strptime(review_date, date_fmt).date()
@@ -68,10 +73,6 @@ class SM2:
                 self.interval = ceil(self.interval * self.easiness)
 
             self.repetitions = self.repetitions + 1
-
-        self.easiness += 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)
-        if self.easiness < 1.3:
-            self.easiness = 1.3
 
         review_date += timedelta(days=self.interval)
         self.review_date = review_date
