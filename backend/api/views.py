@@ -389,13 +389,3 @@ class GeneralStatistics(APIView):
             }
         return furthest_scheduled_card_data
 
-        retention_score = round(number_successful_reviews /
-                                number_of_memorized * 100, 2)
-        response = {
-            "retention_score": retention_score,
-            "number_of_memorized": number_of_memorized,
-            "total_cards": total_cards
-        }
-
-        return Response(response, status=status.HTTP_200_OK)
-
