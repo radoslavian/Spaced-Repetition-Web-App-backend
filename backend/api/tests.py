@@ -2180,7 +2180,11 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         self.assertEqual(categories_ids, selected_categories_id)
 
 
+<<<<<<< HEAD
 class DistributionCharts(ApiTestFakeUsersCardsMixin, TestCase):
+=======
+class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
+>>>>>>> 4615f0f67dc53de97c5cc950a995eb9f16347106
     """Test responses to requests sent to
     /api/users/{user_id}/cards/distribution
     """
@@ -2528,6 +2532,7 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
             card.memorize(self.user, randint(3, 5))
 
         url = reverse("general_statistics",
+<<<<<<< HEAD
                       kwargs={"user_id": self.user.id})
         self.response = self.client.get(url)
 
@@ -2562,6 +2567,11 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
 
         self.assertIsNone(review_data)
 
+=======
+                                kwargs={"user_id": self.user.id})
+        self.response = self.client.get(url)
+
+>>>>>>> 4615f0f67dc53de97c5cc950a995eb9f16347106
     def test_status_code(self):
         self.assertEqual(self.response.status_code, status.HTTP_200_OK)
 
@@ -2582,6 +2592,7 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.assertEqual(self.number_of_memorized_cards,
                          received_number_of_memorized)
 
+<<<<<<< HEAD
     def test_retention_score_zero_division(self):
         CardUserData.objects.all().delete()
         url = reverse("general_statistics",
@@ -2629,3 +2640,5 @@ class UtilsTests(ApiTestFakeUsersCardsMixin, TestCase):
         self.assertIn("<!-- fallback card template -->", card_body)
         self.assertIn(card.front, card_body)
         self.assertIn(card.back, card_body)
+=======
+>>>>>>> 4615f0f67dc53de97c5cc950a995eb9f16347106
