@@ -1,0 +1,2 @@
+Faker==17.0.0
+time-machine==2.9.0

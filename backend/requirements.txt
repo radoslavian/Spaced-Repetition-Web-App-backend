@@ -1,12 +1,9 @@
 django==4.1.5
 psycopg2-binary==2.9.5
 djangorestframework==3.14.0
-Faker==17.0.0
 django-treebeard==4.6.1
 attrs==22.2.0
-time-machine==2.9.0
 pillow==9.4.0
 djangorestframework-recursive==0.1.2
-django-rest-multiple-models==2.1.3
 djoser==2.2.0
 django_cors_headers==3.14.0
