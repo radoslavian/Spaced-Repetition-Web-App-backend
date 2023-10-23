@@ -1,89 +1,38 @@
 {% extends "_base.html" %}
 {% block styles %}
-.card-body .card-question-definition {
-    text-align: left;
-    padding-left: 5pt;
-    padding-right: 5pt;
-    font-weight: bold;
-    font-size: 13pt;
-}
-
-.card-body .question-example-seraparing-hr {
-    margin-left: 5%;
-    margin-right: 5%;
-    border: 0;
-    height: 1px;
-    background-image: linear-gradient(to right, #ccc, #333, #ccc);
-}
-
-.card-body .question-hidden-letter {
-    background: #fae396;
-}
-
-.card-body .question-hidden-letter:hover {
-    background: yellow;
-}
-
-.card-body .card-question-example {
-    text-align: left;
-    font-weight: normal;
-    font-size: 12pt;
-    line-height: 18pt;
-    margin-left: 15pt;
-    padding-right: 5pt;
-}
-
-.card-body .extracted-text {
-    background: #fcfc92;
-}
-
-.card-body .extracted-text:hover {
-    background: #eded5c;
-}
-
-.card-body .card-question, .card-body .card-answer {
-    padding: 5px;
-    background-color: #f7f7f7;
-}
-
-.card-body .card-answer {
-    margin-top: 10px;
-    padding: 10px;
-}
-
-.card-body .card-answer .answer {
-    text-align: left;
-    padding-left: 5px;
-    font-weight: bold;
-    font-size: 12pt;
-    padding-right: 5px;
-    line-height: 14pt
-}
-
-.card-body .phonetic-spelling:hover {
-    color: red;
-}
-
-.card-body div.answer-example-sentences > p {
-    padding-left: 15px;
-}
-
-.card-body div.answer-example-sentences span:hover {
-    background-color: #eded5c;
-  }
+{{ block.super }}
 
 {% if card.front_images|length > 0 %}
-    .card-question {
-      display: flex;
-    /* flex-wrap: wrap; */  /* folding boxes - if necessary */
+.card-body .card-question {
+    display: flex;
+}
+
+@media only screen and (max-width: 800pt) {
+    .card-body .card-question {
+        flex-wrap: wrap;
     }
+
+    .card-body #card-question-image {
+        margin-left: 15pt;
+    }
+}
+
   {% endif %}
 
   {% if card.back_images|length > 0 %}
-    .card-answer {
+    .card-body .card-answer {
       display: flex;
-      /* flex-wrap: wrap; */  /* folding boxes - if necessary */
-  }
+    }
+
+    @media only screen and (max-width: 800pt) {
+    .card-body .card-answer {
+        flex-wrap: wrap-reverse;
+    }
+
+    .card-body #card-answer-image {
+        margin-left: 15pt;
+    }
+}
   {% endif %}
 {% endblock styles %}
 
@@ -96,9 +45,7 @@
     </div>
   {% endif %}
   {% if card.front_images|length > 0 %}
-    <div id="card-question-image">
-      <img src="{{ request.build_absolute_url }}{{ card.front_images.0.image.url }}" />
-    </div>
+  {% include "_card_question_image.html" %}
   {% endif %}
 {% endblock question %}
 
@@ -111,7 +58,7 @@
 {% if card.back_images|length > 0 %}
   <div id="card-answer-text">
 {% endif %}
-{{ card.back | safe}}
+{{ card.back | safe }}
 {% if card.back_images|length > 0 %}
   </div>
 {% endif %}

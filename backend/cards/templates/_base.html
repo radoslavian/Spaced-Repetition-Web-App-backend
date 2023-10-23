@@ -1,17 +1,89 @@
 <!-- base template for cards -->
 <style type="text/css">
   {% block styles %}
+  .card-body .card-question-definition {
+      text-align: left;
+      padding-left: 5pt;
+      padding-right: 5pt;
+      font-weight: bold;
+      font-size: 13pt;
+  }
+
+  .card-body .question-example-seraparing-hr {
+      margin-left: 5%;
+      margin-right: 5%;
+      border: 0;
+      height: 1pt;
+      background-image: linear-gradient(to right, #ccc, #333, #ccc);
+  }
+
+  .card-body .question-hidden-letter {
+      background: #fae396;
+      margin: 1px;
+      border-radius: 3px;
+  }
+
+  .card-body .question-hidden-letter:hover,
+  .card-body .extracted-text:hover {
+      background: yellow;
+  }
+
+  .card-body .card-question-example {
+      text-align: left;
+      font-weight: normal;
+      font-size: 12pt;
+      line-height: 18pt;
+      margin-left: 15pt;
+      padding-right: 5pt;
+  }
+
+  .card-body .extracted-text {
+      background: #fae396;
+      padding: 3px;
+      border-radius: 3px;
+  }
+
+  .card-body .card-question, .card-body .card-answer {
+      padding: 5pt;
+      background-color: #f7f7f7;
+  }
+
+  .card-body .card-answer {
+      margin-top: 10pt;
+      padding: 10pt;
+  }
+
+  .card-body .card-answer .answer {
+      text-align: left;
+      padding-left: 5pt;
+      font-weight: bold;
+      font-size: 12pt;
+      padding-right: 5pt;
+      line-height: 14pt
+  }
+
+  .card-body .phonetic-spelling:hover {
+      color: red;
+  }
+
+  .card-body div.answer-example-sentences > p {
+      padding-left: 15pt;
+  }
+
+  .card-body div.answer-example-sentences span:hover {
+      background-color: #eded5c;
+  }
   {% endblock styles %} 
 </style>
 <div class="card-body">
   {% block content %}
-    <div class="card-question">
-      {% block question %}
-      {% endblock question %}
-    </div>
-    <div class="card-answer">
-      {% block answer %}
-      {% endblock answer %}
-    </div>
+  <div class="card-question">
+    {% block question %}
+    {% endblock question %}
+  </div>
+  <div class="card-answer">
+    {% block answer %}
+    {% endblock answer %}
+  </div>
   {% endblock content %}
 </div>
