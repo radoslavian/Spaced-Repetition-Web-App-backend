@@ -2180,7 +2180,7 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         self.assertEqual(categories_ids, selected_categories_id)
 
 
-class DistributionCharts(ApiTestFakeUsersCardsMixin, TestCase):
+class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
     """Test responses to requests sent to
     /api/users/{user_id}/cards/distribution
     """

@@ -358,6 +358,7 @@ class GeneralStatistics(APIView):
         total_cards = Card.objects.count()
         number_successful_reviews = CardUserData.objects.filter(
             user=request.user, grade__gt=2).count()
+
         if number_successful_reviews == 0:
             retention_score = None
         else:
@@ -387,3 +388,14 @@ class GeneralStatistics(APIView):
                 "review_date": furthest_scheduled_card.review_date
             }
         return furthest_scheduled_card_data
+
+        retention_score = round(number_successful_reviews /
+                                number_of_memorized * 100, 2)
+        response = {
+            "retention_score": retention_score,
+            "number_of_memorized": number_of_memorized,
+            "total_cards": total_cards
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
+
