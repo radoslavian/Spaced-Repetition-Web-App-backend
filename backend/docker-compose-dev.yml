@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/wsra
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    environment:
+     - DEBUG=1
+     - ENVIRONMENT=development
+     - SECRET_KEY=!iy21yv*5i&4g&8dz3$r6h0+uliryoisrus_!@3--573@&z&@y
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+   postgres_data:
+     driver: local
