@@ -2,8 +2,11 @@ version: '3.8'
 
 services:
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    # command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn --workers=2 -b 0.0.0.0:8000 wsra.wsgi
     volumes:
       - .:/wsra
     ports:
@@ -13,6 +16,10 @@ services:
     environment:
      - DEBUG=1
      - ENVIRONMENT=development
+     - DB_USER=user
+     - DB_PASSWORD=pass
+     - DB_HOST=db
+     - DB_NAME=postgres
      - SECRET_KEY=!iy21yv*5i&4g&8dz3$r6h0+uliryoisrus_!@3--573@&z&@y
   db:
     image: postgres:15

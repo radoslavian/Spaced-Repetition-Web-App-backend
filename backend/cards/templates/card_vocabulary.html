@@ -51,9 +51,7 @@
 
 {% block answer %}
   {% if card.back_images|length > 0 %}
-  <div id="card-answer-image">
-    <img src="{{ request.build_absolute_url }}{{ card.back_images.0.image.url }}" /> 
-  </div>
+  {% include "_card_answer_image.html" %}
 {% endif %}
 {% if card.back_images|length > 0 %}
   <div id="card-answer-text">

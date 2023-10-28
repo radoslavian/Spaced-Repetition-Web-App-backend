@@ -64,7 +64,7 @@ class CardUserData(models.Model):
     # once (e.g. during memorization)
     reviews = models.IntegerField(default=1)
     total_reviews = models.IntegerField(default=1)
-    last_reviewed = models.DateField(auto_now=True)
+    last_reviewed = models.DateField(default=today)
     introduced_on = models.DateTimeField(auto_now_add=True)
     review_date = models.DateField(default=today)
     grade = models.IntegerField(default=4)
@@ -213,6 +213,7 @@ class CardUserData(models.Model):
         self.easiness_factor = new_review.easiness
         self.computed_interval = new_review.interval
         self.reviews = new_review.repetitions
+        self.last_reviewed = datetime.datetime.now().date()
         self.save()
 
         # from the documentation:

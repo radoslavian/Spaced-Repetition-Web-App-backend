@@ -489,7 +489,7 @@ class CardCommentsTests(FakeUsersCards):
         self.assertEqual(card_user_data.comment, fake_comment)
 
 
-class CardReviewsTests(FakeUsersCards):
+class CardReviewsTests(FakeUsersCards, HelpersMixin):
     def test_no_user_foreign_keys_in_join_table(self):
         card, *_ = self.get_cards()
         self.assertRaises(django.db.utils.IntegrityError,
@@ -519,6 +519,38 @@ class CardReviewsTests(FakeUsersCards):
 
         self.assertRaises(django.db.utils.IntegrityError,
                           CardUserData(card=card, user=user).save)
+
+    def test_updating_review_data(self):
+        """Updating card’s comment field doesn’t affect other fields.
+        """
+        card = self.make_fake_cards(1)[0]
+        user, _ = self.get_users()
+        card_user_data = card.memorize(user)
+        card_user_data_dict = {
+            "reviews": card_user_data.reviews,
+            "total_reviews": card_user_data.total_reviews,
+            "introduced_on": card_user_data.introduced_on,
+            "review_date": card_user_data.review_date,
+            "last_reviewed": card_user_data.last_reviewed,
+            "grade": card_user_data.grade,
+            "easiness_factor": card_user_data.easiness_factor
+        }
+        with time_machine.travel(date.today() + timedelta(days=10)):
+            card_user_data.comment = "comment"
+            card_user_data.save()
+
+        card_user_data.refresh_from_db()
+        card_user_data_output = {
+            "reviews": card_user_data.reviews,
+            "total_reviews": card_user_data.total_reviews,
+            "introduced_on": card_user_data.introduced_on,
+            "review_date": card_user_data.review_date,
+            "last_reviewed": card_user_data.last_reviewed,
+            "grade": card_user_data.grade,
+            "easiness_factor": card_user_data.easiness_factor
+        }
+
+        self.assertDictEqual(card_user_data_dict, card_user_data_output)
 
     def test_backrefs(self):
         card, *_ = self.get_cards()

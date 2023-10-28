@@ -19,6 +19,7 @@ from django.conf import settings
 from django.urls import path, include, re_path
 
 urlpatterns = [
+    path("", include("react_app.urls")),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('api/auth/', include('djoser.urls')),

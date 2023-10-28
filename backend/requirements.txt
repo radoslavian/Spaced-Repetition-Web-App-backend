@@ -7,3 +7,5 @@ pillow==9.4.0
 djangorestframework-recursive==0.1.2
 djoser==2.2.0
 django_cors_headers==3.14.0
+whitenoise==6.6.0
+gunicorn==21.2.0
