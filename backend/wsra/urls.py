@@ -17,6 +17,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf import settings
 from django.urls import path, include, re_path
+from django.views.static import serve
 
 urlpatterns = [
     path("", include("react_app.urls")),
@@ -25,8 +26,16 @@ urlpatterns = [
     path('api/auth/', include('djoser.urls')),
     path('api/auth/', include('djoser.urls.authtoken')),
     path('api-auth/', include('rest_framework.urls')),
+
+    # hack for public testing purposes only
+    # for real life deployment - cloud storage
+    # or proxy server (installed as another service in Render,
+    # for example) should be used
+    re_path(r'^media/(?P<path>.*)$', serve,
+            {'document_root': settings.MEDIA_ROOT}),
 ]
 
+# works only in debug mode
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)

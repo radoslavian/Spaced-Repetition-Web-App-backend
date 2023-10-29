@@ -31,8 +31,6 @@ SECRET_KEY = os.environ['SECRET_KEY']
 DEBUG = [False, True][int(os.environ.get('DEBUG', 0))]
 
 # according to 'Django for Professionals':
-# ALLOWED_HOSTS = ['.herokuapp.com', 'localhost', '127.0.0.1']
-
 ALLOWED_HOSTS = ['localhost', '127.0.0.1',
                  'spaced-repetition-web-app.onrender.com']
 
@@ -79,7 +77,6 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
@@ -188,6 +185,12 @@ REST_FRAMEWORK = {
         'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+CSRF_TRUSTED_ORIGINS = ['https://spaced-repetition-web-app.onrender.com']
+
+# default for development: 'admin/'
+# default for production: raises error
+DJANGO_ADMIN_URL = ['admin/']
 
 if ENVIRONMENT == 'production':
     SECURE_BROWSER_XSS_FILTER = True
