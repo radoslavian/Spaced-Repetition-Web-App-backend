@@ -13,7 +13,7 @@ services:
     environment:
      - DEBUG=0
      - ENVIRONMENT=production
-     - SECRET_KEY=!iy21yv*5i&4g&8dz3$r6h0+uliryoisrus_!@3--573@&z&@y
+     - SECRET_KEY=&_r227m=h(#j-im=vg7_+21k1y*e%(y4k#*37oig%o#thk44fs
   db:
     image: postgres:15
     environment:
