@@ -2,18 +2,27 @@
 {% block styles %}
 {{ block.super }}
 
+.card-body {
+    container-type: inline-size;
+}
+
 {% if card.front_images|length > 0 %}
 .card-body .card-question {
     display: flex;
 }
 
-@media only screen and (max-width: 800pt) {
+@container (max-width: 500px) {
     .card-body .card-question {
         flex-wrap: wrap;
     }
 
     .card-body #card-question-image {
-        margin-left: 15pt;
+        margin-left: 15px;
+    }
+
+    .card-body #card-question-image > img {
+        max-width: 100%;
+        height: auto;
     }
 }
 
@@ -24,13 +33,18 @@
       display: flex;
     }
 
-    @media only screen and (max-width: 800pt) {
+    @container (max-width: 500px) {
     .card-body .card-answer {
         flex-wrap: wrap-reverse;
     }
 
     .card-body #card-answer-image {
-        margin-left: 15pt;
+        margin-left: 15px;
+    }
+
+    .card-body #card-answer-image > img {
+        max-width: 100%;
+        height: auto;
     }
 }
   {% endif %}
