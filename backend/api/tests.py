@@ -73,7 +73,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
         # client with no authenticated user:
         client = APIClient()
         response = client.get(reverse("list_cards"))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_of_cards_staff_response_code(self):
         """Test response code for client with authenticated user.
@@ -283,7 +283,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
                 "pk": card.id,
                 "user_id": self.user.id
             }))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_request_for_non_existing_memorized_card(self):
         """Test response to request for a non-existent card.
@@ -626,7 +626,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         detail = "Authentication credentials were not provided."
 
         self.assertFalse(response.has_header("Location"))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.json()["detail"], detail)
 
     def test_memorize_card_forbidden(self):
@@ -849,7 +849,7 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         control_response = self.client.get(
             reverse("memorized_cards", kwargs={"user_id": control_user.id}))
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(control_response.status_code,
                          status.HTTP_403_FORBIDDEN)
 
@@ -859,7 +859,7 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         response = client.get(reverse("queued_cards",
                                       kwargs={"user_id": self.user.id}))
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_of_queued_cards(self):
         NUMBER_OF_CARDS = 10
@@ -974,7 +974,7 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         client = APIClient()
         response = client.get(reverse("outstanding_cards",
                                       kwargs={"user_id": self.user.id}))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_outstanding_cards_another_user(self):
         """Attempt to access list of outstanding cards from another user.
@@ -2074,7 +2074,7 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         }
 
         self.assertDictEqual(expected_message, response.json())
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_retrieving_selected_user_categories_forbidden(self):
         """Attempt by unauthorized user to download other user's selected
@@ -2083,7 +2083,7 @@ class CategoryApi(ApiTestHelpersMixin, TestCase):
         self.select_category()
         client = APIClient()
         response = client.get(reverse_selected_categories(self.user.id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_retrieving_selected_user_categories_wrong_id(self):
         """Attempt to download selected user categories using another user's
