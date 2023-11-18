@@ -174,8 +174,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication'
-        if ENVIRONMENT == 'development' else
+        # for tests, SessionAuthentication should be turned on
+        # 'rest_framework.authentication.SessionAuthentication'
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
@@ -185,6 +185,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
+}
+
+DJOSER = {
+    'PERMISSIONS': {
+        'user_create': ['rest_framework.permissions.IsAdminUser'],
+    }
 }
 
 CSRF_TRUSTED_ORIGINS = ['https://spaced-repetition-web-app.onrender.com']
