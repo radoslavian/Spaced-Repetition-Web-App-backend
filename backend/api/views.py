@@ -105,18 +105,20 @@ class QueuedCard(RetrieveUpdateAPIView):
         try:
             review_data = card.memorize(user, grade=grade)
         except CardReviewDataExists:
+            status_code = status.HTTP_409_CONFLICT
             error_message = {
-                "status_code": 400,
+                "status_code": status_code,
                 "detail": f"Card with id {card.id} for user "
                           f"{user.username} id ({user.id}) "
                           f"is already memorized."
             }
             response = Response(error_message,
-                                status=status.HTTP_400_BAD_REQUEST)
+                                status=status_code)
         else:
+            status_code = status.HTTP_200_OK
             serialized_data = CardReviewDataSerializer(review_data).data
             response = Response(serialized_data,
-                                status=status.HTTP_200_OK)
+                                status=status_code)
             response["Location"] = review_data.get_absolute_url()
         return response
 

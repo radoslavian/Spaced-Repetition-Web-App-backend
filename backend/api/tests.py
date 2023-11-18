@@ -640,8 +640,9 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
                             "user_id": user.id}))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_memorize_card_400(self):
-        """Bad request from attempt to again memorize already memorized card.
+    def test_memorize_card_conflict(self):
+        """Conflict (409) response to the request when attempting
+        to memorize already memorized card.
         """
         card = self.make_fake_cards(1)[0]
         card.memorize(self.user)
@@ -652,8 +653,9 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
                  f"id ({self.user.id}) is already memorized."
 
         self.assertFalse(response.has_header("Location"))
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json()["status_code"], 400)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(response.json()["status_code"],
+                         status.HTTP_409_CONFLICT)
         self.assertEqual(response.json()["detail"], detail)
 
     def test_memorize_success(self):
