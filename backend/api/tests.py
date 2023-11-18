@@ -641,8 +641,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_memorize_card_conflict(self):
-        """Conflict (409) response to the request when attempting
-        to memorize already memorized card.
+        """Conflict (409) response when attempting re-memorized a card.
         """
         card = self.make_fake_cards(1)[0]
         card.memorize(self.user)
