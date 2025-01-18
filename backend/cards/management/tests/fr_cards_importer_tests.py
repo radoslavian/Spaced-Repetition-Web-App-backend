@@ -45,6 +45,16 @@ class CLIImportingMemorizedCardsTestCase(TestCase):
 
 
 class ConvertPhoneticsTestCase(TestCase):
+    def test_immutable_tokens(self):
+        """
+        The "tokens" property can not be mutated from outside the class object.
+        """
+        converter = PhoneticsConverter("Fake")
+        def this_fails():
+            converter.tokens = "abc"
+
+        self.assertRaises(AttributeError, this_fails)
+
     def test_single_char_token(self):
         lexeme = "a"
         expected_token_representation = "SINGLE_CHAR a"
@@ -66,7 +76,7 @@ class ConvertPhoneticsTestCase(TestCase):
         expected_representation = ["UNRECOGNIZED 璃"]
         converter = PhoneticsConverter(lexeme)
         received_token_representation = [
-            str(_token) for _token in converter.scan_tokens()]
+            str(_token) for _token in converter.tokens]
 
         self.assertEqual(expected_representation,
                          received_token_representation)
@@ -82,7 +92,7 @@ class ConvertPhoneticsTestCase(TestCase):
     def test_scan_singlechar_token(self):
         lexeme = "r"
         converter = PhoneticsConverter(lexeme)
-        tokens = [str(_token) for _token in converter.scan_tokens()]
+        tokens = [str(_token) for _token in converter.tokens]
         expected_tokens = [str(Token(lexeme))]
 
         self.assertEqual(tokens, expected_tokens)
@@ -90,7 +100,7 @@ class ConvertPhoneticsTestCase(TestCase):
     def test_scan_multichar_token(self):
         lexeme = "a2(r)"
         converter = PhoneticsConverter(lexeme)
-        tokens = [str(_token) for _token in converter.scan_tokens()]
+        tokens = [str(_token) for _token in converter.tokens]
         expected_tokens = [str(Token(lexeme))]
 
         self.assertEqual(tokens, expected_tokens)
@@ -106,8 +116,49 @@ class ConvertPhoneticsTestCase(TestCase):
         """
         lexeme = "ra2(r)r"
         converter = PhoneticsConverter(lexeme)
-        tokens = [str(token) for token in converter.scan_tokens()]
+        tokens = [str(token) for token in converter.tokens]
         expected_tokens = [str(Token(token))
                            for token in ["r", "a2(r)", "r"]]
 
         self.assertEqual(tokens, expected_tokens)
+
+    def test_phonetics_description(self):
+        """
+        Calling a Token object in a function-like manner returns target output
+        string, such as:
+        <span class=”phonetics” title=”a - description of a”>a</span>
+        """
+        description = "aʊə - our - as in sour"
+        phonetic_character = "aʊə"
+        lexeme = "a2(r)"
+        token = Token(lexeme, description=description,
+                      phonetic_character=phonetic_character)
+        expected_output = ('<span class="phonetics-entity" title="aʊə - our '
+                           '- as in sour">aʊə</span>')
+        received_output = token.html_output
+
+        self.assertEqual(expected_output, received_output)
+
+    def test_phonetics_for_unrecognized_character(self):
+        lexeme = "璃"
+        token = Token(lexeme, token_type="UNRECOGNIZED")
+        expected_output = ('<span class="phonetics-entity" title='
+                           f'"unrecognized phonetics">{lexeme}</span>')
+        received_output = token.html_output
+
+        self.assertEqual(expected_output, received_output)
+
+    def test_converting_phonetics(self):
+        # actually an acceptance test
+        input_phonetics = "A(e)t3I"
+        converter = PhoneticsConverter(input_phonetics)
+        expected_html_phonetics = ('<span class="phonetics-entity" title="a -'
+                                   ' as in trap">a</span><span class='
+                                   '"phonetics-entity" title="(ə) - as in '
+                                   'beaten">(ə)</span><span class="phonetics-'
+                                   'entity" title="tʃ - tch - as in chop,'
+                                   ' ditch">tʃ</span><span class="phonetics'
+                                   '-entity" title="ɪ - i - as in pit, hill or'
+                                   ' y - as in happy">ɪ</span>')
+        self.assertEqual(converter.converted_phonetics,
+                         expected_html_phonetics)
