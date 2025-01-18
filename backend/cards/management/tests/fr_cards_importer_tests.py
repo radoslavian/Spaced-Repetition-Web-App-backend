@@ -61,9 +61,9 @@ class ConvertPhoneticsTestCase(TestCase):
         self.assertEqual(expected_token_representation,
                          received_token_representation)
 
-    def test_token_for_invalid_lexeme(self):
+    def test_token_for_unrecognized_lexeme(self):
         lexeme = "璃"
-        expected_representation = [lexeme, "None"]
+        expected_representation = ["UNRECOGNIZED 璃"]
         converter = PhoneticsConverter(lexeme)
         received_token_representation = [
             str(_token) for _token in converter.scan_tokens()]
@@ -79,20 +79,11 @@ class ConvertPhoneticsTestCase(TestCase):
     #
     #     self.assertEqual(converted_phonetics, expected_phonetics)
 
-    def test_empty_string_token(self):
-        lexeme = ""
-        expected_token_representation = "None"
-        received_token_representation = str(Token(lexeme))
-
-        self.assertEqual(expected_token_representation,
-                         received_token_representation)
-
     def test_scan_singlechar_token(self):
         lexeme = "r"
         converter = PhoneticsConverter(lexeme)
         tokens = [str(_token) for _token in converter.scan_tokens()]
-        expected_tokens = [str(_token)
-                           for _token in [Token(lexeme), Token("")]]
+        expected_tokens = [str(Token(lexeme))]
 
         self.assertEqual(tokens, expected_tokens)
 
@@ -100,24 +91,23 @@ class ConvertPhoneticsTestCase(TestCase):
         lexeme = "a2(r)"
         converter = PhoneticsConverter(lexeme)
         tokens = [str(_token) for _token in converter.scan_tokens()]
-        expected_tokens = [str(_token)
-                           for _token in [Token(lexeme), Token("")]]
+        expected_tokens = [str(Token(lexeme))]
 
         self.assertEqual(tokens, expected_tokens)
 
-    def test_longest_available_lexem(self):
-        converter = PhoneticsConverter("fake_fonetics")
-        longest_lexem = 5
-        self.assertEqual(converter.longest_available_lexem, longest_lexem)
+    def test_longest_available_lexeme(self):
+        converter = PhoneticsConverter("fake_phonetics")
+        longest_lexeme = 5
+        self.assertEqual(converter.longest_lexeme, longest_lexeme)
 
-    def test_shortest_longest_lexem(self):
+    def test_shortest_longest_lexeme(self):
         """
-        Should recognize the longest lexem surrounded by single characters.
+        Should recognize the longest lexeme surrounded by single characters.
         """
-        lexem = "ra2(r)r"
-        converter = PhoneticsConverter(lexem)
+        lexeme = "ra2(r)r"
+        converter = PhoneticsConverter(lexeme)
         tokens = [str(token) for token in converter.scan_tokens()]
         expected_tokens = [str(Token(token))
-                           for token in ["r", "a2(r)", "r", ""]]
+                           for token in ["r", "a2(r)", "r"]]
 
         self.assertEqual(tokens, expected_tokens)
