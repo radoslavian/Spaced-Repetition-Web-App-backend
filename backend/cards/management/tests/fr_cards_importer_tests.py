@@ -142,8 +142,8 @@ class ConvertPhoneticsTestCase(TestCase):
     def test_phonetics_for_unrecognized_character(self):
         lexeme = "璃"
         token = Token(lexeme, token_type="UNRECOGNIZED")
-        expected_output = ('<span class="phonetics-entity" title='
-                           f'"unrecognized phonetics">{lexeme}</span>')
+        expected_output = ('<span class="phonetics-entity"'
+                           f' title="">{lexeme}</span>')
         received_output = token.html_output
 
         self.assertEqual(expected_output, received_output)
