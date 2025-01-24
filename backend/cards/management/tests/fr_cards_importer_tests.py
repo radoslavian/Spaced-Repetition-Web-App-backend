@@ -150,7 +150,7 @@ class ConvertPhoneticsTestCase(TestCase):
 
     def test_converting_phonetics(self):
         # actually an acceptance test
-        input_phonetics = "A(e)t3I"
+        input_phonetics = "A(e)t3Ia2(r)"
         converter = PhoneticsConverter(input_phonetics)
         expected_html_phonetics = ('<span class="phonetics-entity" title="a -'
                                    ' as in trap">a</span><span class='
@@ -159,6 +159,8 @@ class ConvertPhoneticsTestCase(TestCase):
                                    'entity" title="tʃ - tch - as in chop,'
                                    ' ditch">tʃ</span><span class="phonetics'
                                    '-entity" title="ɪ - i - as in pit, hill or'
-                                   ' y - as in happy">ɪ</span>')
+                                   ' y - as in happy">ɪ</span>'
+                                   '<span class="phonetics-entity" title="aʊə'
+                                   ' - our - as in sour">aʊə</span>')
         self.assertEqual(converter.converted_phonetics,
                          expected_html_phonetics)

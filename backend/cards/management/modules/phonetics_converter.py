@@ -10,8 +10,8 @@ def phonetics_description(phonetic_character, description=""):
 TECHLAND_PHONETICS = [
     ("a2(r)", phonetics_description("aʊə",
                                     "aʊə - our - as in sour")),
-    ("r", phonetics_description("r",
-                                "(r) - as in her")),
+    ("(r)", phonetics_description("(r)",
+                                  "(r) - as in her")),
     ("A", phonetics_description("a",
                                 "a - as in trap")),
     ("(e)", phonetics_description("(ə)",
@@ -273,7 +273,7 @@ class PhoneticsConverter:
         self._longest_available_lexeme = self.longest_lexeme
         self._scan_tokens()
 
-    tokens = property(lambda self: self._tokens)
+    tokens = property(lambda self: tuple(self._tokens))
 
     longest_lexeme = property(
         lambda self: max([len(key) for key in self._available_tokens.keys()]))
@@ -297,7 +297,7 @@ class PhoneticsConverter:
     def _scan_tokens(self):
         while not self.is_at_end():
             self._start = self._current
-            for length in range(self._longest_available_lexeme + 1, 0, -1):
+            for length in range(self._longest_available_lexeme, 0, -1):
                 try:
                     self._scan_token(length)
                     self._current += length
