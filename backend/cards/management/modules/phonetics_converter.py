@@ -268,10 +268,9 @@ class PhoneticsConverter:
     def __init__(self, phonetics):
         self._phonetics = phonetics
         self._tokens = []
-        self._start = 0
         self._current = 0
         self._longest_available_lexeme = self.longest_lexeme
-        self._scan_tokens()
+        self._scan_phonetics()
 
     tokens = property(lambda self: tuple(self._tokens))
 
@@ -282,8 +281,8 @@ class PhoneticsConverter:
         lambda self: "".join(token.html_output for token in self.tokens))
 
     def _scan_token(self, length):
-        end = self._start + length
-        current_char = self._phonetics[self._start:end]
+        end = self._current + length
+        current_char = self._phonetics[self._current:end]
         self._add_token(current_char)
 
     def _add_token(self, lexeme):
@@ -294,16 +293,18 @@ class PhoneticsConverter:
             token = self._available_tokens[lexeme]
         self._tokens.append(token)
 
-    def _scan_tokens(self):
+    def _scan_phonetics(self):
         while not self.is_at_end():
-            self._start = self._current
-            for length in range(self._longest_available_lexeme, 0, -1):
-                try:
-                    self._scan_token(length)
-                    self._current += length
-                    break
-                except KeyError:
-                    pass
+            self._scan_tokens()
+
+    def _scan_tokens(self):
+        for length in range(self._longest_available_lexeme, 0, -1):
+            try:
+                self._scan_token(length)
+                self._current += length
+                break
+            except KeyError:
+                pass
 
     def is_at_end(self):
         return self._current >= len(self._phonetics)
