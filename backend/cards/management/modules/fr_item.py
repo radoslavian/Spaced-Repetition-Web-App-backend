@@ -1,4 +1,4 @@
-from cards.management.modules.fr_item_side import ItemQuestion, ItemAnswer
+from cards.management.modules.fr_card_side import Question, Answer
 
 
 class Item:
@@ -15,10 +15,10 @@ class Item:
     def _extract_answer(self):
         pass
 
-    def _get_question(self) -> ItemQuestion:
+    def _get_question(self) -> Question:
         pass
 
-    def _get_answer(self) -> ItemAnswer:
+    def _get_answer(self) -> Answer:
         pass
 
     question = property(_get_question)

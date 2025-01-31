@@ -7,8 +7,11 @@ as method/field signatures implemented in concrete classes.
 import os
 from xml.etree import ElementTree as ET
 
+from bs4 import BeautifulSoup
+from django.utils.html import strip_tags
 
-class ItemSide:
+
+class CardSide:
     """
     Abstract class for Item's question/answer (fields common
     for both inheriting classes).
@@ -48,23 +51,43 @@ class ItemSide:
     output_text = property(_get_output_text)
 
 
-class ItemQuestion(ItemSide):
+class Question(CardSide):
     def __init__(self, question):
         """
         question - contents of <item><q></q></item> (without <q></q> tags).
         """
         super().__init__(question)
 
+    @staticmethod
+    def _remove_media_tags(text:str) -> str:
+        media_tags = ["img", "snd"]
+
+        # surrounding text with whatever top-level markup is necessary !
+        # otherwise get_text will return no text at all !!!
+        soup = BeautifulSoup(f"<root>{text}</root>", "lxml-xml")
+
+        for media_tag in media_tags:
+            for tag in soup.find_all(media_tag):
+                tag.decompose()
+
+        return soup.get_text("<br/>")
+
+
     def _get_definition(self) -> str:
-        pass
+        full_definition = self.side_contents.split("\n")[0]
+        definition = self._remove_media_tags(full_definition)
+        return definition
 
     def _get_example(self) -> str:
-        pass
+        # how is that it works?
+        full_example = "<br/>".join(self.side_contents.split("\n")[1:])
+        example = self._remove_media_tags(full_example)
+        return example
 
     definition = property(_get_definition)
     example = property(_get_example)
 
-class ItemAnswer(ItemSide):
+class Answer(CardSide):
     def __init__(self, answer):
         """
         answer - content of <item><a></a></item> tags.
