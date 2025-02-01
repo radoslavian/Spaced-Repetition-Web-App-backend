@@ -93,7 +93,33 @@ class Question(CardSide):
         example = "<br/>".join(contents_no_tags.split("\n")[1:])
         return example
 
+    @staticmethod
+    def _highlight_text_in_brackets(text: str) -> str:
+        def replace_text_in_brackets(matched_text):
+            return ('<span class="highlighted-text">'
+                    f'{matched_text.group(0)}'
+                    '</span>')
+
+        pattern = "\[[\w\s]+\]"
+        return re.sub(pattern, replace_text_in_brackets, text)
+
+
+    @staticmethod
+    def _format_placeholder(text: str) -> str:
+        """
+        Adds html formatting to the '[...]' placeholder.
+        """
+        formatted_placeholder = ('<span class="extracted-text" '
+                                 'title="guess the missing part">'
+                                 '[&hellip;]</span>')
+        return re.sub("\[...\]|\[…\]", formatted_placeholder, text)
+
     def _get_output_text(self) -> str:
+        merged_question = self._merge_question()
+        output = self._format_placeholder(merged_question)
+        return self._highlight_text_in_brackets(output)
+
+    def _merge_question(self):
         definition = ('<div class="card-question-definition">'
                       f'<p>{self.definition}</p>'
                       '</div>')
@@ -102,8 +128,8 @@ class Question(CardSide):
         example = ('<div class="card-question-example">'
                    f'<p>{self.example}</p>'
                    '</div>') if self.example else None
-
-        return "".join(filter(None, [definition, hr, example]))
+        merged_question = "".join(filter(None, [definition, hr, example]))
+        return merged_question
 
     definition = property(_get_definition)
     example = property(_get_example)

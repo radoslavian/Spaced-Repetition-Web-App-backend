@@ -260,14 +260,6 @@ class QuestionDefinitionExampleTestCase(TestCase):
         item_question = Question(self.question_example)
         self.assertEqual(item_question.example, self.example_transformed)
 
-    def test_extracted_text(self):
-        """
-        [...] in example should be changed into:
-        <span class="extracted-text" title="guess the missing part>
-        [&hellip;]</span>
-        """
-        pass
-
 
 class QuestionAllowedTags(TestCase):
     """
@@ -308,7 +300,8 @@ class QuestionOutputText(TestCase):
                           "happening;")
         cls.definition_malformed_tags = f"<b><i>{cls.definition}</i></b>"
         cls.example = (
-            "[...] [...] were kept away by high-security surveillance systems"
+            "were kept away by "
+            "high-security surveillance systems"
             " and three guard dogs, while the pungent smell of the marijuana "
             "plants was covered up by keeping pigs and chickens on site.")
         cls.question_unparsed = (
@@ -363,3 +356,31 @@ class QuestionOutputText(TestCase):
         self.assertNotIn(hr, question.output_text)
         self.assertNotIn(formatted_example_tags, question.output_text)
 
+
+class TextPlaceholders(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.definition = ("definition of some [...] and "
+                          "[unusual and tasty] word")
+        cls.placeholder = ('<span class="extracted-text" title="guess the '
+                           'missing part">[&hellip;]</span>')
+        cls.question = Question(cls.definition)
+
+    def test_text_placeholder(self):
+        """
+        [...] in an example should be changed into:
+        <span class="extracted-text" title="guess the missing part>
+        [&hellip;]</span>
+        """
+        text_with_placeholder = f"definition of some {self.placeholder} and"
+        self.assertIn(text_with_placeholder, self.question.output_text)
+
+    def test_highlighted_text(self):
+        """
+        some text [other text] another text - text within [...] should
+        be put into span:
+        <span class="highlighted-text">[other text]</span>
+        """
+        text_with_highlighted_words = ('and <span class="highlighted-text">'
+                                      '[unusual and tasty]</span> word')
+        self.assertIn(text_with_highlighted_words, self.question.output_text)
