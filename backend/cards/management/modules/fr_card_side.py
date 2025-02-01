@@ -71,7 +71,7 @@ class CardSide:
     sound_file_name = property(lambda self: self._get_filename(
         self.sound_file_path))
 
-    # FIXME: otherwise doesn't work with inheriting classes
+    # otherwise doesn't work with inheriting classes
     output_text = property(lambda self: self._get_output_text())
 
 
