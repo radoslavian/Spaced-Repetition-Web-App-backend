@@ -7,7 +7,7 @@ as method/field signatures implemented in concrete classes.
 import os
 from xml.etree import ElementTree as ET
 
-from bs4 import BeautifulSoup
+import re
 from django.utils.html import strip_tags
 
 
@@ -60,29 +60,20 @@ class Question(CardSide):
 
     @staticmethod
     def _remove_media_tags(text:str) -> str:
-        media_tags = ["img", "snd"]
-
-        # surrounding text with whatever top-level markup is necessary !
-        # otherwise get_text will return no text at all !!!
-        soup = BeautifulSoup(f"<root>{text}</root>", "lxml-xml")
-
-        for media_tag in media_tags:
-            for tag in soup.find_all(media_tag):
-                tag.decompose()
-
-        return soup.get_text("<br/>")
-
+        pattern = "<img>|<snd>"
+        text = re.split(pattern, text)
+        return text[0]
 
     def _get_definition(self) -> str:
         full_definition = self.side_contents.split("\n")[0]
         definition = self._remove_media_tags(full_definition)
-        return definition
+        return strip_tags(definition)
 
     def _get_example(self) -> str:
-        # how is that it works?
-        full_example = "<br/>".join(self.side_contents.split("\n")[1:])
-        example = self._remove_media_tags(full_example)
-        return example
+        side_contents = self.side_contents
+        contents_no_tags = strip_tags(self._remove_media_tags(side_contents))
+        all_examples = "<br/>".join(contents_no_tags.split("\n")[1:])
+        return all_examples
 
     definition = property(_get_definition)
     example = property(_get_example)
