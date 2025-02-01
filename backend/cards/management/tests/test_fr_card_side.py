@@ -1,3 +1,5 @@
+import re
+
 from django.test import TestCase
 
 from cards.management.modules.fr_card_side import Question, Answer
@@ -231,7 +233,7 @@ class QuestionDefinitionExampleTestCase(TestCase):
         cls.basic_question = "basic question"
         cls.definition = "Definition for word in example"
         cls.example = "Example line 1 [...]\nLine 2"
-        cls.example_transformed = "Example line 1 [...]<br/>Line 2"
+        cls.example_transformed = "<i>Example line 1 [...]<br/>Line 2</i>"
         cls.question_example = (
             f"<b>{cls.definition}</b>\n"
             f"<i>{cls.example}</i>")
@@ -258,27 +260,106 @@ class QuestionDefinitionExampleTestCase(TestCase):
         item_question = Question(self.question_example)
         self.assertEqual(item_question.example, self.example_transformed)
 
+    def test_extracted_text(self):
+        """
+        [...] in example should be changed into:
+        <span class="extracted-text" title="guess the missing part>
+        [&hellip;]</span>
+        """
+        pass
 
-class QuestionStrikeTag(TestCase):
+
+class QuestionAllowedTags(TestCase):
     """
     All formatting tags in the Question side should be removed except <strike>.
     """
+
     @classmethod
     def setUpTestData(cls):
-        question = ("definition: <i><strike>definition</strike></i>\n"
-                    "example: <b><strike>example</strike></b>")
+        question = ("definition: <i><b><strike>definition</strike></b></i>\n"
+                    "example: <b><strike><i>example</i></strike></b>")
         cls.card_question = Question(question)
 
-    def test_strike_in_definition(self):
+    def test_allowed_tags_in_definition(self):
         """
-        Should keep <strike> tag in definition.
+        Should keep <strike> and <i> tags in definition.
         """
-        expected_output = "definition: <strike>definition</strike>"
+        expected_output = "definition: <i><strike>definition</strike></i>"
         self.assertEqual(self.card_question.definition, expected_output)
 
-    def test_strike_in_example(self):
+    def test_allowed_tags_in_example(self):
         """
-        Should keep <strike> tag in example.
+        Should keep <strike> and <i> tags in example.
         """
-        expected_output = "example: <strike>example</strike>"
+        expected_output = "example: <strike><i>example</i></strike>"
         self.assertEqual(self.card_question.example, expected_output)
+
+
+class QuestionOutputText(TestCase):
+    """
+    Tests Question's output - Question._get_output_text() and it's accessor -
+    Question.output_text.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.definition = ("people who are curious about and "
+                          "interested in seeing what might be "
+                          "happening;")
+        cls.definition_malformed_tags = f"<b><i>{cls.definition}</i></b>"
+        cls.example = (
+            "[...] [...] were kept away by high-security surveillance systems"
+            " and three guard dogs, while the pungent smell of the marijuana "
+            "plants was covered up by keeping pigs and chickens on site.")
+        cls.question_unparsed = (
+            f"{cls.definition_malformed_tags}\n"
+            f"{cls.example}"
+            "<img>../obrazy/prying-eye-B.jpg</img><snd>snds/"
+            "english_examples_0289.mp3</snd>")
+
+        cls.hr_for_re = '<hr class="question-example-separating-hr"\/>'
+        cls.question = Question(cls.question_unparsed)
+
+    def test_card_definition(self):
+        """
+        Output should contain div class=”card-question-definition” field
+        with definition.
+        """
+        formatted_definition = ('<div class="card-question-definition"><p>'
+                                f'<i>{self.definition}</i>'
+                                '</p></div>')
+        self.assertIn(formatted_definition, self.question.output_text)
+
+    def test_separating_hr(self):
+        """
+        There should be a hr line between question and answer.
+        """
+        pattern = re.compile(".*card-question-definition.*"
+                             f"{self.hr_for_re}.*"
+                             "</p></div>")
+        self.assertTrue(re.match(pattern, self.question.output_text))
+
+    def test_card_example(self):
+        """
+        Output should contain div class=”card-question-example” field
+        with example.
+        """
+        formatted_example = ('<div class="card-question-example"><p>'
+                             f'{self.example}'
+                             f'</p></div>')
+        self.assertIn(formatted_example, self.question.output_text)
+
+    def test_no_example(self):
+        """
+        There should be no:
+        * Formatting tags for question's example sentence
+        if the field for it is empty.
+        * hr if there is no example.
+        """
+        question = Question(self.definition)
+        formatted_example_tags = '<div class="card-question-example">'
+        hr = '<hr class="question-example-separating-hr"/>'
+
+        self.assertNotIn(hr, question.output_text)
+        self.assertNotIn(formatted_example_tags, question.output_text)
+

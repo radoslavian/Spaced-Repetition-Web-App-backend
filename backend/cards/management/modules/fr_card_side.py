@@ -5,6 +5,7 @@ as method/field signatures implemented in concrete classes.
 """
 
 import os
+from abc import abstractmethod, ABC, ABCMeta
 from xml.etree import ElementTree as ET
 
 import re
@@ -17,6 +18,7 @@ class CardSide:
     Abstract class for Item's question/answer (fields common
     for both inheriting classes).
     """
+
     def __init__(self, side_contents):
         self.side_contents = side_contents
 
@@ -27,7 +29,7 @@ class CardSide:
         # original author: glhr
         soup = BeautifulSoup(text, "html.parser")
         for e in soup.find_all():
-            if e.name not in ["strike"]:
+            if e.name not in ["strike", "i"]:
                 e.unwrap()
         return str(soup)
 
@@ -68,7 +70,9 @@ class CardSide:
         self.image_file_path))
     sound_file_name = property(lambda self: self._get_filename(
         self.sound_file_path))
-    output_text = property(_get_output_text)
+
+    # FIXME: otherwise doesn't work with inheriting classes
+    output_text = property(lambda self: self._get_output_text())
 
 
 class Question(CardSide):
@@ -90,8 +94,21 @@ class Question(CardSide):
         example = "<br/>".join(contents_no_tags.split("\n")[1:])
         return example
 
+    def _get_output_text(self) -> str:
+        definition = ('<div class="card-question-definition">'
+                      f'<p>{self.definition}</p>'
+                      '</div>')
+        hr = ('<hr class="question-example-separating-hr"/>'
+              if self.example else None)
+        example = ('<div class="card-question-example">'
+                   f'<p>{self.example}</p>'
+                   '</div>') if self.example else None
+
+        return "".join(filter(None, [definition, hr, example]))
+
     definition = property(_get_definition)
     example = property(_get_example)
+
 
 class Answer(CardSide):
     def __init__(self, answer):
