@@ -52,8 +52,8 @@ class CardSide:
         # media tags in elements.xml are always appended
         # to the end of the field
         pattern = "<img>|<snd>"
-        text = re.split(pattern, text)
-        return text[0]
+        output = re.split(pattern, text)
+        return output[0]
 
     def _get_output_text(self) -> str:
         """
