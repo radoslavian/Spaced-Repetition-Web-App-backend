@@ -5,7 +5,6 @@ as method/field signatures implemented in concrete classes.
 """
 
 import os
-from abc import abstractmethod, ABC, ABCMeta
 from xml.etree import ElementTree as ET
 
 import re
