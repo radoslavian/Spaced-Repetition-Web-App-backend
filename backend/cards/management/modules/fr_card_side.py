@@ -35,6 +35,14 @@ class CardSide:
         if file_path is not None:
             return os.path.basename(file_path)
 
+    @staticmethod
+    def _strip_media_tags(text: str) -> str:
+        # media tags in elements.xml are always appended
+        # to the end of the field
+        pattern = "<img>|<snd>"
+        text = re.split(pattern, text)
+        return text[0]
+
     def _get_output_text(self) -> str:
         """
         Output in html or other format - depending on implementation in
@@ -58,22 +66,16 @@ class Question(CardSide):
         """
         super().__init__(question)
 
-    @staticmethod
-    def _remove_media_tags(text:str) -> str:
-        pattern = "<img>|<snd>"
-        text = re.split(pattern, text)
-        return text[0]
-
     def _get_definition(self) -> str:
-        full_definition = self.side_contents.split("\n")[0]
-        definition = self._remove_media_tags(full_definition)
+        first_line = self.side_contents.split("\n")[0]
+        definition = self._strip_media_tags(first_line)
         return strip_tags(definition)
 
     def _get_example(self) -> str:
         side_contents = self.side_contents
-        contents_no_tags = strip_tags(self._remove_media_tags(side_contents))
-        all_examples = "<br/>".join(contents_no_tags.split("\n")[1:])
-        return all_examples
+        contents_no_tags = strip_tags(self._strip_media_tags(side_contents))
+        example = "<br/>".join(contents_no_tags.split("\n")[1:])
+        return example
 
     definition = property(_get_definition)
     example = property(_get_example)

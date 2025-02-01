@@ -230,7 +230,8 @@ class QuestionDefinitionExampleTestCase(TestCase):
     def setUpTestData(cls):
         cls.basic_question = "basic question"
         cls.definition = "Definition for word in example"
-        cls.example = "Example line 1 [...]"
+        cls.example = "Example line 1 [...]\nLine 2"
+        cls.example_transformed = "Example line 1 [...]<br/>Line 2"
         cls.question_example = (
             f"<b>{cls.definition}</b>\n"
             f"<i>{cls.example}</i>")
@@ -255,4 +256,4 @@ class QuestionDefinitionExampleTestCase(TestCase):
         Extracts example from a card with a definition and example.
         """
         item_question = Question(self.question_example)
-        self.assertEqual(item_question.example, self.example)
+        self.assertEqual(item_question.example, self.example_transformed)
