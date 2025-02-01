@@ -8,7 +8,8 @@ import os
 from xml.etree import ElementTree as ET
 
 import re
-from django.utils.html import strip_tags
+
+from bs4 import BeautifulSoup
 
 
 class CardSide:
@@ -18,6 +19,17 @@ class CardSide:
     """
     def __init__(self, side_contents):
         self.side_contents = side_contents
+
+    @staticmethod
+    def strip_tags_except_specific(text: str) -> str:
+        # from: https://stackoverflow.com/questions/56001921/
+        # removing-tags-from-html-except-specific-ones-but-keep-their-contents
+        # original author: glhr
+        soup = BeautifulSoup(text, "html.parser")
+        for e in soup.find_all():
+            if e.name not in ["strike"]:
+                e.unwrap()
+        return str(soup)
 
     def _get_tag_contents(self, tag) -> str | None:
         """
@@ -69,11 +81,12 @@ class Question(CardSide):
     def _get_definition(self) -> str:
         first_line = self.side_contents.split("\n")[0]
         definition = self._strip_media_tags(first_line)
-        return strip_tags(definition)
+        return self.strip_tags_except_specific(definition)
 
     def _get_example(self) -> str:
         side_contents = self.side_contents
-        contents_no_tags = strip_tags(self._strip_media_tags(side_contents))
+        contents_no_tags = self.strip_tags_except_specific(
+            self._strip_media_tags(side_contents))
         example = "<br/>".join(contents_no_tags.split("\n")[1:])
         return example
 

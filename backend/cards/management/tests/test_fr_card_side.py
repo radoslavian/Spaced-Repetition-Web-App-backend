@@ -257,3 +257,28 @@ class QuestionDefinitionExampleTestCase(TestCase):
         """
         item_question = Question(self.question_example)
         self.assertEqual(item_question.example, self.example_transformed)
+
+
+class QuestionStrikeTag(TestCase):
+    """
+    All formatting tags in the Question side should be removed except <strike>.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        question = ("definition: <i><strike>definition</strike></i>\n"
+                    "example: <b><strike>example</strike></b>")
+        cls.card_question = Question(question)
+
+    def test_strike_in_definition(self):
+        """
+        Should keep <strike> tag in definition.
+        """
+        expected_output = "definition: <strike>definition</strike>"
+        self.assertEqual(self.card_question.definition, expected_output)
+
+    def test_strike_in_example(self):
+        """
+        Should keep <strike> tag in example.
+        """
+        expected_output = "example: <strike>example</strike>"
+        self.assertEqual(self.card_question.example, expected_output)
