@@ -124,11 +124,11 @@ class Question(CardSide):
         return re.sub("\[...\]|\[…\]", formatted_placeholder, text)
 
     def _get_output_text(self) -> str:
-        merged_question = self._merge_question()
+        merged_question = self._merge_question_components()
         output = self._format_placeholder(merged_question)
         return self._highlight_text_in_brackets(output)
 
-    def _merge_question(self):
+    def _merge_question_components(self):
         definition = ('<div class="card-question-definition">'
                       f'<p>{self.definition}</p>'
                       '</div>')
@@ -161,6 +161,9 @@ class Answer(CardSide):
         pass
 
     def _get_example_sentences(self) -> str:
+        pass
+
+    def _get_output_text(self) -> str:
         pass
 
     answer = property(_get_answer, doc="Answer is usually located in"
