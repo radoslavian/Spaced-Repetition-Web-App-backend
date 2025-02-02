@@ -1,4 +1,5 @@
-from cards.management.modules.fr_card_side import Question, Answer
+from cards.management.modules.fr_card_side import Answer
+from cards.management.modules.question_side import Question
 
 
 class Item:
