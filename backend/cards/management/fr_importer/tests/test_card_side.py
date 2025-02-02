@@ -1,3 +1,6 @@
+"""
+Tests for CardSide (itself tested through inheriting classes).
+"""
 from django.test import TestCase
 
 from cards.management.fr_importer.modules.card_side import Answer
