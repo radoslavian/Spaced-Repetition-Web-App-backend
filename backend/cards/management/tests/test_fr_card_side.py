@@ -261,6 +261,36 @@ class QuestionDefinitionExampleTestCase(TestCase):
         self.assertEqual(item_question.example, self.example_transformed)
 
 
+class RedundantWhiteCharactersQuestion(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.multiple_spaces = "some   text"
+        cls.multiple_newlines = "some\n\n\n\n\n\ntext"
+
+    def test_merging_newlines_example(self):
+        card_side = f"some definition\n{self.multiple_newlines}"
+        question = Question(card_side)
+        expected_number_of_newlines = 1
+        newline = "<br/>"
+        self.assertEqual(expected_number_of_newlines,
+                         question.example.count(newline))
+
+    def test_merging_spaces_definition(self):
+        question = Question(self.multiple_spaces)
+        space = " "
+        expected_number_of_spaces = 1
+        self.assertEqual(expected_number_of_spaces,
+                         question.definition.count(space))
+
+    def test_merging_spaces_example(self):
+        card_side = f"some word definition\n{self.multiple_spaces}"
+        question = Question(card_side)
+        space = " "
+        expected_number_of_spaces = 1
+        self.assertEqual(expected_number_of_spaces,
+                         question.example.count(space))
+
+
 class QuestionAllowedTags(TestCase):
     """
     All formatting tags in the Question side should be removed except <strike>.
@@ -357,7 +387,7 @@ class QuestionOutputText(TestCase):
         self.assertNotIn(formatted_example_tags, question.output_text)
 
 
-class TextPlaceholders(TestCase):
+class QuestionTextPlaceholders(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.definition = ("definition of some [...] and "
@@ -384,3 +414,4 @@ class TextPlaceholders(TestCase):
         text_with_highlighted_words = ('and <span class="highlighted-text">'
                                       '[unusual and tasty]</span> word')
         self.assertIn(text_with_highlighted_words, self.question.output_text)
+

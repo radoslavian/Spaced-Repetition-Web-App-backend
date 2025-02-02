@@ -84,14 +84,23 @@ class Question(CardSide):
     def _get_definition(self) -> str:
         first_line = self.side_contents.split("\n")[0]
         definition = self._strip_media_tags(first_line)
-        return self.strip_tags_except_specific(definition)
+        filtered_tags = self.strip_tags_except_specific(definition)
+        merged_spaces = self._merge_characters(" ", filtered_tags)
+        return merged_spaces
 
     def _get_example(self) -> str:
-        side_contents = self.side_contents
         contents_no_tags = self.strip_tags_except_specific(
-            self._strip_media_tags(side_contents))
-        example = "<br/>".join(contents_no_tags.split("\n")[1:])
-        return example
+            self._strip_media_tags(self.side_contents))
+        # split and filter empty lines
+        split_examples = filter(None, contents_no_tags.split("\n")[1:])
+        examples = "<br/>".join(split_examples)
+        merged_spaces = self._merge_characters(" ", examples)
+        return merged_spaces
+
+    @staticmethod
+    def _merge_characters(character: str, text: str) -> str:
+        pattern = f"{character}" + "{2,}"
+        return re.sub(pattern, lambda matched_text: character, text)
 
     @staticmethod
     def _highlight_text_in_brackets(text: str) -> str:
