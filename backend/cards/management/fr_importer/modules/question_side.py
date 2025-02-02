@@ -14,19 +14,20 @@ class Question(CardSide):
     def _get_definition(self) -> str:
         get_output = compose(
             lambda acc: self._merge_characters(" ", acc),
-            lambda acc: self.strip_tags_except_specific(acc),
-            lambda acc: self._strip_media_tags(acc)
+            self.strip_tags_except_specific,
+            self._strip_media_tags
         )
         return get_output(self.side_contents.split("\n")[0])
 
     def _get_example(self) -> str:
-        contents_no_tags = self.strip_tags_except_specific(
-            self._strip_media_tags(self.side_contents))
-        # split and filter empty lines
-        split_examples = filter(None, contents_no_tags.split("\n")[1:])
-        examples = "<br/>".join(split_examples)
-        merged_spaces = self._merge_characters(" ", examples)
-        return merged_spaces
+        get_example = compose(
+            lambda acc: self._merge_characters(" ", acc),
+            "<br/>".join,
+            lambda acc: filter(None, acc.split("\n")[1:]),
+            self.strip_tags_except_specific,
+            self._strip_media_tags,
+        )
+        return get_example(self.side_contents)
 
     @staticmethod
     def _merge_characters(character: str, text: str) -> str:
