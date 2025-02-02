@@ -1,6 +1,7 @@
 import re
 
 from cards.management.fr_importer.modules.card_side import CardSide
+from cards.utils.helpers import compose
 
 
 class Question(CardSide):
@@ -11,11 +12,12 @@ class Question(CardSide):
         super().__init__(question)
 
     def _get_definition(self) -> str:
-        first_line = self.side_contents.split("\n")[0]
-        definition = self._strip_media_tags(first_line)
-        filtered_tags = self.strip_tags_except_specific(definition)
-        merged_spaces = self._merge_characters(" ", filtered_tags)
-        return merged_spaces
+        get_output = compose(
+            lambda acc: self._merge_characters(" ", acc),
+            lambda acc: self.strip_tags_except_specific(acc),
+            lambda acc: self._strip_media_tags(acc)
+        )
+        return get_output(self.side_contents.split("\n")[0])
 
     def _get_example(self) -> str:
         contents_no_tags = self.strip_tags_except_specific(
@@ -40,7 +42,6 @@ class Question(CardSide):
 
         pattern = "\[[\w\s]+\]"
         return re.sub(pattern, replace_text_in_brackets, text)
-
 
     @staticmethod
     def _format_placeholder(text: str) -> str:
