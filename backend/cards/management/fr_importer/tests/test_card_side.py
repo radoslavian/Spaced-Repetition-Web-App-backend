@@ -1,7 +1,7 @@
 """
 Tests for CardSide (itself tested through inheriting classes).
 """
-from django.test import TestCase
+from unittest import TestCase
 
 from cards.management.fr_importer.modules.card_side import Answer
 from cards.management.fr_importer.modules.question_side import Question
@@ -13,7 +13,7 @@ class SoundExtractionTestCase(TestCase):
     """
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         cls.question_sound_file_rel_path = \
             "snds/Make_sentences_about_Ann_when_she_was_six.mp3"
         cls.question = ("<b>Definition</b>\n"
@@ -88,7 +88,7 @@ class ImageExtractionTestCase(TestCase):
     """
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         cls.question = (
             "<b>Consuming or eager to consume great amounts of food;"
             " ravenous.</b>\nHe was fond of inviting them to tea; and, "

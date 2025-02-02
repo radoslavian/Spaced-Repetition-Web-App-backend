@@ -1,4 +1,4 @@
-from django.test import TestCase
+from unittest import TestCase
 
 from cards.management.fr_importer.modules.phonetics_converter import PhoneticsConverter, \
     Token

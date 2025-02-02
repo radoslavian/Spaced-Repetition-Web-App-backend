@@ -1,13 +1,13 @@
 import re
 
-from django.test import TestCase
+from unittest import TestCase
 
 from cards.management.fr_importer.modules.question_side import Question
 
 
 class QuestionSplitMediaTags(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         cls.definition = "Some definition text"
         cls.example = "Example line 1"
         cls.question_only = (
@@ -74,7 +74,7 @@ class QuestionDefinitionExampleTestCase(TestCase):
     """
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         cls.basic_question = "basic question"
         cls.definition = "Definition for word in example"
         cls.example = "Example line 1 [...]\nLine 2"
@@ -108,7 +108,7 @@ class QuestionDefinitionExampleTestCase(TestCase):
 
 class RedundantWhiteCharactersQuestion(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         cls.multiple_spaces = "some   text"
         cls.multiple_newlines = "some\n\n\n\n\n\ntext"
 
@@ -142,7 +142,7 @@ class QuestionAllowedTags(TestCase):
     """
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         question = ("definition: <i><b><strike>definition</strike></b></i>\n"
                     "example: <b><strike><i>example</i></strike></b>")
         cls.card_question = Question(question)
@@ -169,7 +169,7 @@ class QuestionOutputText(TestCase):
     """
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         cls.definition = ("people who are curious about and "
                           "interested in seeing what might be "
                           "happening;")
@@ -234,7 +234,7 @@ class QuestionOutputText(TestCase):
 
 class QuestionTextPlaceholders(TestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpClass(cls):
         cls.definition = ("definition of some [...] and "
                           "[unusual and tasty] word")
         cls.placeholder = ('<span class="extracted-text" title="guess the '
