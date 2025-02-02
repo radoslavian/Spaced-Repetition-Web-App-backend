@@ -1,6 +1,6 @@
 import re
 
-from cards.management.modules.fr_card_side import CardSide
+from cards.management.modules.card_side import CardSide
 
 
 class Question(CardSide):

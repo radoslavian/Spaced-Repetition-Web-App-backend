@@ -2,7 +2,7 @@ import re
 
 from django.test import TestCase
 
-from cards.management.modules.fr_card_side import Answer
+from cards.management.modules.card_side import Answer
 from cards.management.modules.question_side import Question
 
 
