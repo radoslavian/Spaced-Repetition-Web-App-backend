@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from cards.management.modules.phonetics_converter import PhoneticsConverter, \
+from cards.management.fr_importer.modules.phonetics_converter import PhoneticsConverter, \
     Token
 
 

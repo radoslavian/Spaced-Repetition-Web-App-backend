@@ -2,7 +2,7 @@ import re
 
 from django.test import TestCase
 
-from cards.management.modules.question_side import Question
+from cards.management.fr_importer.modules.question_side import Question
 
 
 class QuestionSplitMediaTags(TestCase):
