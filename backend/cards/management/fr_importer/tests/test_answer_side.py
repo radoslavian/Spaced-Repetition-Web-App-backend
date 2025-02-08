@@ -1,23 +1,14 @@
 from unittest import TestCase
 
+from cards.management.fr_importer.tests.common_card_side_tests import \
+    CommonCardSideTests
 from cards.management.fr_importer.modules.card_side import Answer
 
 
-class GetAnswer(TestCase):
+class GetAnswer(CommonCardSideTests, TestCase):
     """
     Main answer component is located in the first line of an answer side.
     """
-
-    # Answer
-    # extraction:
-    # *proper
-    # a.extraction
-    # *no < b > < / b >
-    # *presence
-    # of:
-    # + < i > < / i >
-    # + < strike > < / strike >
-    # no media (img/snd) files
     @classmethod
     def setUpClass(cls):
         cls.single_line_answer_no_media = ("<u>some</u> <b><i>answer</i></b> "
@@ -45,14 +36,9 @@ class GetAnswer(TestCase):
         The (main) answer shouldn't contain bold <b></b> and underline <u></u>
         tags.
         """
-        self.assertNotIn("<b>", self.answer_single_line_no_media.answer)
-        self.assertNotIn("</b>", self.answer_single_line_no_media.answer)
-        self.assertNotIn("<u>", self.answer_single_line_no_media.answer)
-        self.assertNotIn("</u>", self.answer_single_line_no_media.answer)
+        self.assert_no_illegal_formatting_tags(
+            self.answer_single_line_no_media.answer)
 
     def test_allowed_tags(self):
-        self.assertRegex(self.answer_single_line_no_media.answer,
-            "r<strike>|</strike>")
-        self.assertRegex(self.answer_single_line_no_media.answer,
-            "r<i>|</i>")
+        self.assert_allowed_tags(self.answer_single_line_no_media.answer)
 

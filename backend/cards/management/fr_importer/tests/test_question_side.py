@@ -3,6 +3,8 @@ import re
 from unittest import TestCase
 
 from cards.management.fr_importer.modules.question_side import Question
+from cards.management.fr_importer.tests.common_card_side_tests import \
+    CommonCardSideTests
 
 
 class QuestionSplitMediaTags(TestCase):
@@ -136,9 +138,10 @@ class RedundantWhiteCharactersQuestion(TestCase):
                          question.example.count(space))
 
 
-class QuestionAllowedTags(TestCase):
+class QuestionAllowedIllegalTags(CommonCardSideTests, TestCase):
     """
-    All formatting tags in the Question side should be removed except <strike>.
+    All formatting tags in the Question side should be removed except <strike>
+    and <i>.
     """
 
     @classmethod
@@ -151,15 +154,25 @@ class QuestionAllowedTags(TestCase):
         """
         Should keep <strike> and <i> tags in definition.
         """
-        expected_output = "definition: <i><strike>definition</strike></i>"
-        self.assertEqual(self.card_question.definition, expected_output)
+        self.assert_allowed_tags(self.card_question.definition)
+
+    def test_illegal_tags_in_definition(self):
+        """
+        No <b> and <u> tags in definition.
+        """
+        self.assert_no_illegal_formatting_tags(self.card_question.definition)
 
     def test_allowed_tags_in_example(self):
         """
         Should keep <strike> and <i> tags in example.
         """
-        expected_output = "example: <strike><i>example</i></strike>"
-        self.assertEqual(self.card_question.example, expected_output)
+        self.assert_allowed_tags(self.card_question.example)
+
+    def test_illegal_tags_in_example(self):
+        """
+        No <b> and <u> tags in example.
+        """
+        self.assert_no_illegal_formatting_tags(self.card_question.example)
 
 
 class QuestionOutputText(TestCase):
