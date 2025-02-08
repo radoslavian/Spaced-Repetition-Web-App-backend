@@ -52,7 +52,9 @@ class PhoneticsKey(CommonCardSideTests, TestCase):
         cls.answer_only = "answer"
         cls.example_sentence = ("A single word in the second"
                                 " line is a phonetics key,"
-                                " this is the example sentence.")
+                                " this is the example sentence."
+                                "<img>image/path.jpg</img>"
+                                "<snd>sound/path.mp3</snd>")
         cls.answer_example_no_phk = f"answer\n{cls.example_sentence}"
         cls.answer_key_no_phonetics = (f"an answer\n{cls.phonetics_key}\n"
                                        f"{cls.example_sentence}")
