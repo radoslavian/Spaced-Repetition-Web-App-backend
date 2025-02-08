@@ -9,7 +9,7 @@ class Answer(CardSide):
         answer - content of <item><a></a></item> tags.
         """
         super().__init__(answer)
-        self.phonetics_pattern = "^\[[\w\d'^_():]+]$"
+        self.phonetics_pattern = "^\[[\w\d'^_\-():]+]$"
 
     def _get_phonetics_key(self) -> str|None:
         words = self._get_split_phonetics_line()
@@ -20,7 +20,7 @@ class Answer(CardSide):
         return word
 
     def _match_phonetics_key(self, words: list) -> str | None:
-        word_pattern = "^[\w.,?]+$"
+        word_pattern = "^[\w.,?-]+$"
         word = None
         match len(words):
             case 1:
@@ -39,10 +39,13 @@ class Answer(CardSide):
             return []
         return phonetics_line.split(" ")
 
+    def _get_example_sentences(self) -> str:
+        pass
+
     def _get_phonetics(self) -> str:
         pass
 
-    def _get_example_sentences(self) -> str:
+    def _get_formatted_phonetics(self) -> str:
         pass
 
     def _get_output_text(self) -> str:
@@ -54,4 +57,5 @@ class Answer(CardSide):
                           " of a card.")
     phonetics_key = property(_get_phonetics_key)
     phonetics = property(_get_phonetics)
+    formatted_phonetics = property(_get_formatted_phonetics)
     example_sentences = property(_get_example_sentences)
