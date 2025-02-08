@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from cards.management.fr_importer.tests.common_card_side_tests import \
     CommonCardSideTests
-from cards.management.fr_importer.modules.card_side import Answer
+from cards.management.fr_importer.modules.card_answer import Answer
 
 
 class GetAnswer(CommonCardSideTests, TestCase):
