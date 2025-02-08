@@ -58,5 +58,5 @@ class Question(CardSide):
         merged_question = "".join(filter(None, [definition, hr, example]))
         return merged_question
 
-    definition = property(lambda self: self._get_first_line())
+    definition = property(lambda self: self._get_line(0))
     example = property(_get_example)

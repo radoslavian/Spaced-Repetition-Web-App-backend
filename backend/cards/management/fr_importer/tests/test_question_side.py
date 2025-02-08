@@ -107,6 +107,12 @@ class QuestionDefinitionExampleTestCase(TestCase):
         item_question = Question(self.question_example)
         self.assertEqual(item_question.example, self.example_transformed)
 
+    def test_raises_if_no_question(self):
+        """
+        Should raise exception if there's no header (definition).
+        """
+        self.assertRaises(ValueError, lambda: Question("").definition)
+
 
 class RedundantWhiteCharactersQuestion(TestCase):
     @classmethod

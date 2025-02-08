@@ -58,13 +58,21 @@ class CardSide:
         output = re.split(pattern, text)
         return output[0]
 
-    def _get_first_line(self) -> str:
+    def _get_line(self, index) -> str:
+        """
+        Returns cleaned line of text.
+        """
+        split_contents = self.side_contents.split("\n")
+        line = split_contents[index]
+        if len(split_contents) < 2 and split_contents[0] == "":
+            raise ValueError("The side appears to be empty!")
+
         get_output = compose(
             lambda acc: self._merge_characters(" ", acc),
             self.strip_tags_except_specific,
             self._strip_media_tags
         )
-        return get_output(self.side_contents.split("\n")[0])
+        return get_output(line)
 
     @staticmethod
     def _merge_characters(character: str, text: str) -> str:
@@ -95,12 +103,35 @@ class Answer(CardSide):
         answer - content of <item><a></a></item> tags.
         """
         super().__init__(answer)
+        self.phonetics_pattern = "^\[[\w\d'^_():]+]$"
 
-    def _get_answer(self) -> str:
-        pass
+    def _get_phonetics_key(self) -> str|None:
+        words = self._get_split_phonetics_line()
+        if not words:
+            return
+        word = self._match_word(words)
 
-    def _get_phonetics_key(self) -> str:
-        pass
+        return word
+
+    def _match_word(self, words):
+        word_pattern = "^[\w.,?]+$"
+        word = None
+        match len(words):
+            case 1:
+                if re.match(word_pattern, words[0]):
+                    word = words[0]
+            case 2:
+                if re.match(self.phonetics_pattern, words[1]):
+                    word = words[0]
+
+        return word
+
+    def _get_split_phonetics_line(self) -> list:
+        try:
+            phonetics_line = self._get_line(1)
+        except IndexError:
+            return []
+        return phonetics_line.split(" ")
 
     def _get_phonetics(self) -> str:
         pass
@@ -111,7 +142,7 @@ class Answer(CardSide):
     def _get_output_text(self) -> str:
         pass
 
-    answer = property(lambda self: self._get_first_line(),
+    answer = property(lambda self: self._get_line(0),
                       doc="Main answer is usually located in"
                           " the first line of an answer side"
                           " of a card.")
