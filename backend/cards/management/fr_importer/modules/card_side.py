@@ -11,6 +11,8 @@ import re
 
 from bs4 import BeautifulSoup
 
+from cards.utils.helpers import compose
+
 
 class CardSide:
     """
@@ -56,6 +58,19 @@ class CardSide:
         output = re.split(pattern, text)
         return output[0]
 
+    def _get_first_line(self) -> str:
+        get_output = compose(
+            lambda acc: self._merge_characters(" ", acc),
+            self.strip_tags_except_specific,
+            self._strip_media_tags
+        )
+        return get_output(self.side_contents.split("\n")[0])
+
+    @staticmethod
+    def _merge_characters(character: str, text: str) -> str:
+        pattern = f"{character}" + "{2,}"
+        return re.sub(pattern, lambda matched_text: character, text)
+
     def _get_output_text(self) -> str:
         """
         Output in html or other format - depending on implementation in
@@ -96,9 +111,10 @@ class Answer(CardSide):
     def _get_output_text(self) -> str:
         pass
 
-    answer = property(_get_answer, doc="Answer is usually located in"
-                                       " the first line of an answer side"
-                                       " of a card.")
+    answer = property(lambda self: self._get_first_line(),
+                      doc="Main answer is usually located in"
+                          " the first line of an answer side"
+                          " of a card.")
     phonetics_key = property(_get_phonetics_key)
     phonetics = property(_get_phonetics)
     example_sentences = property(_get_example_sentences)

@@ -11,14 +11,6 @@ class Question(CardSide):
         """
         super().__init__(question)
 
-    def _get_definition(self) -> str:
-        get_output = compose(
-            lambda acc: self._merge_characters(" ", acc),
-            self.strip_tags_except_specific,
-            self._strip_media_tags
-        )
-        return get_output(self.side_contents.split("\n")[0])
-
     def _get_example(self) -> str:
         get_example = compose(
             lambda acc: self._merge_characters(" ", acc),
@@ -28,11 +20,6 @@ class Question(CardSide):
             self._strip_media_tags,
         )
         return get_example(self.side_contents)
-
-    @staticmethod
-    def _merge_characters(character: str, text: str) -> str:
-        pattern = f"{character}" + "{2,}"
-        return re.sub(pattern, lambda matched_text: character, text)
 
     @staticmethod
     def _highlight_text_in_brackets(text: str) -> str:
@@ -71,5 +58,5 @@ class Question(CardSide):
         merged_question = "".join(filter(None, [definition, hr, example]))
         return merged_question
 
-    definition = property(_get_definition)
+    definition = property(lambda self: self._get_first_line())
     example = property(_get_example)
