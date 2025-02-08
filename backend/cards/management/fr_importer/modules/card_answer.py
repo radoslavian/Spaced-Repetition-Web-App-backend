@@ -15,11 +15,11 @@ class Answer(CardSide):
         words = self._get_split_phonetics_line()
         if not words:
             return
-        word = self._match_word(words)
+        word = self._match_phonetics_key(words)
 
         return word
 
-    def _match_word(self, words):
+    def _match_phonetics_key(self, words: list) -> str | None:
         word_pattern = "^[\w.,?]+$"
         word = None
         match len(words):
