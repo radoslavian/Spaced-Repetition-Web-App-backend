@@ -43,11 +43,16 @@ class Answer(CardSide):
         return phonetics_line.split(" ")
 
     def _get_raw_phonetics(self) -> str | None:
-        words = self._get_split_phonetics_line()
-        if not words:
-            phonetics = self._get_phonetics_from_answer_line()
-        else:
-            phonetics = self._filter_phonetics_from(words)
+        phonetics_from_answer_line = None
+        split_phonetics_line = self._get_split_phonetics_line()
+        phonetics_from_phonetics_line = self._filter_phonetics_from(
+            split_phonetics_line)
+
+        if not phonetics_from_phonetics_line:
+            phonetics_from_answer_line = self._get_phonetics_from_answer_line()
+
+        phonetics = (phonetics_from_phonetics_line
+                     or phonetics_from_answer_line or None)
 
         # [1:-1] cuts brackets
         return phonetics[1:-1] if phonetics is not None else phonetics
@@ -101,7 +106,40 @@ class Answer(CardSide):
         return compose(*functions)
 
     def _get_output_text(self) -> str:
-        pass
+        phonetics_key = (f'<span class="phonetic-key">'
+                         f'{self.phonetics_key}</span>'
+                         if self.phonetics_key else None)
+        phonetics = (f'<span class="phonetic-spelling">'
+                     f'[{self.formatted_phonetics}]'
+                     f'</span>' if self.raw_phonetics else None)
+
+        def get_phonetics_component():
+            component = None
+            if phonetics_key and phonetics:
+                component = (f'<div class="phonetics">{phonetics_key} '
+                             f'{phonetics}</div>')
+            elif phonetics_key:
+                component = f'<div class="phonetics">{phonetics_key}</div>'
+            return component
+
+        def get_answer_component():
+            if not phonetics_key and phonetics:
+                output = (f'<div class="answer">{self.answer} '
+                          + phonetics + '</div>')
+            else:
+                output = f'<div class="answer">{self.answer}</div>'
+            return output
+
+        answer = get_answer_component()
+        phonetics_component = get_phonetics_component()
+        sentences = "".join(f"<p><span>{sentence}</span></p>"
+                            for sentence in self.example_sentences)
+        example_sentences = (
+            f'<div class=”answer-example-sentences”>{sentences}</div>'
+            if sentences else None)
+        answer_components = [answer, phonetics_component, example_sentences]
+
+        return "".join(filter(None, answer_components))
 
     def _get_answer(self):
         answer_line = self._get_line(0)

@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+from cards.management.fr_importer.modules.phonetics_converter import \
+    PhoneticsConverter
 from cards.management.fr_importer.tests.common_card_side_tests import \
     CommonCardSideTests
 from cards.management.fr_importer.modules.card_answer import Answer
@@ -303,3 +305,65 @@ class ExampleSentences(CommonCardSideTests, TestCase):
             self.answer_phonetics_sentences))
         print("\nAnswer, phonetics key, phonetics, sentences:\n{}"
               .format(self.answer_phonetics_key_phonetics_sentences))
+
+
+class OutputText(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.answer = "simple answer"
+        cls.key = "phonetics-key"
+        cls.phonetics = "a2(r)B:_^ju2rgr"
+        cls.formatted_phonetics = (
+            '<span class="phonetic-spelling">'
+            '[{}]'.format(PhoneticsConverter(
+                cls.phonetics).converted_phonetics)
+        + '</span>')
+        cls.example_sentences = "sentence 1\nsentence 2"
+        cls.answer_component = f'<div class="answer">{cls.answer}</div>'
+        cls.phonetics_component = (
+            '<div class="phonetics">'
+            f'<span class="phonetic-key">{cls.key}</span> '
+            f'{cls.formatted_phonetics}</div>')
+
+        cls.answer_key_phonetics = (
+            f"{cls.answer}\n{cls.key} [{cls.phonetics}]")
+        cls.answer_phonetics_key_examples = (
+            f"{cls.answer}\n{cls.key}\n{cls.example_sentences}")
+        cls.answer_phonetics_examples = (
+            f"{cls.answer} [{cls.phonetics}]\n"
+            f"{cls.example_sentences}")
+
+    def test_answer_phonetics_key_phonetics(self):
+        answer = Answer(self.answer_key_phonetics)
+
+        self.assertIn(self.answer_component, answer.output_text)
+        self.assertIn(self.phonetics_component, answer.output_text)
+        self.assertNotIn('class=”answer-example-sentences”',
+                         answer.output_text)
+
+    def test_answer_phonetics_key_examples(self):
+        """
+        Output composed of: answer, phonetics key and examples sentences.
+        """
+        answer = Answer(self.answer_phonetics_key_examples)
+        phonetics_key = ('<div class="phonetics">'
+                         f'<span class="phonetic-key">{self.key}</span></div>')
+        sentences = "".join(f"<p><span>{sentence}</span></p>" for sentence in
+                       self.example_sentences.splitlines())
+        example_sentences = (
+            f'<div class=”answer-example-sentences”>{sentences}</div>')
+        expected_output = (self.answer_component + phonetics_key
+                           + example_sentences)
+        self.assertEqual(answer.output_text, expected_output)
+
+    def test_answer_phonetics_examples(self):
+        answer = Answer(self.answer_phonetics_examples)
+        answer_phonetics = (
+            f'<div class="answer">{self.answer} '
+            f'{self.formatted_phonetics}</div>')
+        example_sentences = ('<div class=”answer-example-sentences”><p>'
+                             '<span>sentence 1</span></p><p><span>sentence 2'
+                             '</span></p></div>')
+        expected_output = f"{answer_phonetics}{example_sentences}"
+        self.assertEqual(expected_output, answer.output_text)
+
