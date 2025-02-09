@@ -49,7 +49,7 @@ class Answer(CardSide):
         else:
             phonetics = self._filter_phonetics_from(words)
 
-        #[1:-1] cuts brackets
+        # [1:-1] cuts brackets
         return phonetics[1:-1] if phonetics is not None else phonetics
 
     def _filter_phonetics_from(self, words: list) -> str | None:
@@ -83,17 +83,22 @@ class Answer(CardSide):
             starting_line = 2
         else:
             starting_line = 1
+        sentences = self._strip_media_tags(self.side_contents)
+        split_sentences = sentences.splitlines()[starting_line:]
 
-        sentences = self.side_contents.splitlines()[starting_line:]
-        return self._clean_sentences(sentences)
+        return self._clean_sentences(split_sentences)
 
     @property
     def _clean_sentences(self):
-        return compose(list,
-                       lambda lines: map(lambda lns:
-                                         self.strip_tags_except_specific(
-                                             self._strip_media_tags(lns)),
-                                         lines))
+        functions = [
+            list,
+            lambda lines: map(lambda line: self._merge_characters(
+                " ", line), lines),
+            lambda lines: map(
+                lambda lns: self.strip_tags_except_specific(lns), lines)
+        ]
+
+        return compose(*functions)
 
     def _get_output_text(self) -> str:
         pass

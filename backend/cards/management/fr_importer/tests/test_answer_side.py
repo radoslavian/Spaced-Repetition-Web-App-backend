@@ -281,6 +281,16 @@ class ExampleSentences(CommonCardSideTests, TestCase):
         self.assertListEqual(answer.example_sentences,
                              self.cleaned_example_sentences)
 
+    def test_multiple_spaces_in_example(self):
+        """
+        Should merge multiple spaces into one.
+        """
+        example_sentence = "this     is    example   sentence"
+        expected_output = "this is example sentence"
+        answer_text = f"{self.answer}\n{example_sentence}"
+        answer = Answer(answer_text)
+        self.assertEqual(expected_output, answer.example_sentences[0])
+
     def _print_cases(self):
         """
         For inspecting test cases.
