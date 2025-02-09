@@ -1,6 +1,8 @@
 import re
 
 from cards.management.fr_importer.modules.card_side import CardSide
+from cards.management.fr_importer.modules.phonetics_converter import \
+    PhoneticsConverter
 
 
 class Answer(CardSide):
@@ -61,17 +63,19 @@ class Answer(CardSide):
         return phonetics
 
     def _get_phonetics_from_answer_line(self) -> str|None:
-        """
-        Looks for phonetics in an answer line.
-        """
         matched_phonetics = re.findall(self.phonetics_pattern,
                                        self._get_line(0))
         if matched_phonetics:
             return matched_phonetics[0]
         return None
 
-    def _get_formatted_phonetics(self) -> str:
-        pass
+    def _get_formatted_phonetics(self) -> str|None:
+        raw_phonetics = self.raw_phonetics
+        formatted_phonetics = None
+        if raw_phonetics is not None:
+            formatted_phonetics = PhoneticsConverter(
+                self.raw_phonetics).converted_phonetics
+        return formatted_phonetics
 
     def _get_example_sentences(self) -> str:
         pass

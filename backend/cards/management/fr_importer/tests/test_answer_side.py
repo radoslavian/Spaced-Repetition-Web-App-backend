@@ -171,3 +171,43 @@ class RawPhonetics(CommonCardSideTests, TestCase):
         """
         answer = Answer(self.phonetics_alongside_key)
         self.assert_no_illegal_formatting_tags(answer.raw_phonetics)
+
+
+class FormattedPhonetics(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.answer = "casting vote"
+        cls.snd_file = "<snd>snds/english_examples_2714.mp3</snd>"
+        cls.img_file = "<img>../obrazy/marihuana.jpg</img>"
+        cls.example_sentence = ("The risk of infections affecting your upper"
+                                " respiratory tract and lung increases.")
+        cls.phonetics = "a2(r)B:_^ju2rgr"
+
+        cls.input_question = (f"{cls.answer}\n"
+                              f"vote [{cls.phonetics}]\n"
+                              + cls.example_sentence
+                              + cls.img_file
+                              + cls.snd_file)
+        cls.input_question_no_phonetics = "{}\n{}{}{}".format(
+            cls.answer, cls.example_sentence,
+            cls.img_file, cls.snd_file)
+
+        cls.formatted_phonetics = (
+            '<span class="phonetics-entity" title="aʊə - our - as in sour">aʊə'
+            '</span><span class="phonetics-entity" title="əː - er - as in '
+            'nurse">əː</span><span class="phonetics-entity" title="">_</span>'
+            '<span class="phonetics-entity" title="æ - a - as in pat, attack">'
+            'æ</span><span class="phonetics-entity" title="jʊər - yoor - as in'
+            ' curious">jʊər</span><span class="phonetics-entity" title="ɡr - '
+            'as in green">ɡr</span>')
+
+    def test_output(self):
+        answer = Answer(self.input_question)
+        self.assertEqual(answer.formatted_phonetics, self.formatted_phonetics)
+
+    def test_no_phonetics(self):
+        """
+        Should return None if there's no phonetics on the card.
+        """
+        answer = Answer(self.input_question_no_phonetics)
+        self.assertIsNone(answer.formatted_phonetics)
