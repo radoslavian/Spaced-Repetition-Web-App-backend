@@ -3,6 +3,7 @@ import re
 from cards.management.fr_importer.modules.card_side import CardSide
 from cards.management.fr_importer.modules.phonetics_converter import \
     PhoneticsConverter
+from cards.utils.helpers import compose
 
 
 class Answer(CardSide):
@@ -14,7 +15,7 @@ class Answer(CardSide):
         self.phonetics_pattern = r"\[[\w\d'^_\-():]+]"
         self.word_pattern = "[\w.,?-]+"
 
-    def _get_phonetics_key(self) -> str|None:
+    def _get_phonetics_key(self) -> str | None:
         words = self._get_split_phonetics_line()
         if not words:
             return
@@ -51,7 +52,7 @@ class Answer(CardSide):
         #[1:-1] cuts brackets
         return phonetics[1:-1] if phonetics is not None else phonetics
 
-    def _filter_phonetics_from(self, words:list) -> str|None:
+    def _filter_phonetics_from(self, words: list) -> str | None:
         """
         Filters list entries matching the phonetics pattern and returns a first
         match if pattern is found.
@@ -62,14 +63,14 @@ class Answer(CardSide):
         phonetics = next(iter(filtered_phonetics), None)
         return phonetics
 
-    def _get_phonetics_from_answer_line(self) -> str|None:
+    def _get_phonetics_from_answer_line(self) -> str | None:
         matched_phonetics = re.findall(self.phonetics_pattern,
                                        self._get_line(0))
         if matched_phonetics:
             return matched_phonetics[0]
         return None
 
-    def _get_formatted_phonetics(self) -> str|None:
+    def _get_formatted_phonetics(self) -> str | None:
         raw_phonetics = self.raw_phonetics
         formatted_phonetics = None
         if raw_phonetics is not None:
@@ -77,8 +78,22 @@ class Answer(CardSide):
                 self.raw_phonetics).converted_phonetics
         return formatted_phonetics
 
-    def _get_example_sentences(self) -> str:
-        pass
+    def _get_example_sentences(self) -> list:
+        if self.phonetics_key:
+            starting_line = 2
+        else:
+            starting_line = 1
+
+        sentences = self.side_contents.splitlines()[starting_line:]
+        return self._clean_sentences(sentences)
+
+    @property
+    def _clean_sentences(self):
+        return compose(list,
+                       lambda lines: map(lambda lns:
+                                         self.strip_tags_except_specific(
+                                             self._strip_media_tags(lns)),
+                                         lines))
 
     def _get_output_text(self) -> str:
         pass

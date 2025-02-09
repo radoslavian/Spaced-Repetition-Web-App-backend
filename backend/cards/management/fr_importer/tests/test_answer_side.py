@@ -211,3 +211,85 @@ class FormattedPhonetics(TestCase):
         """
         answer = Answer(self.input_question_no_phonetics)
         self.assertIsNone(answer.formatted_phonetics)
+
+
+class ExampleSentences(CommonCardSideTests, TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.answer = "answer"
+        cls.key = "phonetics-key"
+        cls.phonetics = "a2(r)B:_^ju2rgr"
+        cls.example_sentences = ["example <b><u><i>sentence</i></u></b> 1",
+                                 "<strike>example</strike> sentence 2"]
+        cls.cleaned_example_sentences = ["example <i>sentence</i> 1",
+                                         "<strike>example</strike> sentence 2"]
+        cls.example_sentences_text = "\n".join(cls.example_sentences)
+        cls.snd_file = "<snd>snds/english_examples_2714.mp3</snd>"
+        cls.img_file = "<img>../obrazy/marihuana.jpg</img>"
+
+        cls.answer_phonetics_key_phonetics = (
+            "{answer}\n{key} [{phonetics}]{snd_file}{img_file}"
+            .format(answer=cls.answer, key=cls.key, phonetics=cls.phonetics,
+                    snd_file=cls.snd_file, img_file=cls.img_file))
+        cls.answer_sentences = (f"{cls.answer}\n"
+                                f"{cls.example_sentences_text}"
+                                f"{cls.img_file}{cls.snd_file}")
+        cls.answer_phonetics_sentences = (f"{cls.answer} [{cls.phonetics}]\n"
+                                          f"{cls.example_sentences_text}"
+                                          f"{cls.img_file}{cls.snd_file}")
+        cls.answer_phonetics_key_phonetics_sentences = (
+            f"{cls.answer}\n{cls.key} [{cls.phonetics}]"
+            f"\n{cls.example_sentences_text}")
+
+    def test_answer_no_example_sentences(self):
+        """
+        Should return an empty list.
+        """
+        answer = Answer(self.answer)
+        self.assertIs(list, type(answer.example_sentences))
+        self.assertFalse(answer.example_sentences)
+
+    def test_answer_phonetics_key_phonetics(self):
+        """
+        Should return an empty list.
+        """
+        answer = Answer(self.answer_phonetics_key_phonetics)
+        self.assertIs(list, type(answer.example_sentences))
+        self.assertFalse(answer.example_sentences)
+
+    def test_answer_sentences(self):
+        """
+        Should return list of sentences.
+        """
+        answer = Answer(self.answer_sentences)
+        self.assertListEqual(answer.example_sentences,
+                             self.cleaned_example_sentences)
+
+    def test_answer_phonetics_sentences(self):
+        """
+        Should return list of sentences.
+        """
+        answer = Answer(self.answer_phonetics_sentences)
+        self.assertListEqual(answer.example_sentences,
+                             self.cleaned_example_sentences)
+
+    def test_answer_phonetics_key_phonetics_sentences(self):
+        """
+        Should return list of sentences.
+        """
+        answer = Answer(self.answer_phonetics_key_phonetics_sentences)
+        self.assertListEqual(answer.example_sentences,
+                             self.cleaned_example_sentences)
+
+    def _print_cases(self):
+        """
+        For inspecting test cases.
+        Add 'test' at the start of the function name to run it.
+        """
+        print("\nAnswer, phonetics key, phonetics:\n"
+              "{}".format(self.answer_phonetics_key_phonetics))
+        print("\nAnswer, sentence:\n{}".format(self.answer_sentences))
+        print("\nAnswer, phonetics, sentences:\n{}".format(
+            self.answer_phonetics_sentences))
+        print("\nAnswer, phonetics key, phonetics, sentences:\n{}"
+              .format(self.answer_phonetics_key_phonetics_sentences))
