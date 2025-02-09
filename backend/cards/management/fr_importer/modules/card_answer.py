@@ -9,7 +9,8 @@ class Answer(CardSide):
         answer - content of <item><a></a></item> tags.
         """
         super().__init__(answer)
-        self.phonetics_pattern = "^\[[\w\d'^_\-():]+]$"
+        self.phonetics_pattern = r"\[[\w\d'^_\-():]+]"
+        self.word_pattern = "[\w.,?-]+"
 
     def _get_phonetics_key(self) -> str|None:
         words = self._get_split_phonetics_line()
@@ -20,14 +21,13 @@ class Answer(CardSide):
         return word
 
     def _match_phonetics_key(self, words: list) -> str | None:
-        word_pattern = "^[\w.,?-]+$"
         word = None
         match len(words):
             case 1:
-                if re.match(word_pattern, words[0]):
+                if re.match(f"^{self.word_pattern}$", words[0]):
                     word = words[0]
             case 2:
-                if re.match(self.phonetics_pattern, words[1]):
+                if re.match(f"^{self.phonetics_pattern}$", words[1]):
                     word = words[0]
 
         return word
@@ -39,23 +39,56 @@ class Answer(CardSide):
             return []
         return phonetics_line.split(" ")
 
-    def _get_example_sentences(self) -> str:
-        pass
+    def _get_raw_phonetics(self) -> str | None:
+        words = self._get_split_phonetics_line()
+        if not words:
+            phonetics = self._get_phonetics_from_answer_line()
+        else:
+            phonetics = self._filter_phonetics_from(words)
 
-    def _get_phonetics(self) -> str:
-        pass
+        #[1:-1] cuts brackets
+        return phonetics[1:-1] if phonetics is not None else phonetics
+
+    def _filter_phonetics_from(self, words:list) -> str|None:
+        """
+        Filters list entries matching the phonetics pattern and returns a first
+        match if pattern is found.
+        """
+        filtered_phonetics = list(filter(lambda word:
+                                         re.match(self.phonetics_pattern,
+                                                  word), words))
+        phonetics = next(iter(filtered_phonetics), None)
+        return phonetics
+
+    def _get_phonetics_from_answer_line(self) -> str|None:
+        """
+        Looks for phonetics in an answer line.
+        """
+        matched_phonetics = re.findall(self.phonetics_pattern,
+                                       self._get_line(0))
+        if matched_phonetics:
+            return matched_phonetics[0]
+        return None
 
     def _get_formatted_phonetics(self) -> str:
+        pass
+
+    def _get_example_sentences(self) -> str:
         pass
 
     def _get_output_text(self) -> str:
         pass
 
-    answer = property(lambda self: self._get_line(0),
-                      doc="Main answer is usually located in"
+    def _get_answer(self):
+        answer_line = self._get_line(0)
+        answer_line_split = re.split(self.phonetics_pattern, answer_line)
+        return answer_line_split[0].strip()
+
+    answer = property(_get_answer,
+                      doc="The main answer is usually located in"
                           " the first line of an answer side"
                           " of a card.")
     phonetics_key = property(_get_phonetics_key)
-    phonetics = property(_get_phonetics)
+    raw_phonetics = property(_get_raw_phonetics)
     formatted_phonetics = property(_get_formatted_phonetics)
     example_sentences = property(_get_example_sentences)
