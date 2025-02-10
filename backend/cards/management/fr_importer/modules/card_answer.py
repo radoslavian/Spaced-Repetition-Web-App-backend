@@ -66,12 +66,12 @@ class Answer(CardSide):
             return matched_phonetics[0]
         return None
 
-    def _get_formatted_phonetics(self) -> str | None:
-        raw_phonetics = self.raw_phonetics
+    def _get_formatted_phonetics_spelling(self) -> str | None:
+        raw_phonetics = self.raw_phonetics_spelling
         formatted_phonetics = None
         if raw_phonetics is not None:
             formatted_phonetics = PhoneticsConverter(
-                self.raw_phonetics).converted_phonetics
+                self.raw_phonetics_spelling).converted_phonetics
         return formatted_phonetics
 
     def _get_example_sentences(self) -> list:
@@ -97,32 +97,33 @@ class Answer(CardSide):
         return compose(*functions)
 
     def _get_output_text(self) -> str:
-        answer_block = self._get_answer_block()
-        phonetics_block = self._get_phonetics_component()
+        answer_side = [self.answer_block, self.phonetics_block,
+                       self.example_sentences_block]
+        return "".join(filter(None, answer_side))
+
+    def _get_example_sentences_block(self):
         example_sentences = "".join(f"<p><span>{sentence}</span></p>"
                                     for sentence in self.example_sentences)
         example_sentences_block = (
             f'<div class=”answer-example-sentences”>{example_sentences}</div>'
             if example_sentences else None)
-        answer_side = [answer_block, phonetics_block, example_sentences_block]
+        return example_sentences_block
 
-        return "".join(filter(None, answer_side))
-
-    def _get_phonetics_component(self):
-        component = None
-        if self.formatted_phonetics_key and self.phonetics_block:
-            component = (
-                f'<div class="phonetics">{self.formatted_phonetics_key} '
-                f'{self.phonetics_block}</div>')
-        elif self.formatted_phonetics_key:
-            component = (f'<div class="phonetics">'
-                         f'{self.formatted_phonetics_key}</div>')
-        return component
+    def _get_phonetics_block(self):
+        phonetics_block = None
+        if self.phonetics_key and self.raw_phonetics_spelling:
+            phonetics_block = (
+                f'<div class="phonetics">{self.phonetics_key_block} '
+                f'{self.phonetics_spelling_block}</div>')
+        elif self.phonetics_key:
+            phonetics_block = (f'<div class="phonetics">'
+                         f'{self.phonetics_key_block}</div>')
+        return phonetics_block
 
     def _get_answer_block(self):
-        if not self.formatted_phonetics_key and self.phonetics_block:
+        if not self.phonetics_key and self.raw_phonetics_spelling:
             output = (f'<div class="answer">{self.answer} '
-                      + f"{self.phonetics_block}</div>")
+                      + f"{self.phonetics_spelling_block}</div>")
         else:
             output = f'<div class="answer">{self.answer}</div>'
         return output
@@ -136,15 +137,18 @@ class Answer(CardSide):
                       doc="The main answer is usually located in"
                           " the first line of an answer side"
                           " of a card.")
+    answer_block = property(_get_answer_block)
     phonetics_key = property(_get_phonetics_key)
-    raw_phonetics = property(_get_raw_phonetics)
-    phonetics_block = property(lambda self:
-        f'<span class="phonetic-spelling">'
-        f'[{self.formatted_phonetics}]'
-        f'</span>' if self.raw_phonetics else None)
-    formatted_phonetics_key = property(lambda self:
+    phonetics_key_block = property(lambda self:
         f'<span class="phonetic-key">'
         f'{self.phonetics_key}</span>'
         if self.phonetics_key else None)
-    formatted_phonetics = property(_get_formatted_phonetics)
+    raw_phonetics_spelling = property(_get_raw_phonetics)
+    formatted_phonetics_spelling = property(_get_formatted_phonetics_spelling)
+    phonetics_spelling_block = property(lambda self:
+        f'<span class="phonetic-spelling">'
+        f'[{self.formatted_phonetics_spelling}]'
+        f'</span>' if self.raw_phonetics_spelling else None)
+    phonetics_block = property(_get_phonetics_block)
     example_sentences = property(_get_example_sentences)
+    example_sentences_block = property(_get_example_sentences_block)
