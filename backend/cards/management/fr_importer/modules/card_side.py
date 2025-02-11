@@ -6,7 +6,6 @@ as method/field signatures implemented in concrete classes.
 
 import os
 from xml.etree import ElementTree as ET
-
 import re
 
 from bs4 import BeautifulSoup
@@ -21,10 +20,10 @@ class CardSide:
     """
 
     def __init__(self, side_contents):
-        self.side_contents = side_contents
+        self._original_side_contents = side_contents
 
     @staticmethod
-    def strip_tags_except_specific(text: str) -> str:
+    def _strip_tags_except_specific(text: str) -> str:
         # from: https://stackoverflow.com/questions/56001921/
         # removing-tags-from-html-except-specific-ones-but-keep-their-contents
         # original author: glhr
@@ -41,7 +40,7 @@ class CardSide:
         into an absolute path.
         """
         tag_contents = ET.fromstring(
-            f"<root>{self.side_contents}</root>").find(tag)
+            f"<root>{self._original_side_contents}</root>").find(tag)
         if tag_contents is not None:
             return tag_contents.text
 
@@ -59,20 +58,12 @@ class CardSide:
         return output[0]
 
     def _get_line(self, index) -> str:
-        """
-        Returns cleaned line of text.
-        """
         split_contents = self.side_contents.split("\n")
         line = split_contents[index]
         if len(split_contents) < 2 and split_contents[0] == "":
             raise ValueError("The side appears to be empty!")
 
-        get_output = compose(
-            lambda acc: self._merge_characters(" ", acc),
-            self.strip_tags_except_specific,
-            self._strip_media_tags
-        )
-        return get_output(line)
+        return line
 
     @staticmethod
     def _merge_characters(character: str, text: str) -> str:
@@ -85,6 +76,15 @@ class CardSide:
         inheriting classes.
         """
         pass
+
+    @property
+    def side_contents(self):
+        functions = [lambda acc: self._merge_characters(" ", acc),
+            self._strip_tags_except_specific,
+            self._strip_media_tags]
+        clean_contents = compose(*functions)
+
+        return clean_contents(self._original_side_contents)
 
     image_file_path = property(lambda self: self._get_tag_contents("img"))
     sound_file_path = property(lambda self: self._get_tag_contents("snd"))

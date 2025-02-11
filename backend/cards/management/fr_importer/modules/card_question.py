@@ -13,12 +13,8 @@ class Question(CardSide):
 
     def _get_example(self) -> str:
         get_example = compose(
-            lambda acc: self._merge_characters(" ", acc),
             "<br/>".join,
-            lambda acc: filter(None, acc.split("\n")[1:]),
-            self.strip_tags_except_specific,
-            self._strip_media_tags,
-        )
+            lambda acc: filter(None, acc.split("\n")[1:]))
         return get_example(self.side_contents)
 
     @staticmethod
@@ -47,15 +43,16 @@ class Question(CardSide):
         return self._highlight_text_in_brackets(output)
 
     def _merge_question_components(self):
-        definition = ('<div class="card-question-definition">'
+        definition_block = ('<div class="card-question-definition">'
                       f'<p>{self.definition}</p>'
                       '</div>')
-        hr = ('<hr class="question-example-separating-hr"/>'
+        qa_separating_hr = ('<hr class="question-example-separating-hr"/>'
               if self.example else None)
-        example = ('<div class="card-question-example">'
+        example_block = ('<div class="card-question-example">'
                    f'<p>{self.example}</p>'
                    '</div>') if self.example else None
-        merged_question = "".join(filter(None, [definition, hr, example]))
+        block = [definition_block, qa_separating_hr, example_block]
+        merged_question = "".join(filter(None, block))
         return merged_question
 
     definition = property(lambda self: self._get_line(0))

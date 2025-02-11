@@ -3,7 +3,6 @@ import re
 from cards.management.fr_importer.modules.card_side import CardSide
 from cards.management.fr_importer.modules.phonetics_converter import \
     PhoneticsConverter
-from cards.utils.helpers import compose
 
 
 class Answer(CardSide):
@@ -79,22 +78,9 @@ class Answer(CardSide):
             starting_line = 2
         else:
             starting_line = 1
-        sentences = self._strip_media_tags(self.side_contents)
-        split_sentences = sentences.splitlines()[starting_line:]
+        split_sentences = self.side_contents.splitlines()[starting_line:]
 
-        return self._clean_sentences(split_sentences)
-
-    @property
-    def _clean_sentences(self):
-        functions = [
-            list,
-            lambda lines: map(lambda line: self._merge_characters(
-                " ", line), lines),
-            lambda lines: map(
-                lambda lns: self.strip_tags_except_specific(lns), lines)
-        ]
-
-        return compose(*functions)
+        return split_sentences
 
     def _get_output_text(self) -> str:
         answer_side = [self.answer_block, self.phonetics_block,
