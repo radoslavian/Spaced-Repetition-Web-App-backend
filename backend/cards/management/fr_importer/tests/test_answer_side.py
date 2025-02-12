@@ -46,6 +46,9 @@ class GetAnswer(CommonCardSideTests, TestCase):
             self.answer_single_line_no_media.answer)
 
     def test_no_phonetics(self):
+        """
+        Only answer text should be extracted into .answer field.
+        """
         answer = Answer(self.single_line_phonetics)
         self.assertEqual("answer", answer.answer)
 
@@ -185,12 +188,12 @@ class FormattedPhonetics(TestCase):
                                 " respiratory tract and lung increases.")
         cls.phonetics = "a2(r)B:_^ju2rgr"
 
-        cls.input_question = (f"{cls.answer}\n"
+        cls.input_answer = (f"{cls.answer}\n"
                               f"vote [{cls.phonetics}]\n"
-                              + cls.example_sentence
-                              + cls.img_file
-                              + cls.snd_file)
-        cls.input_question_no_phonetics = "{}\n{}{}{}".format(
+                            + cls.example_sentence
+                            + cls.img_file
+                            + cls.snd_file)
+        cls.input_answer_no_phonetics = "{}\n{}{}{}".format(
             cls.answer, cls.example_sentence,
             cls.img_file, cls.snd_file)
 
@@ -204,14 +207,15 @@ class FormattedPhonetics(TestCase):
             'as in green">ɡr</span>')
 
     def test_output(self):
-        answer = Answer(self.input_question)
-        self.assertEqual(answer.formatted_phonetics_spelling, self.formatted_phonetics)
+        answer = Answer(self.input_answer)
+        self.assertEqual(answer.formatted_phonetics_spelling,
+                         self.formatted_phonetics)
 
     def test_no_phonetics(self):
         """
         Should return None if there's no phonetics on the card.
         """
-        answer = Answer(self.input_question_no_phonetics)
+        answer = Answer(self.input_answer_no_phonetics)
         self.assertIsNone(answer.formatted_phonetics_spelling)
 
 
@@ -287,8 +291,8 @@ class ExampleSentences(CommonCardSideTests, TestCase):
         """
         Should merge multiple spaces into one.
         """
-        example_sentence = "this     is    example   sentence"
-        expected_output = "this is example sentence"
+        example_sentence = "this     is    an example   sentence"
+        expected_output = "this is an example sentence"
         answer_text = f"{self.answer}\n{example_sentence}"
         answer = Answer(answer_text)
         self.assertEqual(expected_output, answer.example_sentences[0])
