@@ -38,22 +38,22 @@ class Question(CardSide):
         return re.sub("\[...\]|\[…\]", formatted_placeholder, text)
 
     def _get_output_text(self) -> str:
-        merged_question = self._merge_question_components()
+        block = [self.definition_block, self.question_example_separating_hr,
+                 self.example_block]
+        merged_question = "".join(filter(None, block))
         output = self._format_placeholder(merged_question)
         return self._highlight_text_in_brackets(output)
 
-    def _merge_question_components(self):
-        definition_block = ('<div class="card-question-definition">'
-                      f'<p>{self.definition}</p>'
-                      '</div>')
-        qa_separating_hr = ('<hr class="question-example-separating-hr"/>'
-              if self.example else None)
-        example_block = ('<div class="card-question-example">'
-                   f'<p>{self.example}</p>'
-                   '</div>') if self.example else None
-        block = [definition_block, qa_separating_hr, example_block]
-        merged_question = "".join(filter(None, block))
-        return merged_question
-
     definition = property(lambda self: self._get_line(0))
+    definition_block = property(
+        lambda self: '<div class="card-question-definition">'
+                     f'<p>{self.definition}</p>'
+                     '</div>')
     example = property(_get_example)
+    example_block = property(lambda self: '<div class="card-question-example">'
+                                          f'<p>{self.example}</p>'
+                                          '</div>' if self.example else None)
+    # This one should appear only if example is present
+    question_example_separating_hr = property(
+        lambda self: '<hr class="question-example-separating-hr"/>'
+        if self.example else None)
