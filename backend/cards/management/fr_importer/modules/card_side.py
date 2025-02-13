@@ -57,9 +57,12 @@ class CardSide:
         output = re.split(pattern, text)
         return output[0]
 
-    def _get_line(self, index) -> str:
+    def _get_line(self, index) -> str | None:
         split_contents = self.side_contents.split("\n")
-        line = split_contents[index]
+        try:
+            line = split_contents[index]
+        except IndexError:
+            return None
         if len(split_contents) < 2 and split_contents[0] == "":
             raise ValueError("The side appears to be empty!")
 
