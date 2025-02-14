@@ -1,4 +1,5 @@
 import re
+from gc import is_finalized
 
 from cards.management.fr_importer.modules.card_side import CardSide
 from cards.management.fr_importer.modules.phonetics_converter import \
@@ -11,40 +12,38 @@ class Answer(CardSide):
         answer - content of <item><a></a></item> tags.
         """
         super().__init__(answer)
-        self.phonetics_pattern = r"\[[\w\d'^_\-():]+]"
+        self.phonetics_pattern = r"\[.+\]"
 
     def _get_phonetics_key(self) -> str | None:
-        matched_line = self._match_phonetics_line()
-        return matched_line["phonetics_key"]
+        matched_line = self._match_phonetics_line(1)
+        return matched_line["remaining_text"]
 
-    def _match_phonetics_line(self) -> dict:
-        words = self._get_split_phonetics_line()
-        phonetics_line = {"phonetics_key": None,
-                          "phonetics": None,
-                          "remaining_text": None}
-        match len(words):
-            case 0:
-                pass
-            case 1:
-                phonetics_line["phonetics_key"] = words[0]
-            case _:
-                if re.match(f"^{self.phonetics_pattern}$", words[1]):
-                    phonetics_line["phonetics_key"] = words[0]
-                    phonetics_line["phonetics"] = words[1]
+    def _match_phonetics_line(self, line_index) -> dict:
+        single_word = "^[^\s.]{2,20}$"
+        phonetics_line = self._get_line(line_index)
+        extracted_output = {"phonetics": None,
+                            "remaining_text": None}
+        if phonetics_line:
+            matched_phonetics = re.search(
+                self.phonetics_pattern, phonetics_line)
+            if matched_phonetics:
+                extracted_output["phonetics"] = matched_phonetics.group(0)
+                # pattern cuts phonetics and a redundant space
+                remaining_text = re.sub(f"\s{2,}?{self.phonetics_pattern}",
+                                    "",
+                                    phonetics_line)
+                if remaining_text:
+                    extracted_output["remaining_text"] = remaining_text.strip()
+            elif re.match(single_word, phonetics_line):
+                extracted_output["remaining_text"] = phonetics_line
 
-        return phonetics_line
-
-    def _get_split_phonetics_line(self) -> list:
-        try:
-            phonetics_line = self._get_line(1)
-        except IndexError:
-            return []
-        return phonetics_line.split(" ")
+        return extracted_output
 
     def _get_raw_phonetics(self) -> str | None:
         phonetics_in_answer_line = None
         output_phonetics = None
-        phonetics_in_phonetics_line = self._match_phonetics_line()["phonetics"]
+        phonetics_in_phonetics_line = \
+            self._match_phonetics_line(1)["phonetics"]
 
         if not phonetics_in_phonetics_line:
             phonetics_in_answer_line = self._get_phonetics_from_answer_line()
@@ -103,7 +102,7 @@ class Answer(CardSide):
                 f'{self.phonetics_spelling_block}</div>')
         elif self.phonetics_key:
             phonetics_block = (f'<div class="phonetics">'
-                         f'{self.phonetics_key_block}</div>')
+                               f'{self.phonetics_key_block}</div>')
         return phonetics_block
 
     def _get_answer_block(self):
@@ -115,9 +114,10 @@ class Answer(CardSide):
         return output
 
     def _get_answer(self):
+        phonetics_pattern = f"{self.phonetics_pattern}\s?"
         answer_line = self._get_line(0)
-        answer_line_split = re.split(self.phonetics_pattern, answer_line)
-        return answer_line_split[0].strip()
+        no_phonetics = re.sub(phonetics_pattern, "", answer_line)
+        return no_phonetics.strip()
 
     answer = property(_get_answer,
                       doc="The main answer is usually located in"
@@ -126,15 +126,15 @@ class Answer(CardSide):
     answer_block = property(_get_answer_block)
     phonetics_key = property(_get_phonetics_key)
     phonetics_key_block = property(lambda self:
-        f'<span class="phonetic-key">'
-        f'{self.phonetics_key}</span>'
-        if self.phonetics_key else None)
+                                   f'<span class="phonetic-key">'
+                                   f'{self.phonetics_key}</span>'
+                                   if self.phonetics_key else None)
     raw_phonetics_spelling = property(_get_raw_phonetics)
     formatted_phonetics_spelling = property(_get_formatted_phonetics_spelling)
     phonetics_spelling_block = property(lambda self:
-        f'<span class="phonetic-spelling">'
-        f'[{self.formatted_phonetics_spelling}]'
-        f'</span>' if self.raw_phonetics_spelling else None)
+                                        f'<span class="phonetic-spelling">'
+                                        f'[{self.formatted_phonetics_spelling}]'
+                                        f'</span>' if self.raw_phonetics_spelling else None)
     phonetics_block = property(_get_phonetics_block)
     example_sentences = property(_get_example_sentences)
     example_sentences_block = property(_get_example_sentences_block)

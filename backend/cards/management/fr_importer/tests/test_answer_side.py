@@ -371,3 +371,33 @@ class OutputText(TestCase):
         expected_output = f"{answer_phonetics}{example_sentences}"
         self.assertEqual(expected_output, answer.output_text)
 
+
+class ExtraText(TestCase):
+    """
+    Extracting extra text after answer + phonetics/phonetics key + phonetics.
+    """
+    @classmethod
+    def setUpClass(cls):
+        cls.words_after_answer = ("assent [2's2nt] (zgoda; aprobata)"
+                                  "<snd>snds/english_examples_2098.mp3</snd>")
+        cls.words_after_phonetics_key = (
+            "seethed\n"
+            "<b>seethe [si:9] (~burzyć się)</b>)\n"
+            "The elements of that war had been seething in English society."
+            "<snd>snds/his_brain_had_no.mp3</snd>")
+
+    def test_extra_text_after_phonetics_key(self):
+        answer = Answer(self.words_after_phonetics_key)
+        extra_words = "(~burzyć się)"
+        phonetics_key = "seethe"
+
+        self.assertIn(extra_words, answer.phonetics_key)
+        self.assertIn(phonetics_key, answer.phonetics_key)
+
+    def test_extra_text_after_answer(self):
+        answer = Answer(self.words_after_answer)
+        extra_words = "(zgoda; aprobata)"
+        answer_text = "assent"
+
+        self.assertIn(extra_words, answer.answer)
+        self.assertIn(answer_text, answer.answer)
