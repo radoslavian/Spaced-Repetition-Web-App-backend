@@ -19,7 +19,7 @@ class Answer(CardSide):
         return matched_line["remaining_text"]
 
     def _match_phonetics_line(self, line_index) -> dict:
-        single_word = "^[^\s.]{2,20}$"
+        single_word = "^[^\s.]{2,30}$"
         phonetics_line = self._get_line(line_index)
         extracted_output = {"phonetics": None,
                             "remaining_text": None}
