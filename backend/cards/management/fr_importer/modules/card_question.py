@@ -8,8 +8,5 @@ class Question(CardSide):
         """
         super().__init__(question)
 
-    def _get_examples(self, from_line=1) -> list[str]:
-        return list(filter(None, self.side_contents.split("\n")[from_line:]))
-
     definition = property(lambda self: self._get_line(0))
     examples = property(lambda self: self._get_examples(from_line=1))

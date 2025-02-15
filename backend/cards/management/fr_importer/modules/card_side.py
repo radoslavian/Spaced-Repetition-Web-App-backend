@@ -45,6 +45,9 @@ class CardSide:
         if tag_contents is not None:
             return tag_contents.text
 
+    def _get_examples(self, from_line=1) -> list[str]:
+        return list(filter(None, self.side_contents.split("\n")[from_line:]))
+
     @staticmethod
     def _get_filename(file_path) -> str | None:
         if file_path is not None:

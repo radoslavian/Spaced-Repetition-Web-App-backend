@@ -73,15 +73,6 @@ class Answer(CardSide):
                 self.raw_phonetics_spelling).converted_phonetics
         return formatted_phonetics
 
-    def _get_example_sentences(self) -> list:
-        if self.phonetics_key:
-            starting_line = 2
-        else:
-            starting_line = 1
-        split_sentences = self.side_contents.splitlines()[starting_line:]
-
-        return split_sentences
-
     def _get_example_sentences_block(self):
         example_sentences = "".join(f"<p><span>{sentence}</span></p>"
                                     for sentence in self.example_sentences)
@@ -119,7 +110,17 @@ class Answer(CardSide):
                       doc="The main answer is usually located in"
                           " the first line of an answer side"
                           " of a card.")
+
     answer_block = property(_get_answer_block)
+
+    @property
+    def example_sentences(self) -> list[str]:
+        if self.phonetics_key:
+            starting_line = 2
+        else:
+            starting_line = 1
+        return super()._get_examples(starting_line)
+
     phonetics_key = property(_get_phonetics_key)
     phonetics_key_block = property(lambda self:
                                    f'<span class="phonetic-key">'
@@ -133,5 +134,4 @@ class Answer(CardSide):
         f'[{self.formatted_phonetics_spelling}]'
         f'</span>' if self.raw_phonetics_spelling else None)
     phonetics_block = property(_get_phonetics_block)
-    example_sentences = property(_get_example_sentences)
     example_sentences_block = property(_get_example_sentences_block)
