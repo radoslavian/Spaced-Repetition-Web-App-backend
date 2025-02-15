@@ -39,7 +39,7 @@ class HTMLFormattedQuestion(Question):
 
     question_example_separating_hr = property(
         lambda self: '<hr class="question-example-separating-hr"/>'
-        if self.examples else None)
+        if super().examples else None)
 
     @staticmethod
     def _highlight_text_in_brackets(text: str) -> str:
