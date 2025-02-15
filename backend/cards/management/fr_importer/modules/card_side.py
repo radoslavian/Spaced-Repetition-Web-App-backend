@@ -46,7 +46,7 @@ class CardSide:
             return tag_contents.text
 
     def _get_examples(self, from_line=1) -> list[str]:
-        return list(filter(None, self.side_contents.split("\n")[from_line:]))
+        return list(filter(None, self.side_contents.splitlines()[from_line:]))
 
     @staticmethod
     def _get_filename(file_path) -> str | None:
@@ -62,7 +62,7 @@ class CardSide:
         return output[0]
 
     def _get_line(self, index) -> str | None:
-        split_contents = self.side_contents.split("\n")
+        split_contents = self.side_contents.splitlines()
         try:
             line = split_contents[index]
         except IndexError:
