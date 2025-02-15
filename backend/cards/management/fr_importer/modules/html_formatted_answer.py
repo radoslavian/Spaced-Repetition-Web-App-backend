@@ -18,7 +18,7 @@ class HTMLFormattedAnswer(Answer):
     @property
     def phonetics_block(self) -> str | None:
         phonetics_block = None
-        if self.phonetics_key and self.raw_phonetics_spelling:
+        if self.phonetics_key and self.phonetics_spelling:
             phonetics_block = (
                 f'<div class="phonetics">{self.phonetics_key} '
                 f'{self.phonetics_spelling_block}</div>')
@@ -28,24 +28,24 @@ class HTMLFormattedAnswer(Answer):
         return phonetics_block
 
     @property
-    def formatted_phonetics_spelling(self) -> str | None:
-        raw_phonetics = self.raw_phonetics_spelling
+    def phonetics_spelling(self) -> str | None:
+        raw_phonetics = super().phonetics_spelling
         formatted_phonetics = None
         if raw_phonetics is not None:
             formatted_phonetics = PhoneticsConverter(
-                self.raw_phonetics_spelling).converted_phonetics
+                raw_phonetics).converted_phonetics
         return formatted_phonetics
 
     @property
     def phonetics_spelling_block(self) -> str:
         return (f'<span class="phonetic-spelling">'
-                f'[{self.formatted_phonetics_spelling}]'
-                f'</span>' if self.raw_phonetics_spelling else None)
+                f'[{self.phonetics_spelling}]'
+                f'</span>' if self.phonetics_spelling else None)
 
     @property
     def answer(self) -> str:
         answer_div = '<div class="answer">{answer}</div>'
-        if not self.phonetics_key and self.raw_phonetics_spelling:
+        if not self.phonetics_key and self.phonetics_spelling:
             output = (super().answer + " "
                       + f"{self.phonetics_spelling_block}")
         else:

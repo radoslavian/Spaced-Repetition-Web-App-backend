@@ -37,7 +37,8 @@ class Answer(CardSide):
 
         return extracted_output
 
-    def _get_raw_phonetics(self) -> str | None:
+    @property
+    def phonetics_spelling(self) -> str | None:
         phonetics_in_answer_line = None
         output_phonetics = None
         phonetics_in_phonetics_line = \
@@ -80,5 +81,3 @@ class Answer(CardSide):
         else:
             starting_line = 1
         return super()._get_examples(starting_line)
-
-    raw_phonetics_spelling = property(_get_raw_phonetics)

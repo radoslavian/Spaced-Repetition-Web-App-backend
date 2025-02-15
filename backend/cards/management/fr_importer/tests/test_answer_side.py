@@ -146,28 +146,28 @@ class RawPhonetics(CommonCardSideTests, unittest.TestCase):
         Extracting phonetics put alongside an answer.
         """
         answer = Answer(self.phonetics_alongside_answer)
-        self.assertEqual(self.phonetics, answer.raw_phonetics_spelling)
+        self.assertEqual(self.phonetics, answer.phonetics_spelling)
 
     def test_phonetics_alongside_key(self):
         """
         Extracting phonetics put alongside a phonetics key(word).
         """
         answer = Answer(self.phonetics_alongside_key)
-        self.assertEqual(self.phonetics, answer.raw_phonetics_spelling)
+        self.assertEqual(self.phonetics, answer.phonetics_spelling)
 
     def test_no_phonetics_alongside_answer(self):
         """
         Should return 'None' if there's no phonetics alongside an answer.
         """
         answer = Answer(self.no_phonetics_alongside_answer)
-        self.assertIsNone(answer.raw_phonetics_spelling)
+        self.assertIsNone(answer.phonetics_spelling)
 
     def test_no_phonetics_alongside_key(self):
         """
         Should return 'None' if there's no phonetics alongside a phonetics key.
         """
         answer = Answer(self.no_phonetics_alongside_key)
-        self.assertIsNone(answer.raw_phonetics_spelling)
+        self.assertIsNone(answer.phonetics_spelling)
 
     def test_no_illegal_tags(self):
         """
@@ -175,7 +175,7 @@ class RawPhonetics(CommonCardSideTests, unittest.TestCase):
         <b></b><u></u>.
         """
         answer = Answer(self.phonetics_alongside_key)
-        self.assert_no_illegal_formatting_tags(answer.raw_phonetics_spelling)
+        self.assert_no_illegal_formatting_tags(answer.phonetics_spelling)
 
 
 class ExampleSentences(CommonCardSideTests, unittest.TestCase):

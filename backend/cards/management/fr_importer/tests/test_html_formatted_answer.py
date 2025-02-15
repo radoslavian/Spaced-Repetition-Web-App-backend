@@ -131,7 +131,7 @@ class FormattedPhonetics(TestCase):
 
     def test_output(self):
         answer = HTMLFormattedAnswer(self.input_answer)
-        self.assertEqual(answer.formatted_phonetics_spelling,
+        self.assertEqual(answer.phonetics_spelling,
                          self.formatted_phonetics)
 
     def test_no_phonetics(self):
@@ -139,7 +139,7 @@ class FormattedPhonetics(TestCase):
         Should return None if there's no phonetics on the card.
         """
         answer = HTMLFormattedAnswer(self.input_answer_no_phonetics)
-        self.assertIsNone(answer.formatted_phonetics_spelling)
+        self.assertIsNone(answer.phonetics_spelling)
 
 
 class OutputText(TestCase):
