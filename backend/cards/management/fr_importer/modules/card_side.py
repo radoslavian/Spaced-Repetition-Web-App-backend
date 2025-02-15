@@ -73,7 +73,8 @@ class CardSide:
         pattern = f"{character}" + "{2,}"
         return re.sub(pattern, lambda matched_text: character, text)
 
-    def _get_output_text(self) -> str:
+    @property
+    def output_text(self) -> str:
         """
         Output in html or other format - depending on implementation in
         inheriting classes.
@@ -95,8 +96,3 @@ class CardSide:
         self.image_file_path))
     sound_file_name = property(lambda self: self._get_filename(
         self.sound_file_path))
-
-    # otherwise doesn't work with inheriting classes
-    output_text = property(lambda self: self._get_output_text())
-
-

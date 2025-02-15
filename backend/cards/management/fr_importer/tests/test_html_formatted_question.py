@@ -82,7 +82,7 @@ class QuestionTextPlaceholders(TestCase):
 
 class QACardQuestionOutputText(TestCase):
     """
-    Tests Question's output - Question._get_output_text() and it's accessor -
+    Tests Question's output - Question.output_text() and it's accessor -
     Question.output_text.
     """
 

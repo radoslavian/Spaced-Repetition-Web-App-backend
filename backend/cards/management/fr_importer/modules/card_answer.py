@@ -81,7 +81,8 @@ class Answer(CardSide):
 
         return split_sentences
 
-    def _get_output_text(self) -> str:
+    @property
+    def output_text(self) -> str:
         answer_side = [self.answer_block, self.phonetics_block,
                        self.example_sentences_block]
         return "".join(filter(None, answer_side))

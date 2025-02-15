@@ -38,7 +38,8 @@ class HTMLFormattedQuestion(Question):
         lambda self: '<hr class="question-example-separating-hr"/>'
         if self.examples else None)
 
-    def _get_output_text(self) -> str:
+    @property
+    def output_text(self) -> str:
         block = [self.definition, self.question_example_separating_hr,
                  self.examples_block]
         merged_question = "".join(filter(None, block))
