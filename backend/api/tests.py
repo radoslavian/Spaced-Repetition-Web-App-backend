@@ -832,9 +832,9 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_content["count"], half_of_cards)
         self.assertFalse(response_content["results"][0]["cram_link"])
-        self.assertIn(memorized_cards[0].card.front,
+        self.assertIn(memorized_cards[0].question.front,
                       response_content["results"][0]["body"])
-        self.assertIn(memorized_cards[0].card.back,
+        self.assertIn(memorized_cards[0].question.back,
                       response_content["results"][0]["body"])
         self.assertIn("<!-- fallback card template -->",
                       response_content["results"][0]["body"])
@@ -2374,11 +2374,11 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.unselected_category = Category.objects.create(
             name="not selected category")
         for card in cards[:cards_selected_category_number]:
-            card.card.categories.set([self.selected_category])
-            card.card.save()
+            card.question.categories.set([self.selected_category])
+            card.question.save()
         for card in cards[cards_selected_category_number:]:
-            card.card.categories.set([self.unselected_category])
-            card.card.save()
+            card.question.categories.set([self.unselected_category])
+            card.question.save()
 
         expected_output = {
             str(date.today() + timedelta(days)):
