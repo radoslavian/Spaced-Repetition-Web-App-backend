@@ -63,16 +63,16 @@ class Answer(CardSide):
             return matched_phonetics[0]
         return None
 
-    def _get_answer(self):
+    @property
+    def answer(self):
+        """
+        The main answer is usually located in the first line of an answer side
+        of a card.
+        """
         phonetics_pattern = f"{self.phonetics_pattern}\s?"
         answer_line = self._get_line(0)
         no_phonetics = re.sub(phonetics_pattern, "", answer_line)
         return no_phonetics.strip()
-
-    answer = property(_get_answer,
-                      doc="The main answer is usually located in"
-                          " the first line of an answer side"
-                          " of a card.")
 
     @property
     def example_sentences(self) -> list[str]:
