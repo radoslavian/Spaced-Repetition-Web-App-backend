@@ -20,6 +20,7 @@ class CardSide:
     """
 
     def __init__(self, side_contents):
+        self.output_block = []
         self._original_side_contents = side_contents
 
     @staticmethod
@@ -76,19 +77,19 @@ class CardSide:
     @property
     def output_text(self) -> str:
         """
-        Output in html or other format - depending on implementation in
+        Outputs text in html or other format - depending on implementation in
         inheriting classes.
         """
-        pass
+        return "".join(filter(None, self.output_block))
+
+    _clean_contents = lambda self, original_contents: compose(
+        lambda acc: self._merge_characters(" ", acc),
+            self._strip_tags_except_specific,
+            self._strip_media_tags)(original_contents)
 
     @property
     def side_contents(self):
-        functions = [lambda acc: self._merge_characters(" ", acc),
-            self._strip_tags_except_specific,
-            self._strip_media_tags]
-        clean_contents = compose(*functions)
-
-        return clean_contents(self._original_side_contents)
+        return self._clean_contents(self._original_side_contents)
 
     image_file_path = property(lambda self: self._get_tag_contents("img"))
     sound_file_path = property(lambda self: self._get_tag_contents("snd"))

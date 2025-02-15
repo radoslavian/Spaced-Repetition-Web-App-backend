@@ -1,5 +1,4 @@
 import re
-from gc import is_finalized
 
 from cards.management.fr_importer.modules.card_side import CardSide
 from cards.management.fr_importer.modules.phonetics_converter import \
@@ -13,6 +12,8 @@ class Answer(CardSide):
         """
         super().__init__(answer)
         self.phonetics_pattern = r"\[.+\]"
+        self.output_block = [self.answer_block, self.phonetics_block,
+                             self.example_sentences_block]
 
     def _get_phonetics_key(self) -> str | None:
         matched_line = self._match_phonetics_line(1)
@@ -30,8 +31,8 @@ class Answer(CardSide):
                 extracted_output["phonetics"] = matched_phonetics.group(0)
                 # pattern cuts phonetics and a redundant space
                 remaining_text = re.sub(f"\s{2,}?{self.phonetics_pattern}",
-                                    "",
-                                    phonetics_line)
+                                        "",
+                                        phonetics_line)
                 if remaining_text:
                     extracted_output["remaining_text"] = remaining_text.strip()
             elif re.match(single_word, phonetics_line):
@@ -81,12 +82,6 @@ class Answer(CardSide):
 
         return split_sentences
 
-    @property
-    def output_text(self) -> str:
-        answer_side = [self.answer_block, self.phonetics_block,
-                       self.example_sentences_block]
-        return "".join(filter(None, answer_side))
-
     def _get_example_sentences_block(self):
         example_sentences = "".join(f"<p><span>{sentence}</span></p>"
                                     for sentence in self.example_sentences)
@@ -132,10 +127,11 @@ class Answer(CardSide):
                                    if self.phonetics_key else None)
     raw_phonetics_spelling = property(_get_raw_phonetics)
     formatted_phonetics_spelling = property(_get_formatted_phonetics_spelling)
-    phonetics_spelling_block = property(lambda self:
-                                        f'<span class="phonetic-spelling">'
-                                        f'[{self.formatted_phonetics_spelling}]'
-                                        f'</span>' if self.raw_phonetics_spelling else None)
+    phonetics_spelling_block = property(
+        lambda self:
+        f'<span class="phonetic-spelling">'
+        f'[{self.formatted_phonetics_spelling}]'
+        f'</span>' if self.raw_phonetics_spelling else None)
     phonetics_block = property(_get_phonetics_block)
     example_sentences = property(_get_example_sentences)
     example_sentences_block = property(_get_example_sentences_block)
