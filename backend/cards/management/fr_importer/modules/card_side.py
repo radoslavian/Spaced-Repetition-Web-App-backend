@@ -20,6 +20,8 @@ class CardSide:
     """
 
     def __init__(self, side_contents):
+        if not side_contents:
+            raise ValueError
         self.output_block = []
         self._original_side_contents = side_contents
 
