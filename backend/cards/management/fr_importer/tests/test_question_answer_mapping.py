@@ -70,7 +70,3 @@ class HTMLFormattedAnswerMapping(unittest.TestCase):
                          self.mapped_to_dict["image_file_name"])
         self.assertEqual(self.snd_filename,
                          self.mapped_to_dict["sound_file_name"])
-
-
-class CardMapping(unittest.TestCase):
-    pass
