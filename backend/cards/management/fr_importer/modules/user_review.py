@@ -76,7 +76,7 @@ class UserReview:
 
     @property
     def crammed(self):
-        if self.fr_review["gr"] < self.max_for_cram:
+        if self.grade < self.max_for_cram:
             return True
         return False
 
