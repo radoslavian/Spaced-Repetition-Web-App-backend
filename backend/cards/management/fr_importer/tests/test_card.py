@@ -9,17 +9,19 @@ class CardInstantiationAndFields(unittest.TestCase):
     def setUpClass(cls):
         cls.definition = "card definition"
         cls.answer = "card answer"
-        cls.card = HtmlFormattedCard(cls.definition, cls.answer)
+        cls.card_data = dict(question=cls.definition, answer=cls.answer)
+        cls.card = HtmlFormattedCard(cls.card_data)
 
     def test_exception(self):
         """
-        Should raise 'ValueError' if whichever __init__ argument is missing
-        or empty.
+        Should raise 'ValueError' if whichever: question or answer is empty.
         """
+        card_no_question = {**self.card_data, "question": ""}
+        card_no_answer = {**self.card_data, "answer": ""}
         self.assertRaises(ValueError, lambda: HtmlFormattedCard(
-            "question", ""))
+            card_no_answer))
         self.assertRaises(ValueError, lambda: HtmlFormattedCard(
-            "", "answer"))
+            card_no_question))
 
     def test_question_output_text(self):
         self.assertIn(self.definition, self.card.question_output_text)
@@ -31,7 +33,8 @@ class CardInstantiationAndFields(unittest.TestCase):
 class CardMapping(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.card = HtmlFormattedCard("question", "answer")
+        card_data = {"question": "question", "answer": "answer"}
+        cls.card = HtmlFormattedCard(card_data)
         cls.mapped = dict(cls.card)
         cls.expected_keys = {"output_text", "image_file_path",
                              "image_file_name", "sound_file_path",

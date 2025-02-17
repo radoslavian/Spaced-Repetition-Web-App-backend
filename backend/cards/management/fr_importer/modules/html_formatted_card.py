@@ -5,12 +5,15 @@ from cards.management.fr_importer.modules.html_formatted_question import \
 
 
 class HtmlFormattedCard:
-    def __init__(self, question_text, answer_text):
-        if not question_text or not answer_text:
+    """
+    Representation of a not yet memorized (pending) card.
+    """
+    def __init__(self, pending_card):
+        if not pending_card["question"] or not pending_card["answer"]:
             raise ValueError("missing obligatory argument: question_text or"
                              "answer_text")
-        self._question = HTMLFormattedQuestion(question_text)
-        self._answer = HTMLFormattedAnswer(answer_text)
+        self._question = HTMLFormattedQuestion(pending_card["question"])
+        self._answer = HTMLFormattedAnswer(pending_card["answer"])
 
     @property
     def question_output_text(self):
