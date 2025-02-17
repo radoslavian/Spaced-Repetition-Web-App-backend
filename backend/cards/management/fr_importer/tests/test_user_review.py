@@ -9,11 +9,11 @@ from cards.management.fr_importer.modules.user_review import UserReview
 class UserReviewTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # from the <fullrecall> opening attribute
+        # first day of your FullRecall learning (in Unix time format)
+        cls.time_of_start = 1186655166
         # input:
         cls.extracted_attributes = {
-            # from the <fullrecall> opening attribute
-            # first day of your FullRecall learning (in Unix time format)
-            "time_of_start": 1186655166,
             # <item>'s attributes:
             # id number (in fact: time of creating item in Unix time format)
             "id": 1236435838,
@@ -32,8 +32,7 @@ class UserReviewTestCase(unittest.TestCase):
             # grade (0-5; 0=the worst, 5=the best)
             "gr": 4
         }
-        time_of_start = datetime.fromtimestamp(
-            cls.extracted_attributes["time_of_start"])
+        time_of_start = datetime.fromtimestamp(cls.time_of_start)
         # output:
         cls.user_review = {
             "computed_interval": 583,
@@ -55,7 +54,7 @@ class UserReviewTestCase(unittest.TestCase):
         }
 
     def test_conversion(self):
-        review = UserReview(self.extracted_attributes)
+        review = UserReview(self.extracted_attributes, self.time_of_start)
         self.assertDictEqual({**review}, self.user_review)
 
     def test_ef_minimal(self):
@@ -64,7 +63,7 @@ class UserReviewTestCase(unittest.TestCase):
         """
         easiness = 1.8
         user_review = {**self.extracted_attributes, "ivl": 299}
-        review = UserReview(user_review)
+        review = UserReview(user_review, self.time_of_start)
         self.assertEqual(easiness, review.easiness_factor)
 
     def test_ef_average(self):
@@ -74,8 +73,10 @@ class UserReviewTestCase(unittest.TestCase):
         easiness = 2.0
         user_review_lower_bound = {**self.extracted_attributes, "ivl": 300}
         user_review_upper_bound = {**self.extracted_attributes, "ivl": 599}
-        review_lower_bound = UserReview(user_review_lower_bound)
-        review_upper_bound = UserReview(user_review_upper_bound)
+        review_lower_bound = UserReview(user_review_lower_bound,
+                                        self.time_of_start)
+        review_upper_bound = UserReview(user_review_upper_bound,
+                                        self.time_of_start)
 
         self.assertEqual(easiness, review_lower_bound.easiness_factor)
         self.assertEqual(easiness, review_upper_bound.easiness_factor)
@@ -87,8 +88,10 @@ class UserReviewTestCase(unittest.TestCase):
         easiness = 2.5
         user_review_lower_bound = {**self.extracted_attributes, "ivl": 600}
         user_review_upper_bound = {**self.extracted_attributes, "ivl": 999}
-        review_lower_bound = UserReview(user_review_lower_bound)
-        review_upper_bound = UserReview(user_review_upper_bound)
+        review_lower_bound = UserReview(user_review_lower_bound,
+                                        self.time_of_start)
+        review_upper_bound = UserReview(user_review_upper_bound,
+                                        self.time_of_start)
 
         self.assertEqual(easiness, review_lower_bound.easiness_factor)
         self.assertEqual(easiness, review_upper_bound.easiness_factor)
@@ -99,8 +102,7 @@ class UserReviewTestCase(unittest.TestCase):
         """
         easiness = 3.0
         user_review = {**self.extracted_attributes, "ivl": 1000}
-        review = UserReview(user_review)
-
+        review = UserReview(user_review, self.time_of_start)
         self.assertEqual(easiness, review.easiness_factor)
 
     def test_invalid_interval(self):
@@ -109,4 +111,5 @@ class UserReviewTestCase(unittest.TestCase):
         """
         user_review = {**self.extracted_attributes, "ivl": -10}
         self.assertRaises(ValueError,
-                          lambda: UserReview(user_review).easiness_factor)
+                          lambda: UserReview(
+                              user_review, self.time_of_start).easiness_factor)
