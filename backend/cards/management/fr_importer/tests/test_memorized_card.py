@@ -21,12 +21,13 @@ class HtmlFormattedMemorizedCardMapping(unittest.TestCase):
             "rp": 6,
             "gr": 4
         }
-        card = {
+        cls.card_details = {
             "question": "card question",
             "answer": "card answer",
             "review_details": cls.card_review_details
         }
-        cls.card = HtmlFormattedMemorizedCard(card, cls.time_of_start)
+        cls.card = HtmlFormattedMemorizedCard(
+            cls.card_details, cls.time_of_start)
         cls.card_mapped = dict(cls.card)
 
     def test_keys(self):
@@ -38,10 +39,11 @@ class HtmlFormattedMemorizedCardMapping(unittest.TestCase):
         self.assertIn("grade", self.card_mapped["review_details"])
 
     def test_values(self):
-        # a single value from each object (question, answer, user-details):
-        self.assertIn("card question",
+        # presence of a single value from each
+        # object (question, answer, user-details):
+        self.assertIn(self.card_details["question"],
                       self.card_mapped["question"]["output_text"])
-        self.assertIn("card answer",
+        self.assertIn(self.card_details["answer"],
                       self.card_mapped["answer"]["output_text"])
         self.assertEqual(self.card_review_details["gr"],
                          self.card_mapped["review_details"]["grade"])
