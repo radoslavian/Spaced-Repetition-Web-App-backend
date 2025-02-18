@@ -665,7 +665,7 @@ class CardReviewsTests(FakeUsersCards, HelpersMixin):
         first_review_obtained_data = {
             "easiness": first_review.easiness_factor,
             "last_reviewed": first_review.last_reviewed,
-            "last_comp_interval": first_review.computed_interval,
+            "last_comp_interval": first_review.current_computed_interval,
             "current_real_interval": first_review.current_real_interval,
             "repetitions": first_review.reviews,
             "next_review": first_review.review_date
@@ -704,7 +704,7 @@ class CardReviewsTests(FakeUsersCards, HelpersMixin):
                 "easiness": second_review.easiness_factor,
                 "last_reviewed": second_review.last_reviewed,
                 "grade": second_review.grade,
-                "last_comp_interval": second_review.computed_interval,
+                "last_comp_interval": second_review.current_computed_interval,
                 "repetitions": second_review.reviews,
                 "next_review": second_review.review_date,
                 "crammed": second_review.crammed
@@ -738,7 +738,7 @@ class CardReviewsTests(FakeUsersCards, HelpersMixin):
                 next_review_date = (review_data.review_date
                                     + timedelta(days=10))
                 self.assertEqual(expected_comp_intervals[i],
-                                 review_data.computed_interval)
+                                 review_data.current_computed_interval)
             i += 1
 
     def test_card_forgetting_success(self):

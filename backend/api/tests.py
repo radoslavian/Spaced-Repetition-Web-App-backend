@@ -361,7 +361,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         created_on = card.created_on \
             .isoformat().replace("+00:00", "Z")
         expected_data = {
-            "computed_interval": review_data.computed_interval,
+            "computed_interval": review_data.current_computed_interval,
             "lapses": review_data.lapses,
             "total_reviews": review_data.total_reviews,
             "last_reviewed": str(review_data.last_reviewed),

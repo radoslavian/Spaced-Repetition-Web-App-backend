@@ -48,37 +48,33 @@ class UserReview:
         return dt.fromtimestamp(self._epoch_time_of_start)
 
     @property
-    def computed_interval(self) -> int:
+    def current_computed_interval(self) -> int:
         return self._fr_review["ivl"]
 
     @property
-    def easiness_factor(self) -> float:
-        computed_interval = self.computed_interval
-        min_ef = 1.8
-        average_ef = 2.0
-        medium_ef = 2.5
-        max_ef = 3.0
-
-        invalid_interval = computed_interval < 1
-        low_interval = 0 < computed_interval < 300
-        average_interval = 300 <= computed_interval < 600
-        medium_interval = 600 <= computed_interval < 1000
-
-        if low_interval:
-            return min_ef
-        elif average_interval:
-            return average_ef
-        elif medium_interval:
-            return medium_ef
-        elif invalid_interval:
-            raise ValueError(
-                "The computed interval for the card {card} is {interval},"
-                " which is invalid!".format(card=self._fr_review["id"],
-                                            interval=self.computed_interval))
-        return max_ef
+    def last_real_interval(self) -> int:
+        return self._fr_review["rllivl"]
 
     @property
-    def crammed(self):
+    def easiness_factor(self) -> float:
+        decimal_places = 2
+        e_factor =  round(
+            self.current_computed_interval / self.last_real_interval,
+            decimal_places)
+        return self._normalize_e_factor(e_factor)
+
+    @staticmethod
+    def _normalize_e_factor(e_factor) -> float:
+        ef_max = 4.0
+        ef_min = 1.4
+        if e_factor > ef_max:
+            return ef_max
+        elif e_factor < ef_min:
+            return ef_min
+        return e_factor
+
+    @property
+    def crammed(self) -> bool:
         if self.grade < self.max_for_cram:
             return True
         return False
@@ -92,7 +88,7 @@ class UserReview:
     @property
     def values(self) -> list[Any]:
         return [
-            self.computed_interval,
+            self.current_computed_interval,
             self.lapses,
             self.reviews,
             self.total_reviews,

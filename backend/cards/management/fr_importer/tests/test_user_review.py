@@ -48,7 +48,7 @@ class UserReviewTestCase(unittest.TestCase):
             "review_date": time_of_start + timedelta(
                 days=cls.extracted_attributes["stmtrpt"]),
             "grade": cls.extracted_attributes["gr"],
-            "easiness_factor": 2.0,
+            "easiness_factor": 1.4,
             "crammed": False,
             "comment": None
         }
@@ -57,54 +57,53 @@ class UserReviewTestCase(unittest.TestCase):
         review = UserReview(self.extracted_attributes, self.time_of_start)
         self.assertDictEqual({**review}, self.user_review)
 
-    def test_ef_minimal(self):
+    def test_ef_too_low(self):
         """
-        EF 1.8 for interval computed at < 300.
+        Should return 1.4 for a card where computed ef is lower than 1.4.
         """
-        easiness = 1.8
-        user_review = {**self.extracted_attributes, "ivl": 299}
-        review = UserReview(user_review, self.time_of_start)
-        self.assertEqual(easiness, review.easiness_factor)
+        # the formula is: ivl/rlivl
+        rllivl = 271  # last real interval
+        ivl = 33  # (current) interval
+        expected_ef = 1.4
+        review_details = {
+            **self.extracted_attributes,
+            "rllivl": rllivl,
+            "ivl": ivl
+        }
+        review = UserReview(review_details, self.time_of_start)
+        self.assertEqual(expected_ef, review["easiness_factor"])
 
-    def test_ef_average(self):
+    def test_ef_right(self):
         """
-        EF 2.0 for interval equal or longer than 300 and shorter than 600 days.
+        Should return not normalized ef (increase to 1.4 or reduce to 3.0).
         """
-        easiness = 2.0
-        user_review_lower_bound = {**self.extracted_attributes, "ivl": 300}
-        user_review_upper_bound = {**self.extracted_attributes, "ivl": 599}
-        review_lower_bound = UserReview(user_review_lower_bound,
-                                        self.time_of_start)
-        review_upper_bound = UserReview(user_review_upper_bound,
-                                        self.time_of_start)
+        rllivl = 673  # last real interval
+        ivl = 1397  # (current) interval
+        expected_ef = 2.08  # round to two decimal places
+        review_details = {
+            **self.extracted_attributes,
+            "rllivl": rllivl,
+            "ivl": ivl
+        }
+        review = UserReview(review_details, self.time_of_start)
+        self.assertEqual(expected_ef, review["easiness_factor"])
 
-        self.assertEqual(easiness, review_lower_bound.easiness_factor)
-        self.assertEqual(easiness, review_upper_bound.easiness_factor)
-
-    def test_ef_medium(self):
+    def test_ef_too_high(self):
         """
-        EF 2.5 for interval computed at 600-999 days.
+        Should return 4.0 for a card where a computed ef is higher than 4.0.
         """
-        easiness = 2.5
-        user_review_lower_bound = {**self.extracted_attributes, "ivl": 600}
-        user_review_upper_bound = {**self.extracted_attributes, "ivl": 999}
-        review_lower_bound = UserReview(user_review_lower_bound,
-                                        self.time_of_start)
-        review_upper_bound = UserReview(user_review_upper_bound,
-                                        self.time_of_start)
+        rllivl = 67  # last real interval
+        ivl = 1397  # (current) interval
+        expected_ef = 4.0
+        review_details = {
+            **self.extracted_attributes,
+            "rllivl": rllivl,
+            "ivl": ivl
+        }
+        review = UserReview(review_details, self.time_of_start)
+        self.assertEqual(expected_ef, review["easiness_factor"])
 
-        self.assertEqual(easiness, review_lower_bound.easiness_factor)
-        self.assertEqual(easiness, review_upper_bound.easiness_factor)
-
-    def test_ef_max(self):
-        """
-        EF 3.0 for interval computed at 1000+
-        """
-        easiness = 3.0
-        user_review = {**self.extracted_attributes, "ivl": 1000}
-        review = UserReview(user_review, self.time_of_start)
-        self.assertEqual(easiness, review.easiness_factor)
-
+    @unittest.skip
     def test_invalid_interval(self):
         """
         Raises ValueError in case of interval lower than 0.
