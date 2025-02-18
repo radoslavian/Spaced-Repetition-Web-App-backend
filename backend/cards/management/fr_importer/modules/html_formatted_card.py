@@ -23,10 +23,12 @@ class HtmlFormattedCard:
     def answer_output_text(self):
         return self._answer.output_text
 
+    def __getitem__(self, key):
+        return dict(zip(self.keys(), self.values()))[key]
+
     @staticmethod
     def keys():
         return ["question", "answer"]
 
-    def __getitem__(self, key):
-        values = [dict(field) for field in (self._question, self._answer,)]
-        return dict(zip(self.keys(), values))[key]
+    def values(self):
+        return [dict(field) for field in (self._question, self._answer,)]
