@@ -75,9 +75,7 @@ class UserReview:
 
     @property
     def crammed(self) -> bool:
-        if self.grade < self.max_for_cram:
-            return True
-        return False
+        return self.grade < self.max_for_cram
 
     @staticmethod
     def keys() -> list[str]:
