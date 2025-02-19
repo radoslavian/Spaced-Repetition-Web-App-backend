@@ -13,24 +13,25 @@ class UserReviewTestCase(unittest.TestCase):
         # first day of your FullRecall learning (in Unix time format)
         cls.time_of_start = 1186655166
         # input:
+        # ints in xml are represented as strings
         cls.extracted_attributes = {
             # <item>'s attributes:
             # id number (in fact: time of creating item in Unix time format)
-            "id": 1236435838,
+            "id": "1236435838",
             # time to repeat
-            "tmtrpt": 6574,
+            "tmtrpt": "6574",
             # time to repeat computed on not-ahead-of-scheduled-time review
-            "stmtrpt": 6574,
+            "stmtrpt": "6574",
             # last interval computed by ANN (in days; 0-2048)
-            "livl": 1274,
+            "livl": "1274",
             # real last interval (in days; 0-2048)
-            "rllivl": 1764,
+            "rllivl": "1764",
             # interval (in days; 0-2048)
-            "ivl": 583,
+            "ivl": "583",
             # number of not-ahead-of-scheduled-time reviews (0-128)
-            "rp": 6,
+            "rp": "6",
             # grade (0-5; 0=the worst, 5=the best)
-            "gr": 4
+            "gr": "4"
         }
         time_of_start = datetime.fromtimestamp(cls.time_of_start)
         # output:
@@ -40,14 +41,14 @@ class UserReviewTestCase(unittest.TestCase):
             "reviews": 6,
             "total_reviews": 6,
             "last_reviewed": time_of_start + timedelta(
-                days=cls.extracted_attributes["stmtrpt"]) - timedelta(
-                days=cls.extracted_attributes["ivl"]),
+                days=int(cls.extracted_attributes["stmtrpt"])) - timedelta(
+                days=int(cls.extracted_attributes["ivl"])),
             "introduced_on": datetime.fromtimestamp(
-                cls.extracted_attributes["id"]),
+                int(cls.extracted_attributes["id"])),
             # actually the 'next review date'
             "review_date": time_of_start + timedelta(
-                days=cls.extracted_attributes["stmtrpt"]),
-            "grade": cls.extracted_attributes["gr"],
+                days=int(cls.extracted_attributes["stmtrpt"])),
+            "grade": int(cls.extracted_attributes["gr"]),
             "easiness_factor": 1.4,
             "crammed": False,
             "comment": None

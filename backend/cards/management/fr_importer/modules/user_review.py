@@ -10,7 +10,7 @@ class UserReview:
     """
     def __init__(self, fr_review: dict, time_of_start: int):
         self._fr_review = fr_review
-        self._epoch_time_of_start = time_of_start
+        self._epoch_time_of_start = int(time_of_start)
         self.max_for_cram = 3
 
     @property
@@ -20,46 +20,51 @@ class UserReview:
 
     @property
     def reviews(self) -> int:
-        return self._fr_review["rp"]
+        return int(self._fr_review["rp"])
 
     @property
     def total_reviews(self) -> int:
-        return self.reviews
+        return int(self.reviews)
 
     @property
     def grade(self) -> int:
-        return self._fr_review["gr"]
+        return int(self._fr_review["gr"])
 
     @property
     def review_date(self) -> datetime.datetime:
         return self.time_of_start + timedelta(
-            days=self._fr_review["stmtrpt"])
+            days=self.time_to_repeat)
+
+    @property
+    def time_to_repeat(self) -> int:
+        return int(self._fr_review["stmtrpt"])
 
     @property
     def introduced_on(self) -> datetime.datetime:
-        return dt.fromtimestamp(self._fr_review["id"])
+        return dt.fromtimestamp(int(self._fr_review["id"]))
 
     @property
     def last_reviewed(self) -> datetime.datetime:
-        return self.review_date - timedelta(days=self._fr_review["ivl"])
+        return self.review_date - timedelta(
+            days=self.computed_interval)
 
     @property
     def time_of_start(self) -> datetime.datetime:
         return dt.fromtimestamp(self._epoch_time_of_start)
 
     @property
-    def current_computed_interval(self) -> int:
-        return self._fr_review["ivl"]
+    def computed_interval(self) -> int:
+        return int(self._fr_review["ivl"])
 
     @property
     def last_real_interval(self) -> int:
-        return self._fr_review["rllivl"]
+        return int(self._fr_review["rllivl"])
 
     @property
     def easiness_factor(self) -> float:
         decimal_places = 2
         e_factor =  round(
-            self.current_computed_interval / self.last_real_interval,
+            self.computed_interval / self.last_real_interval,
             decimal_places)
         return self._normalize_e_factor(e_factor)
 
@@ -86,7 +91,7 @@ class UserReview:
     @property
     def values(self) -> list[Any]:
         return [
-            self.current_computed_interval,
+            self.computed_interval,
             self.lapses,
             self.reviews,
             self.total_reviews,
@@ -98,6 +103,9 @@ class UserReview:
             self.crammed,
             None  # comment
         ]
+
+    def __str__(self):
+        return "\n".join(f"{key}: {self[key]}" for key in self.keys())
 
     def __getitem__(self, key: str) -> dict:
         return dict(zip(self.keys(), self.values))[key]
