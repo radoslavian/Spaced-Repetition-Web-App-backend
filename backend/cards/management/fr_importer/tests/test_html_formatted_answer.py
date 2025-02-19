@@ -121,12 +121,12 @@ class FormattedPhonetics(TestCase):
             cls.img_file, cls.snd_file)
 
         cls.formatted_phonetics = (
-            '<span class="phonetics-entity" title="aʊə - our - as in sour">aʊə'
-            '</span><span class="phonetics-entity" title="əː - er - as in '
-            'nurse">əː</span><span class="phonetics-entity" title="">_</span>'
-            '<span class="phonetics-entity" title="æ - a - as in pat, attack">'
-            'æ</span><span class="phonetics-entity" title="jʊər - yoor - as in'
-            ' curious">jʊər</span><span class="phonetics-entity" title="ɡr - '
+            '<span class="phonetic-entity" title="aʊə - our - as in sour">aʊə'
+            '</span><span class="phonetic-entity" title="əː - er - as in '
+            'nurse">əː</span><span class="phonetic-entity" title="">_</span>'
+            '<span class="phonetic-entity" title="æ - a - as in pat, attack">'
+            'æ</span><span class="phonetic-entity" title="jʊər - yoor - as in'
+            ' curious">jʊər</span><span class="phonetic-entity" title="ɡr - '
             'as in green">ɡr</span>')
 
     def test_output(self):

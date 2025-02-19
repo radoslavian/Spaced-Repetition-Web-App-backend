@@ -78,6 +78,18 @@ class QuestionTextPlaceholders(TestCase):
         self.assertIn(definition_highlighted_words, self.question.definition)
         self.assertIn(example_highlighted_words, self.question.examples[0])
 
+    def test_highlighted_text_with_dots(self):
+        """
+        some [text...] and [...text...] should be highlighted.
+        """
+        question_text = "first line\nsome [text...] and [...text...]"
+        question = HTMLFormattedQuestion(question_text)
+        expected_1 = '<span class="highlighted-text">[text...]</span>'
+        expected_2 = '<span class="highlighted-text">[...text...]</span>'
+
+        self.assertIn(expected_1, question.output_text)
+        self.assertIn(expected_2, question.output_text)
+
 
 
 class QACardQuestionOutputText(TestCase):

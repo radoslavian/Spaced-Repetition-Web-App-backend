@@ -85,7 +85,7 @@ class ConvertPhoneticsTestCase(TestCase):
         lexeme = "a2(r)"
         token = Token(lexeme, description=description,
                       phonetic_character=phonetic_character)
-        expected_output = ('<span class="phonetics-entity" title="aʊə - our '
+        expected_output = ('<span class="phonetic-entity" title="aʊə - our '
                            '- as in sour">aʊə</span>')
         received_output = token.html_output
 
@@ -94,7 +94,7 @@ class ConvertPhoneticsTestCase(TestCase):
     def test_phonetics_for_unrecognized_character(self):
         lexeme = "璃"
         token = Token(lexeme, token_type="UNRECOGNIZED")
-        expected_output = ('<span class="phonetics-entity"'
+        expected_output = ('<span class="phonetic-entity"'
                            f' title="">{lexeme}</span>')
         received_output = token.html_output
 
@@ -102,7 +102,7 @@ class ConvertPhoneticsTestCase(TestCase):
 
     def test_single_character_conversion(self):
         converter = PhoneticsConverter("2")
-        expected_phonetics = ('<span class="phonetics-entity" '
+        expected_phonetics = ('<span class="phonetic-entity" '
                               'title="ə - as in another">ə</span>')
 
         self.assertEqual(converter.converted_phonetics, expected_phonetics)
@@ -111,15 +111,15 @@ class ConvertPhoneticsTestCase(TestCase):
         # actually an acceptance test
         input_phonetics = "A(e)t3Ia2(r)"
         converter = PhoneticsConverter(input_phonetics)
-        expected_html_phonetics = ('<span class="phonetics-entity" title="a -'
+        expected_html_phonetics = ('<span class="phonetic-entity" title="a -'
                                    ' as in trap">a</span><span class='
-                                   '"phonetics-entity" title="(ə) - as in '
-                                   'beaten">(ə)</span><span class="phonetics-'
+                                   '"phonetic-entity" title="(ə) - as in '
+                                   'beaten">(ə)</span><span class="phonetic-'
                                    'entity" title="tʃ - tch - as in chop,'
-                                   ' ditch">tʃ</span><span class="phonetics'
+                                   ' ditch">tʃ</span><span class="phonetic'
                                    '-entity" title="ɪ - i - as in pit, hill or'
                                    ' y - as in happy">ɪ</span>'
-                                   '<span class="phonetics-entity" title="aʊə'
+                                   '<span class="phonetic-entity" title="aʊə'
                                    ' - our - as in sour">aʊə</span>')
         self.assertEqual(converter.converted_phonetics,
                          expected_html_phonetics)

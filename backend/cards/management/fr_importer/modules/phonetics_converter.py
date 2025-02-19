@@ -243,7 +243,8 @@ class Token:
         else:
             raise InvalidTokenError
 
-    def _get_html_output(self):
+    @property
+    def html_output(self):
         if self._token_type == "UNRECOGNIZED":
             title = ""
             phonetic_character = self.lexeme
@@ -251,10 +252,8 @@ class Token:
             title = self._description
             phonetic_character = self._phonetic_character
 
-        return (f'<span class="phonetics-entity" title="{title}">'
+        return (f'<span class="phonetic-entity" title="{title}">'
                 f'{phonetic_character}</span>')
-
-    html_output = property(_get_html_output)
 
     def __str__(self):
         return " ".join(
