@@ -27,7 +27,7 @@ class UserReviewTestCase(unittest.TestCase):
             # real last interval (in days; 0-2048)
             "rllivl": "1764",
             # interval (in days; 0-2048)
-            "ivl": "583",
+            "ivl": "499",
             # number of not-ahead-of-scheduled-time reviews (0-128)
             "rp": "6",
             # grade (0-5; 0=the worst, 5=the best)
@@ -36,7 +36,7 @@ class UserReviewTestCase(unittest.TestCase):
         time_of_start = datetime.fromtimestamp(cls.time_of_start)
         # output:
         cls.user_review = {
-            "computed_interval": 583,
+            "computed_interval": 499,
             "lapses": 0,
             "reviews": 6,
             "total_reviews": 6,
@@ -103,6 +103,34 @@ class UserReviewTestCase(unittest.TestCase):
         }
         review = UserReview(review_details, self.time_of_start)
         self.assertEqual(expected_ef, review["easiness_factor"])
+
+    def test_ef_special_case(self):
+        """
+        Should return higher ef for cards with successful review and grade > 3.
+        Fr has limit of 2048 days that could be assigned to a card
+        as an interval. For this
+        reason, some cards, even with many successful reviews, will get shorter
+        new interval than the previously calculated. In order to prevent this
+        such cards should get an arbitrary Ef.
+        (Arbitrary) conditions to be met:
+        * last real interval > 1000 days
+        * current computed interval is shorter than the previous one
+        * current computed interval > 500
+        * grade is > 3 (that is, 4 or 5)
+        * number of reviews > 3
+        """
+        rllivl = 2048
+        ivl = 1694
+        expected_ef = 2.0
+        review_details = {
+            **self.extracted_attributes,
+            "rllivl": 2048,
+            "ivl": 1694,
+            "rp": 5,
+            "gr": 5
+        }
+        review = UserReview(review_details, self.time_of_start)
+        self.assertEqual(expected_ef, review.easiness_factor)
 
     @unittest.skip
     def test_invalid_interval(self):
