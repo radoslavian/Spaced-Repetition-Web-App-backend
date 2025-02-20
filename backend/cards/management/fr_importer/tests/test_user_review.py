@@ -119,8 +119,6 @@ class UserReviewTestCase(unittest.TestCase):
         * grade is > 3 (that is, 4 or 5)
         * number of reviews > 3
         """
-        rllivl = 2048
-        ivl = 1694
         expected_ef = 2.0
         review_details = {
             **self.extracted_attributes,
