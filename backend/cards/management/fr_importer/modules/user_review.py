@@ -9,9 +9,16 @@ class UserReview:
     in a local database.
     """
     def __init__(self, fr_review: dict, time_of_start: int):
-        self._fr_review = fr_review
+        self._fr_review = self.values_into_integers(fr_review)
         self._epoch_time_of_start = int(time_of_start)
         self.max_for_cram = 3
+
+    @staticmethod
+    def values_into_integers(fr_review):
+        new_review = dict()
+        for key, value in fr_review.items():
+            new_review[key] = int(value)
+        return new_review
 
     @property
     def lapses(self) -> int:
@@ -20,15 +27,15 @@ class UserReview:
 
     @property
     def reviews(self) -> int:
-        return int(self._fr_review["rp"])
+        return self._fr_review["rp"]
 
     @property
     def total_reviews(self) -> int:
-        return int(self.reviews)
+        return self.reviews
 
     @property
     def grade(self) -> int:
-        return int(self._fr_review["gr"])
+        return self._fr_review["gr"]
 
     @property
     def review_date(self) -> datetime.datetime:
@@ -37,11 +44,11 @@ class UserReview:
 
     @property
     def time_to_repeat(self) -> int:
-        return int(self._fr_review["stmtrpt"])
+        return self._fr_review["stmtrpt"]
 
     @property
     def introduced_on(self) -> datetime.datetime:
-        return dt.fromtimestamp(int(self._fr_review["id"]))
+        return dt.fromtimestamp(self._fr_review["id"])
 
     @property
     def last_reviewed(self) -> datetime.datetime:
@@ -54,11 +61,11 @@ class UserReview:
 
     @property
     def computed_interval(self) -> int:
-        return int(self._fr_review["ivl"])
+        return self._fr_review["ivl"]
 
     @property
     def last_real_interval(self) -> int:
-        return int(self._fr_review["rllivl"])
+        return self._fr_review["rllivl"]
 
     @property
     def easiness_factor(self) -> float:
