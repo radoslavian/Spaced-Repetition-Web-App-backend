@@ -40,22 +40,20 @@ class QACardQuestionFormattedFields(TestCase):
         self.assertFalse(card.examples_block)
 
 
-class QuestionTextPlaceholders(TestCase):
+class QuestionTextHighlighting(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.definition = ("definition of some [...] and "
                           "[unusual and tasty] word")
         cls.example_sentence = "example [highlighted text] of [...] sentence"
-        cls.placeholder = ('<span class="extracted-text" title="guess the '
-                           'missing part">[&hellip;]</span>')
+        cls.placeholder = '<span class="highlighted-text">[&hellip;]</span>'
         cls.question = HTMLFormattedQuestion(
             f"{cls.definition}\n{cls.example_sentence}")
 
     def test_text_placeholder(self):
         """
-        [...] in a definition and an example should be changed into:
-        <span class="extracted-text" title="guess the missing part>
-        [&hellip;]</span>
+        [...] in a definition and an example should be highlighted and
+        changed into [&hellip;]
         """
         definition_placeholder = f"definition of some {self.placeholder} and"
         example_sentence_placeholder = f"of {self.placeholder} sentence"
@@ -82,10 +80,12 @@ class QuestionTextPlaceholders(TestCase):
         """
         some [text...] and [...text...] should be highlighted.
         """
-        question_text = "first line\nsome [text...] and [...text...]"
+        question_text = ("first line\nsome [text...] and"
+                         " [...text... t...]")
         question = HTMLFormattedQuestion(question_text)
-        expected_1 = '<span class="highlighted-text">[text...]</span>'
-        expected_2 = '<span class="highlighted-text">[...text...]</span>'
+        expected_1 = '<span class="highlighted-text">[text&hellip;]</span>'
+        expected_2 = ('<span class="highlighted-text">'
+                      '[&hellip;text&hellip; t&hellip;]</span>')
 
         self.assertIn(expected_1, question.output_text)
         self.assertIn(expected_2, question.output_text)

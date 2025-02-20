@@ -11,14 +11,22 @@ class HTMLFormattedQuestion(Question):
                              self.question_example_separating_hr,
                              self.examples_block]
 
-    add_formatting = lambda self, side_contents: compose(
-        self._format_placeholder,
+    _format_text = lambda self, side_contents: compose(
+        self._change_characters_in_text,
         self._highlight_text_in_brackets
     )(side_contents)
 
+    @staticmethod
+    def _change_characters_in_text(text: str):
+        characters = [("...", "&hellip;")]
+        new_text = text[:]
+        for character in characters:
+            new_text = new_text.replace(character[0], character[1])
+        return new_text
+
     @property
     def side_contents(self):
-        return self.add_formatting(super().side_contents)
+        return self._format_text(super().side_contents)
 
     @property
     def definition(self) -> str:
@@ -48,15 +56,5 @@ class HTMLFormattedQuestion(Question):
                     f'{matched_text.group(0)}'
                     '</span>')
 
-        pattern = "\[\.*[\w\s]+\.*\]"
+        pattern = "\[[\w\s\.]+\]"
         return re.sub(pattern, replace_text_in_brackets, text)
-
-    @staticmethod
-    def _format_placeholder(text: str) -> str:
-        """
-        Adds html formatting to the '[...]' placeholder.
-        """
-        formatted_placeholder = ('<span class="extracted-text" '
-                                 'title="guess the missing part">'
-                                 '[&hellip;]</span>')
-        return re.sub("\[...\]|\[…\]", formatted_placeholder, text)
