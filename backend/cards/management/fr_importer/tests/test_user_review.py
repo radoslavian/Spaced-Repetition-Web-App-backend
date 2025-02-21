@@ -36,7 +36,7 @@ class UserReviewTestCase(unittest.TestCase):
         time_of_start = datetime.fromtimestamp(cls.time_of_start)
         # output:
         cls.user_review = {
-            "computed_interval": 499,
+            "computed_interval": timedelta(days=499),
             "lapses": 0,
             "reviews": 6,
             "total_reviews": 6,

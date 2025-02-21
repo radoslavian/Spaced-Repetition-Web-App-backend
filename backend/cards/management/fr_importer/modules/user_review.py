@@ -36,12 +36,11 @@ class UserReview:
 
     @property
     def review_date(self) -> datetime.datetime:
-        return self.time_of_start + timedelta(
-            days=self.time_to_repeat)
+        return self.time_of_start + self.time_to_repeat
 
     @property
-    def time_to_repeat(self) -> int:
-        return self._fr_review["stmtrpt"]
+    def time_to_repeat(self) -> datetime.timedelta:
+        return datetime.timedelta(days=self._fr_review["stmtrpt"])
 
     @property
     def introduced_on(self) -> datetime.datetime:
@@ -49,20 +48,19 @@ class UserReview:
 
     @property
     def last_reviewed(self) -> datetime.datetime:
-        return self.review_date - timedelta(
-            days=self.computed_interval)
+        return self.review_date - self.computed_interval
 
     @property
     def time_of_start(self) -> datetime.datetime:
         return dt.fromtimestamp(self._epoch_time_of_start)
 
     @property
-    def computed_interval(self) -> int:
-        return self._fr_review["ivl"]
+    def computed_interval(self) -> datetime.timedelta:
+        return datetime.timedelta(days=self._fr_review["ivl"])
 
     @property
-    def last_real_interval(self) -> int:
-        return self._fr_review["rllivl"]
+    def last_real_interval(self) -> datetime.timedelta:
+        return datetime.timedelta(days=self._fr_review["rllivl"])
 
     @property
     def easiness_factor(self) -> float:
@@ -76,19 +74,27 @@ class UserReview:
         ef_max = 4.0
         ef_min = 1.4
         ef_for_special_case = 2.0
-        # special case - see the test: test_user_review.test_ef_special_case
-        # for details
-        special_case = (
-                1000 < self.last_real_interval > self.computed_interval > 500
-                and self.grade > 3 and self.reviews > 3)
 
-        if special_case:
+        if self._ef_special_case():
             return ef_for_special_case
         elif new_e_factor > ef_max:
             return ef_max
         elif new_e_factor < ef_min:
             return ef_min
         return new_e_factor
+
+    def _ef_special_case(self) -> bool:
+        """
+        Special case ef - see the test: test_user_review.test_ef_special_case
+        for details.
+        """
+        max_real_interval = timedelta(days=1000)
+        min_computed_interval = timedelta(days=500)
+        special_case = (
+                max_real_interval < self.last_real_interval >
+                self.computed_interval > min_computed_interval
+                and self.grade > 3 and self.reviews > 3)
+        return special_case
 
     @property
     def crammed(self) -> bool:
