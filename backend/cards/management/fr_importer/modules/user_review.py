@@ -15,10 +15,7 @@ class UserReview:
 
     @staticmethod
     def values_into_integers(fr_review):
-        new_review = dict()
-        for key, value in fr_review.items():
-            new_review[key] = int(value)
-        return new_review
+        return {key: int(value) for key, value in fr_review.items()}
 
     @property
     def lapses(self) -> int:
