@@ -129,7 +129,7 @@ class ImportFromXPath(unittest.TestCase):
         self.items_importer = ItemsImporter("/fake/path/elements.xml")
         category_path = ("./category[@name='category_1']"
                          "/category[@name='category_2']")
-        self.items_importer.set_import_xpath(category_path)
+        self.items_importer.import_xpath = category_path
         self.items = list(self.items_importer)
 
     def test_number_of_cards(self):
@@ -153,7 +153,7 @@ class ImportFromXPath(unittest.TestCase):
         """
         Should import all cards when import xpath is explicitly set to None.
         """
-        self.items_importer.set_import_xpath(None)
+        self.items_importer.import_xpath = None
         expected_number_of_items = 3
         received_number_of_items = len(list(self.items_importer))
         self.assertEqual(expected_number_of_items, received_number_of_items)
@@ -163,6 +163,7 @@ class ImportFromXPath(unittest.TestCase):
         Should raise ValueError if path in invalid or element was not found.
         """
         invalid_xpath = "invalid/path"
-        self.assertRaises(
-            ValueError,
-            lambda: self.items_importer.set_import_xpath(invalid_xpath))
+        def set_invalid_path():
+            self.items_importer.import_xpath = invalid_xpath
+
+        self.assertRaises(ValueError, set_invalid_path)

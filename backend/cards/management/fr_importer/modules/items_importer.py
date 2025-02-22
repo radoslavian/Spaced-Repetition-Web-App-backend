@@ -22,7 +22,12 @@ class ItemsImporter:
         else:
             return self._root.find(self._import_xpath)
 
-    def set_import_xpath(self, path: str|None):
+    @property
+    def import_xpath(self) -> str|None:
+        return self._import_xpath
+
+    @import_xpath.setter
+    def import_xpath(self, path: str | None):
         if path is not None and self._root.find(path) is None:
             raise ValueError(f"Given path: {path} was not found.")
         else:
