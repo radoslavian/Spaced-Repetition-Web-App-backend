@@ -1,10 +1,12 @@
 """
 Tests for CardSide (itself tested through inheriting classes).
 """
+from pkgutil import extend_path
 from unittest import TestCase
 
 from cards.management.fr_importer.modules.card_answer import Answer
 from cards.management.fr_importer.modules.card_question import Question
+from cards.management.fr_importer.modules.card_side import CardSide
 
 
 class SoundExtractionTestCase(TestCase):
@@ -160,3 +162,26 @@ class ImageExtractionTestCase(TestCase):
     def test_Answer_image_filename_no_image_tag(self):
         item_answer = Answer(self.answer_no_image)
         self.assertEqual(None, item_answer.image_file_name)
+
+
+class ExpandingFilePath(TestCase):
+    """
+    Extending file paths (images and sounds) to get their actual location.
+    """
+    @classmethod
+    def setUpClass(cls):
+        cls.img_file = "../obrazy/chess_board.jpg"
+        cls.snd_file = "snds/we_will_not_have_written.mp3"
+        side_contents = (f"question<img>{cls.img_file}</img>"
+                         f"<snd>{cls.snd_file}</snd>")
+        cls.card_side = CardSide(side_contents)
+        cls.extending_path = "../../../../fulrec/fdb/"
+        cls.card_side.expanding_path = cls.extending_path
+
+    def test_expanding_image_path(self):
+        expanded_img_path = self.extending_path + self.img_file
+        self.assertEqual(expanded_img_path, self.card_side.image_file_path)
+
+    def test_expanding_snd_path(self):
+        expanded_snd_path = self.extending_path + self.snd_file
+        self.assertEqual(expanded_snd_path, self.card_side.sound_file_path)
