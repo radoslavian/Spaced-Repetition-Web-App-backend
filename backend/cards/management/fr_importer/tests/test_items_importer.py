@@ -167,3 +167,15 @@ class ImportFromXPath(unittest.TestCase):
             self.items_importer.import_xpath = invalid_xpath
 
         self.assertRaises(ValueError, set_invalid_path)
+
+    def test_setting_getting_import_xpath(self):
+        """
+        Setting/getting values of an import_xpath property.
+        """
+        self.items_importer.import_xpath = None
+        self.assertIsNone(self.items_importer.import_xpath)
+
+        xpath = "./category[@name='category_1']"
+        self.items_importer.import_xpath = xpath
+        self.assertEqual(xpath, self.items_importer.import_xpath)
+
