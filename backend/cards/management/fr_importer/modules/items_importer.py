@@ -10,9 +10,8 @@ class ItemsImporter:
 
     def __init__(self, path):
         self._import_xpath = None
-        self._path = path
-        self._tree = ET.parse(path)
-        self._root = self._tree.getroot()
+        tree = ET.parse(path)
+        self._root = tree.getroot()
 
     @property
     def _starting_node(self) -> Element:
