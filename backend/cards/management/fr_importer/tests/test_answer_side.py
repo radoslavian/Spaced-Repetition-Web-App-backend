@@ -1,7 +1,5 @@
 import unittest
 
-from cards.management.fr_importer.modules.phonetics_converter import \
-    PhoneticsConverter
 from cards.management.fr_importer.tests.common_card_side_tests import \
     CommonCardSideTests
 from cards.management.fr_importer.modules.card_answer import Answer
