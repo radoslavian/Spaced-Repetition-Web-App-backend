@@ -9,9 +9,23 @@ class ItemsImporter:
     Card = HtmlFormattedMemorizedCard
 
     def __init__(self, path):
+        self._import_xpath = None
         self._path = path
         self._tree = ET.parse(path)
         self._root = self._tree.getroot()
+
+    @property
+    def _starting_node(self) -> Element:
+        if self._import_xpath is None:
+            return self._root
+        else:
+            return self._root.find(self._import_xpath)
+
+    def set_import_xpath(self, path: str|None):
+        if path is not None and self._root.find(path) is None:
+            raise ValueError(f"Given path: {path} was not found.")
+        else:
+            self._import_xpath = path
 
     @property
     def time_of_start(self) -> int:
@@ -19,15 +33,14 @@ class ItemsImporter:
 
     @property
     def items(self):
-        return self._root.iter("item")
+        return self._starting_node.iter("item")
 
     def __iter__(self):
         for item in self.items:
-            formatted_card = self.convert_item_to_card(item)
+            formatted_card = self._convert_item_to_card(item)
             yield formatted_card
 
-    def convert_item_to_card(self, item: Element) \
-            -> HtmlFormattedMemorizedCard:
+    def _convert_item_to_card(self, item: Element) -> Card:
         data = {
             "question": item.find("q").text,
             "answer": item.find("a").text,

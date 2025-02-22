@@ -1,6 +1,8 @@
 import unittest
 from unittest import mock, skip
 
+from cards.management.fr_importer.modules.html_formatted_question import \
+    HTMLFormattedQuestion
 from cards.management.fr_importer.modules.items_importer import ItemsImporter
 from cards.management.fr_importer.modules.user_review import UserReview
 
@@ -119,3 +121,48 @@ class ItemLoading(unittest.TestCase):
 
         self.assertDictEqual(dict(expected_output),
                              card_dict["review_details"])
+
+
+class ImportFromXPath(unittest.TestCase):
+    @mock.patch("builtins.open", MockOpen().open)
+    def setUp(self):
+        self.items_importer = ItemsImporter("/fake/path/elements.xml")
+        category_path = ("./category[@name='category_1']"
+                         "/category[@name='category_2']")
+        self.items_importer.set_import_xpath(category_path)
+        self.items = list(self.items_importer)
+
+    def test_number_of_cards(self):
+        """
+        Should import two items from a given path.
+        """
+        expected_number_of_items = 2
+        self.assertEqual(expected_number_of_items, len(self.items))
+
+    def test_card_ids(self):
+        """
+        Should import correct items (identified by ids).
+        """
+        question_1_text = HTMLFormattedQuestion("question 2").output_text
+        question_2_text = HTMLFormattedQuestion("question 3").output_text
+        expected_items_set = {question_1_text, question_2_text}
+        items_set = {item.question_output_text for item in self.items}
+        self.assertSetEqual(expected_items_set, items_set)
+
+    def test_no_import_xpath(self):
+        """
+        Should import all cards when import xpath is explicitly set to None.
+        """
+        self.items_importer.set_import_xpath(None)
+        expected_number_of_items = 3
+        received_number_of_items = len(list(self.items_importer))
+        self.assertEqual(expected_number_of_items, received_number_of_items)
+
+    def test_invalid_xpath(self):
+        """
+        Should raise ValueError if path in invalid or element was not found.
+        """
+        invalid_xpath = "invalid/path"
+        self.assertRaises(
+            ValueError,
+            lambda: self.items_importer.set_import_xpath(invalid_xpath))
