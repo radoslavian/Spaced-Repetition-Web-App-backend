@@ -8,13 +8,13 @@ class UserReview:
     Translates the fr user review fields (from the elements.xml file) for use
     in a local database.
     """
-    def __init__(self, fr_review: dict, time_of_start: int):
-        self._fr_review = self.values_into_integers(fr_review)
+    def __init__(self, fr_review: dict, time_of_start: int|str):
+        self._fr_review = self.convert_values_into_integers(fr_review)
         self._epoch_time_of_start = int(time_of_start)
         self.max_for_cram = 3
 
     @staticmethod
-    def values_into_integers(fr_review):
+    def convert_values_into_integers(fr_review):
         return {key: int(value) for key, value in fr_review.items()}
 
     @property

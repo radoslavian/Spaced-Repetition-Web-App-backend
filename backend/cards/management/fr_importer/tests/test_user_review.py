@@ -129,13 +129,3 @@ class UserReviewTestCase(unittest.TestCase):
         }
         review = UserReview(review_details, self.time_of_start)
         self.assertEqual(expected_ef, review.easiness_factor)
-
-    @unittest.skip
-    def test_invalid_interval(self):
-        """
-        Raises ValueError in case of interval lower than 0.
-        """
-        user_review = {**self.extracted_attributes, "ivl": -10}
-        self.assertRaises(ValueError,
-                          lambda: UserReview(
-                              user_review, self.time_of_start).easiness_factor)

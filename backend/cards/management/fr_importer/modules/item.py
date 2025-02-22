@@ -1,26 +1,20 @@
-from cards.management.fr_importer.modules.card_answer import Answer
-from cards.management.fr_importer.modules.card_question import Question
-
+from xml.etree.ElementTree import Element
 
 class Item:
     """
     Processes a single 'Item' (<item></item>) from the elements.xml file.
     """
-
-    def __init__(self, item):
+    def __init__(self, item: Element):
         pass
 
-    def _extract_question(self):
+    @property
+    def question(self) -> str:
         pass
 
-    def _extract_answer(self):
+    @property
+    def answer(self) -> str:
         pass
 
-    def _get_question(self) -> Question:
+    @property
+    def review_details(self) -> dict:
         pass
-
-    def _get_answer(self) -> Answer:
-        pass
-
-    question = property(_get_question)
-    answer = property(_get_answer)
