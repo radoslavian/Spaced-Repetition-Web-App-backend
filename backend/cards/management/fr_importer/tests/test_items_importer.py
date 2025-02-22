@@ -141,7 +141,7 @@ class ImportFromXPath(unittest.TestCase):
 
     def test_card_ids(self):
         """
-        Should import correct items (identified by ids).
+        Should import correct items.
         """
         question_1_text = HTMLFormattedQuestion("question 2").output_text
         question_2_text = HTMLFormattedQuestion("question 3").output_text
