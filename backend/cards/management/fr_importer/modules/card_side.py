@@ -101,11 +101,13 @@ class CardSide:
         return ["output_text", "image_file_path", "image_file_name",
                 "sound_file_path", "sound_file_name"]
 
+    def values(self):
+        return [self.output_text, self.image_file_path,
+                self.image_file_name, self.sound_file_path,
+                self.sound_file_name]
+
     def __getitem__(self, key):
-        values = [self.output_text, self.image_file_path,
-                  self.image_file_name, self.sound_file_path,
-                  self.sound_file_name]
-        return dict(zip(self.keys(), values))[key]
+        return dict(zip(self.keys(), self.values()))[key]
 
     image_file_path = property(lambda self: self._get_tag_contents("img"))
     sound_file_path = property(lambda self: self._get_tag_contents("snd"))
