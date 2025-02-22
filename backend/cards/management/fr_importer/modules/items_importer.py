@@ -4,6 +4,8 @@ from cards.management.fr_importer.modules.html_memorized_card import \
     HtmlFormattedMemorizedCard
 import xml.etree.ElementTree as ET
 
+from cards.management.fr_importer.modules.item import Item
+
 
 class ItemsImporter:
     Card = HtmlFormattedMemorizedCard
@@ -35,14 +37,6 @@ class ItemsImporter:
         return self._starting_node.iter("item")
 
     def __iter__(self):
-        for item in self.items:
-            formatted_card = self._convert_item_to_card(item)
+        for item_element in self.items:
+            formatted_card = self.Card(Item(item_element), self.time_of_start)
             yield formatted_card
-
-    def _convert_item_to_card(self, item: Element) -> Card:
-        data = {
-            "question": item.find("q").text,
-            "answer": item.find("a").text,
-            "review_details": item.attrib
-        }
-        return self.Card(data, self.time_of_start)

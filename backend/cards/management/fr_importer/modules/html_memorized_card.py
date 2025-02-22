@@ -1,13 +1,13 @@
 from cards.management.fr_importer.modules.html_formatted_card import \
     HtmlFormattedCard
+from cards.management.fr_importer.modules.item import Item
 from cards.management.fr_importer.modules.user_review import UserReview
 
 
 class HtmlFormattedMemorizedCard(HtmlFormattedCard):
-    def __init__(self, card_details: dict, time_of_start: int):
-        card_copy = {**card_details}
-        review_details = card_copy.pop("review_details")
-        super().__init__(card_copy)
+    def __init__(self, item: dict|Item, time_of_start: int):
+        review_details = item["review_details"]
+        super().__init__(item)
         self._review_details = UserReview(review_details, time_of_start)
 
     @staticmethod
