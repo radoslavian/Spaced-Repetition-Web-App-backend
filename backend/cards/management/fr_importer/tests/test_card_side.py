@@ -200,3 +200,23 @@ class ExpandingFilePath(TestCase):
         self.card_side.expanding_path = None
         self.assertEqual(self.card_side.image_file_path, self.img_file)
         self.assertEqual(self.card_side.sound_file_path, self.snd_file)
+
+
+class ExpandingPathNoPathTags(TestCase):
+    """
+    Image/sound accessors should return None if there are no tags for paths
+    but expanding_path is set.
+    """
+    @classmethod
+    def setUpClass(cls):
+        cls.content = "question or answer"
+        cls.card_side = CardSide(cls.content)
+        cls.card_side.expanding_path = "../../../../fulrec/fdb/"
+
+    def test_no_img(self):
+        self.assertFalse(self.card_side.sound_file_path)
+        self.assertFalse(self.card_side.image_file_name)
+
+    def test_no_snd(self):
+        self.assertFalse(self.card_side.sound_file_path)
+        self.assertFalse(self.card_side.sound_file_name)
