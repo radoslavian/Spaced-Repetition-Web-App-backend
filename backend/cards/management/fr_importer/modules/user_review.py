@@ -66,9 +66,16 @@ class UserReview:
     def easiness_factor(self) -> float:
         decimal_places = 2
         e_factor =  round(
-            self.computed_interval / self.last_real_interval,
+            self.computed_interval / self._get_ef_divisor(),
             decimal_places)
         return self._normalize_e_factor(e_factor)
+
+    def _get_ef_divisor(self):
+        """
+        Divisor for calculating EF - in order to prevent division/0 error.
+        """
+        fallback_interval = 1
+        return self.last_real_interval or timedelta(days=fallback_interval)
 
     def _normalize_e_factor(self, new_e_factor) -> float:
         ef_max = 4.0

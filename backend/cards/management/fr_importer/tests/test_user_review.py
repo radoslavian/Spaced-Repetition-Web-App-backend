@@ -129,3 +129,16 @@ class UserReviewTestCase(unittest.TestCase):
         }
         review = UserReview(review_details, self.time_of_start)
         self.assertEqual(expected_ef, review.easiness_factor)
+
+    def test_interval_ef_div_by_zero(self):
+        """
+        It is possible  for the interval used for calculating EF to equal 0.
+        In this case, the interval used in a division should be set to non-zero
+        value.
+        """
+        review_details = {
+            **self.extracted_attributes,
+            "rllivl": 0
+        }
+        review = UserReview(review_details, self.time_of_start)
+        self.assertGreater(review.easiness_factor, 0)
