@@ -126,12 +126,16 @@ class CardSide:
     def sound_file_path(self):
         return self._get_expanded_path_from_tag("snd")
 
-    def _get_filepath_from_tag(self, tag):
+    def _get_filepath_from_tag(self, tag: str) -> str|None:
         return self._get_tag_contents(tag)
 
-    def _get_expanded_path_from_tag(self, tag):
+    def _get_expanded_path_from_tag(self, tag:str) -> str|None:
+        """
+        Returns path expanded with expanding_path component (if that component
+        is set), otherwise returns unexpanded path.
+        """
         file_path = self._get_filepath_from_tag(tag)
-        if self.expanding_path:
+        if self.expanding_path and file_path is not None:
             return path.join(self.expanding_path, file_path)
         return file_path
 
