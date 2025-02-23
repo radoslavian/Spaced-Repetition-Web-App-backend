@@ -2,14 +2,15 @@ import unittest
 from unittest import mock
 import xml.etree.ElementTree as ET
 
-from cards.management.fr_importer.modules.html_formatted_question import \
+from cards.management.fr_importer.items_parser.items_parser import \
+    ItemsParser as OriginalParser
+from cards.management.fr_importer.items_parser.modules.html_formatted_question import \
     HTMLFormattedQuestion
-from cards.management.fr_importer.modules.items_parser \
-    import ItemsParser as OriginalItemsParser
-from cards.management.fr_importer.modules.user_review import UserReview
+
+from cards.management.fr_importer.items_parser.modules.user_review import UserReview
 
 
-class ItemsParser(OriginalItemsParser):
+class ItemsParser(OriginalParser):
     # I changed ItemsParser to use lxml for parsing, for which
     # I don't yet know how to mock file open
     # so for the time being I have to stick with ElementTree for testing

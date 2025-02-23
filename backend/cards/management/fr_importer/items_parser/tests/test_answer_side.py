@@ -1,8 +1,8 @@
 import unittest
 
-from cards.management.fr_importer.tests.common_card_side_tests import \
+from cards.management.fr_importer.items_parser.tests.common_card_side_tests import \
     CommonCardSideTests
-from cards.management.fr_importer.modules.card_answer import Answer
+from cards.management.fr_importer.items_parser.modules.card_answer import Answer
 
 
 class GetAnswer(CommonCardSideTests, unittest.TestCase):

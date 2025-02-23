@@ -1,7 +1,7 @@
 import re
 from unittest import TestCase
 
-from cards.management.fr_importer.modules.html_formatted_question import HTMLFormattedQuestion
+from cards.management.fr_importer.items_parser.modules.html_formatted_question import HTMLFormattedQuestion
 
 
 class QACardQuestionFormattedFields(TestCase):

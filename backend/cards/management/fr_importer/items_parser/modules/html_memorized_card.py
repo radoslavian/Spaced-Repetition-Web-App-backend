@@ -1,7 +1,7 @@
-from cards.management.fr_importer.modules.html_formatted_card import \
+from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
-from cards.management.fr_importer.modules.item import Item
-from cards.management.fr_importer.modules.user_review import UserReview
+from cards.management.fr_importer.items_parser.modules.item import Item
+from cards.management.fr_importer.items_parser.modules.user_review import UserReview
 
 
 class HtmlFormattedMemorizedCard(HtmlFormattedCard):

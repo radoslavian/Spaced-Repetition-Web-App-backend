@@ -1,8 +1,8 @@
-from cards.management.fr_importer.modules.html_formatted_answer import \
+from cards.management.fr_importer.items_parser.modules.html_formatted_answer import \
     HTMLFormattedAnswer
-from cards.management.fr_importer.modules.html_formatted_question import \
+from cards.management.fr_importer.items_parser.modules.html_formatted_question import \
     HTMLFormattedQuestion
-from cards.management.fr_importer.modules.item import Item
+from cards.management.fr_importer.items_parser.modules.item import Item
 
 
 class HtmlFormattedCard:

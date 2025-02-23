@@ -1,6 +1,6 @@
 import unittest
 
-from cards.management.fr_importer.modules.html_formatted_card import \
+from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
 
 

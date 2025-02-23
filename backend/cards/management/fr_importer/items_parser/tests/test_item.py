@@ -1,7 +1,7 @@
 import unittest
 import xml.etree.ElementTree as ET
 
-from cards.management.fr_importer.modules.item import Item
+from cards.management.fr_importer.items_parser.modules.item import Item
 
 
 class ItemTestCase(unittest.TestCase):

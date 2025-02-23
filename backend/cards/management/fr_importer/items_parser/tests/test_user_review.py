@@ -1,9 +1,7 @@
-import json
-import pprint
 import unittest
 from datetime import datetime, timedelta
 
-from cards.management.fr_importer.modules.user_review import UserReview
+from cards.management.fr_importer.items_parser.modules.user_review import UserReview
 
 
 class UserReviewTestCase(unittest.TestCase):

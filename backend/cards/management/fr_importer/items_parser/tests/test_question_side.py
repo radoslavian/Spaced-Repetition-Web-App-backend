@@ -1,9 +1,7 @@
-import re
-
 from unittest import TestCase
 
-from cards.management.fr_importer.modules.card_question import Question
-from cards.management.fr_importer.tests.common_card_side_tests import \
+from cards.management.fr_importer.items_parser.modules.card_question import Question
+from cards.management.fr_importer.items_parser.tests.common_card_side_tests import \
     CommonCardSideTests
 
 

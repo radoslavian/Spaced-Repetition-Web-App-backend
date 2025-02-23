@@ -2,9 +2,9 @@ import os.path
 from os import PathLike
 from xml.etree.ElementTree import Element
 
-from cards.management.fr_importer.modules.html_memorized_card import \
+from cards.management.fr_importer.items_parser.modules.html_memorized_card import \
     HtmlFormattedMemorizedCard
-from cards.management.fr_importer.modules.item import Item
+from cards.management.fr_importer.items_parser.modules.item import Item
 from cards.utils.xml_parser import parse
 
 

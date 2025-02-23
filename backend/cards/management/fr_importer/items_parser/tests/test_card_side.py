@@ -1,12 +1,11 @@
 """
 Tests for CardSide (itself tested through inheriting classes).
 """
-from pkgutil import extend_path
 from unittest import TestCase
 
-from cards.management.fr_importer.modules.card_answer import Answer
-from cards.management.fr_importer.modules.card_question import Question
-from cards.management.fr_importer.modules.card_side import CardSide
+from cards.management.fr_importer.items_parser.modules.card_answer import Answer
+from cards.management.fr_importer.items_parser.modules.card_question import Question
+from cards.management.fr_importer.items_parser.modules.card_side import CardSide
 
 
 class SoundExtractionTestCase(TestCase):

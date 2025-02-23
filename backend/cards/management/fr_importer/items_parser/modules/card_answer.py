@@ -1,6 +1,6 @@
 import re
 
-from cards.management.fr_importer.modules.card_side import CardSide
+from cards.management.fr_importer.items_parser.modules.card_side import CardSide
 
 
 class Answer(CardSide):

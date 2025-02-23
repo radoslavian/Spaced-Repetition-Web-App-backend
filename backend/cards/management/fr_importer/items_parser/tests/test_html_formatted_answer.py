@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from cards.management.fr_importer.modules.html_formatted_answer import \
+from cards.management.fr_importer.items_parser.modules.html_formatted_answer import \
     HTMLFormattedAnswer
-from cards.management.fr_importer.modules.phonetics_converter import \
+from cards.management.fr_importer.items_parser.modules.phonetics_converter import \
     PhoneticsConverter
 
 

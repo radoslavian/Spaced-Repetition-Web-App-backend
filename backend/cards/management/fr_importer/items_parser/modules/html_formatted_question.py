@@ -1,6 +1,6 @@
 import re
 
-from cards.management.fr_importer.modules.card_question import Question
+from cards.management.fr_importer.items_parser.modules.card_question import Question
 from cards.utils.helpers import compose
 
 
