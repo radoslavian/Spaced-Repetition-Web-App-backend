@@ -8,7 +8,7 @@ from cards.management.fr_importer.modules.item import Item
 from cards.utils.xml_parser import parse
 
 
-class ItemsImporter:
+class ItemsParser:
     Card = HtmlFormattedMemorizedCard
 
     def __init__(self, path):

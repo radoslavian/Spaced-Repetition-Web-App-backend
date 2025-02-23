@@ -4,13 +4,13 @@ import xml.etree.ElementTree as ET
 
 from cards.management.fr_importer.modules.html_formatted_question import \
     HTMLFormattedQuestion
-from cards.management.fr_importer.modules.items_importer \
-    import ItemsImporter as OriginalItemsImporter
+from cards.management.fr_importer.modules.items_parser \
+    import ItemsParser as OriginalItemsParser
 from cards.management.fr_importer.modules.user_review import UserReview
 
 
-class ItemsImporter(OriginalItemsImporter):
-    # I changed ItemsImporter to use lxml for parsing, for which
+class ItemsParser(OriginalItemsParser):
+    # I changed ItemsParser to use lxml for parsing, for which
     # I don't yet know how to mock file open
     # so for the time being I have to stick with ElementTree for testing
     def __init__(self, path):
@@ -85,7 +85,7 @@ class ItemLoading(unittest.TestCase):
     @classmethod
     @mock.patch("builtins.open", MockOpen().open)
     def setUpClass(cls):
-        cls.items_importer = ItemsImporter("/fake/path/elements.xml")
+        cls.items_importer = ItemsParser("/fake/path/elements.xml")
 
     def test_time_of_start(self):
         time_of_start = 1186655166
@@ -164,7 +164,7 @@ class ImportFromXPath(unittest.TestCase):
     """
     @mock.patch("builtins.open", MockOpen().open)
     def setUp(self):
-        self.items_importer = ItemsImporter("/fake/path/elements.xml")
+        self.items_importer = ItemsParser("/fake/path/elements.xml")
         category_path = ("./category[@name='category_1']"
                          "/category[@name='category_2']")
         self.items_importer.import_xpath = category_path
