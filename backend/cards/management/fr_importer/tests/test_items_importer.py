@@ -1,10 +1,23 @@
 import unittest
-from unittest import mock, skip
+from unittest import mock
+import xml.etree.ElementTree as ET
 
 from cards.management.fr_importer.modules.html_formatted_question import \
     HTMLFormattedQuestion
-from cards.management.fr_importer.modules.items_importer import ItemsImporter
+from cards.management.fr_importer.modules.items_importer \
+    import ItemsImporter as OriginalItemsImporter
 from cards.management.fr_importer.modules.user_review import UserReview
+
+
+class ItemsImporter(OriginalItemsImporter):
+    # I changed ItemsImporter to use lxml for parsing, for which
+    # I don't yet know how to mock file open
+    # so for the time being I have to stick with ElementTree for testing
+    def __init__(self, path):
+        self._original_path = path
+        self._import_xpath = None
+        tree = ET.parse(path)  # this is different from the original __init__
+        self._root = tree.getroot()
 
 
 class MockOpen:
@@ -59,6 +72,8 @@ class MockOpen:
   </category>
 </fullrecall>
     '''
+
+
 
     def open(self, *args, **kwargs):
         if args[0] == "/fake/path/elements.xml":
@@ -201,4 +216,5 @@ class ImportFromXPath(unittest.TestCase):
         xpath = "./category[@name='category_1']"
         self.items_importer.import_xpath = xpath
         self.assertEqual(xpath, self.items_importer.import_xpath)
+
 

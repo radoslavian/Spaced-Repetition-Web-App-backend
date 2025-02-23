@@ -11,3 +11,4 @@ whitenoise==6.6.0
 gunicorn==21.2.0
 time-machine~=2.16.0
 beautifulsoup4~=4.12.3
+lxml~=5.3.1
