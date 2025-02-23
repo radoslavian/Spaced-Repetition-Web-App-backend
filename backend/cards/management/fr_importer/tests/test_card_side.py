@@ -168,15 +168,14 @@ class ExpandingFilePath(TestCase):
     """
     Extending file paths (images and sounds) to get their actual location.
     """
-    @classmethod
-    def setUpClass(cls):
-        cls.img_file = "../obrazy/chess_board.jpg"
-        cls.snd_file = "snds/we_will_not_have_written.mp3"
-        side_contents = (f"question<img>{cls.img_file}</img>"
-                         f"<snd>{cls.snd_file}</snd>")
-        cls.card_side = CardSide(side_contents)
-        cls.extending_path = "../../../../fulrec/fdb/"
-        cls.card_side.expanding_path = cls.extending_path
+    def setUp(self):
+        self.img_file = "../obrazy/chess_board.jpg"
+        self.snd_file = "snds/we_will_not_have_written.mp3"
+        side_contents = (f"question<img>{self.img_file}</img>"
+                         f"<snd>{self.snd_file}</snd>")
+        self.card_side = CardSide(side_contents)
+        self.extending_path = "../../../../fulrec/fdb/"
+        self.card_side.expanding_path = self.extending_path
 
     def test_expanding_image_path(self):
         expanded_img_path = self.extending_path + self.img_file
@@ -185,3 +184,19 @@ class ExpandingFilePath(TestCase):
     def test_expanding_snd_path(self):
         expanded_snd_path = self.extending_path + self.snd_file
         self.assertEqual(expanded_snd_path, self.card_side.sound_file_path)
+
+    def test_setting_to_empty_string(self):
+        """
+        Explicitly setting expanding_path to an empty string.
+        """
+        self.card_side.expanding_path = ""
+        self.assertEqual(self.card_side.image_file_path, self.img_file)
+        self.assertEqual(self.card_side.sound_file_path, self.snd_file)
+
+    def test_setting_none(self):
+        """
+        Explicitly setting expanding_path to None.
+        """
+        self.card_side.expanding_path = None
+        self.assertEqual(self.card_side.image_file_path, self.img_file)
+        self.assertEqual(self.card_side.sound_file_path, self.snd_file)
