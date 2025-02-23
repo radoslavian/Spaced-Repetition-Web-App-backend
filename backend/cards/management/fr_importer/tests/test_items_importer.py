@@ -121,8 +121,32 @@ class ItemLoading(unittest.TestCase):
 
         self.assertDictEqual(dict(expected_output), review_from_card)
 
+    def test_expanding_media_paths(self):
+        """
+        Media paths should be expanded according to the path to elements.xml
+        passed to the __init__().
+        """
+        card_1_expected_answer_img = "/fake/path/../obrazy/chess_board.jpg"
+        card_1_expected_answer_snd = ("/fake/path/snds/"
+                                      "english_examples_0609.mp3")
+        card_3_expected_question_img = "/fake/path/../obrazy/lang/teller.png"
+        card_3_expected_answer_snd = "/fake/path/snds/but_the_only_jobs.mp3"
+        card_1, _, card_3 = list(self.items_importer)
+
+        self.assertEqual(card_1_expected_answer_img,
+                         card_1["answer"]["image_file_path"])
+        self.assertEqual(card_1_expected_answer_snd,
+                         card_1["answer"]["sound_file_path"])
+        self.assertEqual(card_3_expected_question_img,
+                         card_3["question"]["image_file_path"])
+        self.assertEqual(card_3_expected_answer_snd,
+                         card_3["answer"]["sound_file_path"])
+
 
 class ImportFromXPath(unittest.TestCase):
+    """
+    Importing Items from a path to a category specified by an XPath.
+    """
     @mock.patch("builtins.open", MockOpen().open)
     def setUp(self):
         self.items_importer = ItemsImporter("/fake/path/elements.xml")

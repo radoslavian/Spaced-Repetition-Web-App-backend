@@ -1,3 +1,5 @@
+import os.path
+from os import PathLike
 from xml.etree.ElementTree import Element
 
 from cards.management.fr_importer.modules.html_memorized_card import \
@@ -11,9 +13,17 @@ class ItemsImporter:
     Card = HtmlFormattedMemorizedCard
 
     def __init__(self, path):
+        self._original_path = path
         self._import_xpath = None
         tree = ET.parse(path)
         self._root = tree.getroot()
+
+    @property
+    def dirname(self) -> str|PathLike:
+        """
+        Directory name of the file from which items are imported.
+        """
+        return os.path.dirname(self._original_path)
 
     @property
     def _starting_node(self) -> Element:
@@ -27,7 +37,7 @@ class ItemsImporter:
         return self._import_xpath
 
     @import_xpath.setter
-    def import_xpath(self, path: str | None):
+    def import_xpath(self, path: str|None):
         if path is not None and self._root.find(path) is None:
             raise ValueError(f"Given path: {path} was not found.")
         else:
@@ -43,5 +53,6 @@ class ItemsImporter:
 
     def __iter__(self):
         for item_element in self.items:
-            formatted_card = self.Card(Item(item_element), self.time_of_start)
-            yield formatted_card
+            card = self.Card(Item(item_element), self.time_of_start)
+            card.expanding_path = self.dirname
+            yield card
