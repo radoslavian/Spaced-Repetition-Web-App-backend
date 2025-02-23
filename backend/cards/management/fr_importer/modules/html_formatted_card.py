@@ -23,11 +23,11 @@ class HtmlFormattedCard:
         return self._expanding_path
 
     @expanding_path.setter
-    def expanding_path(self, file_path):
+    def expanding_path(self, _path):
         self._expanding_path = \
             self._question.expanding_path \
             = self._answer.expanding_path \
-            = file_path
+            = _path
 
     @property
     def question_output_text(self):
