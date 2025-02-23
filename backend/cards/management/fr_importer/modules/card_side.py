@@ -119,11 +119,11 @@ class CardSide:
         return dict(zip(self.keys(), self.values()))[key]
 
     @property
-    def image_file_path(self):
+    def image_file_path(self) -> str|None:
         return self._get_expanded_path_from_tag("img")
 
     @property
-    def sound_file_path(self):
+    def sound_file_path(self) -> str|None:
         return self._get_expanded_path_from_tag("snd")
 
     def _get_filepath_from_tag(self, tag: str) -> str|None:
