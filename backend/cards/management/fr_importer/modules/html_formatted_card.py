@@ -2,13 +2,14 @@ from cards.management.fr_importer.modules.html_formatted_answer import \
     HTMLFormattedAnswer
 from cards.management.fr_importer.modules.html_formatted_question import \
     HTMLFormattedQuestion
+from cards.management.fr_importer.modules.item import Item
 
 
 class HtmlFormattedCard:
     """
     Representation of a not yet memorized (pending) card.
     """
-    def __init__(self, pending_card):
+    def __init__(self, pending_card: dict|Item):
         if not pending_card["question"] or not pending_card["answer"]:
             raise ValueError("missing obligatory argument: question_text or"
                              "answer_text")
