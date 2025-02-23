@@ -4,9 +4,8 @@ from xml.etree.ElementTree import Element
 
 from cards.management.fr_importer.modules.html_memorized_card import \
     HtmlFormattedMemorizedCard
-from lxml import etree
-
 from cards.management.fr_importer.modules.item import Item
+from cards.utils.xml_parser import parse
 
 
 class ItemsImporter:
@@ -15,7 +14,7 @@ class ItemsImporter:
     def __init__(self, path):
         self._original_path = path
         self._import_xpath = None
-        tree = etree.parse(path, parser=etree.XMLParser(recover=True))
+        tree = parse(path)
         self._root = tree.getroot()
 
     @property

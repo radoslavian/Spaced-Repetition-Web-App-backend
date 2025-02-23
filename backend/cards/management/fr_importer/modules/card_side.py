@@ -5,11 +5,11 @@ as method/field signatures implemented in concrete classes.
 """
 
 from os import path, PathLike
-from xml.etree import ElementTree as ET
 import re
 
 from bs4 import BeautifulSoup
 
+from cards.utils.xml_parser import from_string
 from cards.utils.helpers import compose
 
 
@@ -43,8 +43,7 @@ class CardSide:
         contains only relative paths to media files) - without expanding it
         into an absolute path.
         """
-        tag_contents = ET.fromstring(
-            f"<root>{self._original_side_contents}</root>").find(tag)
+        tag_contents = from_string(self._original_side_contents).find(tag)
         if tag_contents is not None:
             return tag_contents.text
 
