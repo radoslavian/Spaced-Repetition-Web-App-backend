@@ -107,7 +107,7 @@ class ItemLoading(unittest.TestCase):
 
     def test_review_details(self):
         card = next(iter(self.items_importer))
-        card_dict = dict(card)
+        review_from_card = dict(card)["review_details"]
         review_details = dict(id="1254521103",
                                tmtrpt="6411",
                                stmtrpt="6411",
@@ -119,8 +119,7 @@ class ItemLoading(unittest.TestCase):
         time_of_start = "1186655166"
         expected_output = UserReview(review_details, time_of_start)
 
-        self.assertDictEqual(dict(expected_output),
-                             card_dict["review_details"])
+        self.assertDictEqual(dict(expected_output), review_from_card)
 
 
 class ImportFromXPath(unittest.TestCase):
@@ -149,14 +148,14 @@ class ImportFromXPath(unittest.TestCase):
         items_set = {item.question_output_text for item in self.items}
         self.assertSetEqual(expected_items_set, items_set)
 
-    def test_no_import_xpath(self):
+    def test_xpath_set_to_none(self):
         """
         Should import all cards when import xpath is explicitly set to None.
         """
         self.items_importer.import_xpath = None
-        expected_number_of_items = 3
-        received_number_of_items = len(list(self.items_importer))
-        self.assertEqual(expected_number_of_items, received_number_of_items)
+        expected_number_of_cards = 3
+        received_number_of_cards = len(list(self.items_importer))
+        self.assertEqual(expected_number_of_cards, received_number_of_cards)
 
     def test_invalid_xpath(self):
         """
