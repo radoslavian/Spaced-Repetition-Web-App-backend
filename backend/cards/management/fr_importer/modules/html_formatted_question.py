@@ -56,5 +56,5 @@ class HTMLFormattedQuestion(Question):
                     f'{matched_text.group(0)}'
                     '</span>')
 
-        pattern = "\[[\w\s\.]+\]"
+        pattern = "\[[\w\s\.-]+\]"
         return re.sub(pattern, replace_text_in_brackets, text)

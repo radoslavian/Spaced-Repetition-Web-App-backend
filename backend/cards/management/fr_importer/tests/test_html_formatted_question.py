@@ -44,7 +44,7 @@ class QuestionTextHighlighting(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.definition = ("definition of some [...] and "
-                          "[unusual and tasty] word")
+                          "[unusual and - tasty] word")
         cls.example_sentence = "example [highlighted text] of [...] sentence"
         cls.placeholder = '<span class="highlighted-text">[&hellip;]</span>'
         cls.question = HTMLFormattedQuestion(
@@ -68,7 +68,7 @@ class QuestionTextHighlighting(TestCase):
         <span class="highlighted-text">[other text]</span>
         """
         definition_highlighted_words = ('and <span class="highlighted-text">'
-                                      '[unusual and tasty]</span> word')
+                                      '[unusual and - tasty]</span> word')
         example_highlighted_words = (
             'example <span class="highlighted-text">[highlighted '
             'text]</span> of')
