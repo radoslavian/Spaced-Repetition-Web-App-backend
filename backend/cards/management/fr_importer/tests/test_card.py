@@ -61,3 +61,49 @@ class CardMapping(unittest.TestCase):
     def test_answer_output_text(self):
         self.assertEqual(self.card.answer_output_text,
                          self.mapped["answer"]["output_text"])
+
+
+class PathExpanding(unittest.TestCase):
+    def setUp(self):
+        self.img_file_question = "../obrazy/chess_board.jpg"
+        self.img_file_answer = "../obrazy/letter.png"
+        self.snd_file_question = "snds/we_will_not_have_written.mp3"
+        self.snd_file_answer = "snds/We_will_not_have_written.mp3"
+        question_side = (f"question<img>{self.img_file_question}</img>"
+                         f"<snd>{self.snd_file_question}</snd>")
+        answer_side = (f"question<img>{self.img_file_answer}</img>"
+                       f"<snd>{self.snd_file_answer}</snd>")
+        self.expanding_path = "../../../../fulrec/fdb/"
+
+        self.card = HtmlFormattedCard({"question": question_side,
+                                      "answer": answer_side})
+        self.card.expanding_path = self.expanding_path
+
+    def test_question(self):
+        expanded_image_path = self.expanding_path + self.img_file_question
+        expanded_sound_path = self.expanding_path + self.snd_file_question
+
+        self.assertEqual(expanded_image_path,
+                         self.card["question"]["image_file_path"])
+        self.assertEqual(expanded_sound_path,
+                         self.card["question"]["sound_file_path"])
+
+    def test_answer(self):
+        expanded_image_path = self.expanding_path + self.img_file_answer
+        expanded_sound_path = self.expanding_path + self.snd_file_answer
+
+        self.assertEqual(expanded_image_path,
+                         self.card["answer"]["image_file_path"])
+        self.assertEqual(expanded_sound_path,
+                         self.card["answer"]["sound_file_path"])
+
+    def test_explicit_none(self):
+        """
+        Explicitly setting expanding path to None.
+        """
+        # tests only one field from question and answer
+        self.card.expanding_path = None
+        self.assertEqual(self.img_file_question,
+                         self.card["question"]["image_file_path"])
+        self.assertEqual(self.img_file_answer,
+                         self.card["answer"]["image_file_path"])
