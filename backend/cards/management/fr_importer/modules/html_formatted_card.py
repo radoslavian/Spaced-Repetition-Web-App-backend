@@ -23,7 +23,7 @@ class HtmlFormattedCard:
         return self._expanding_path
 
     @expanding_path.setter
-    def expanding_path(self, _path):
+    def expanding_path(self, _path: str|None):
         self._expanding_path = \
             self._question.expanding_path \
             = self._answer.expanding_path \
