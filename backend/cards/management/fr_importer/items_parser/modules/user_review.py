@@ -35,32 +35,32 @@ class UserReview:
         return self._fr_review["gr"]
 
     @property
-    def review_date(self) -> datetime.datetime:
+    def review_date(self) -> datetime:
         return self.time_of_start + self.time_to_repeat
 
     @property
-    def time_to_repeat(self) -> datetime.timedelta:
-        return datetime.timedelta(days=self._fr_review["stmtrpt"])
+    def time_to_repeat(self) -> timedelta:
+        return timedelta(days=self._fr_review["stmtrpt"])
 
     @property
-    def introduced_on(self) -> datetime.datetime:
+    def introduced_on(self) -> datetime:
         return dt.fromtimestamp(self._fr_review["id"])
 
     @property
-    def last_reviewed(self) -> datetime.datetime:
+    def last_reviewed(self) -> datetime:
         return self.review_date - self.computed_interval
 
     @property
-    def time_of_start(self) -> datetime.datetime:
+    def time_of_start(self) -> datetime:
         return dt.fromtimestamp(self._epoch_time_of_start)
 
     @property
-    def computed_interval(self) -> datetime.timedelta:
-        return datetime.timedelta(days=self._fr_review["ivl"])
+    def computed_interval(self) -> timedelta:
+        return timedelta(days=self._fr_review["ivl"])
 
     @property
-    def last_real_interval(self) -> datetime.timedelta:
-        return datetime.timedelta(days=self._fr_review["rllivl"])
+    def last_real_interval(self) -> timedelta:
+        return timedelta(days=self._fr_review["rllivl"])
 
     @property
     def easiness_factor(self) -> float:
@@ -79,8 +79,8 @@ class UserReview:
 
     def _normalize_e_factor(self, new_e_factor) -> float:
         ef_max = 4.0
-        ef_min = 1.4
-        ef_for_special_case = 2.0
+        ef_min = 1.5
+        ef_for_special_case = 2.3
 
         if self._ef_special_case():
             return ef_for_special_case
