@@ -47,7 +47,7 @@ class UserReviewTestCase(unittest.TestCase):
             "review_date": time_of_start + timedelta(
                 days=int(cls.extracted_attributes["stmtrpt"])),
             "grade": int(cls.extracted_attributes["gr"]),
-            "easiness_factor": 1.4,
+            "easiness_factor": 1.5,
             "crammed": False,
             "comment": None
         }
@@ -58,12 +58,12 @@ class UserReviewTestCase(unittest.TestCase):
 
     def test_ef_too_low(self):
         """
-        Should return 1.4 for a card where computed ef is lower than 1.4.
+        Should return 1.5 for a card where computed ef is lower than 1.5.
         """
         # the formula is: ivl/rlivl
         rllivl = 271  # last real interval
         ivl = 33  # (current) interval
-        expected_ef = 1.4
+        expected_ef = 1.5
         review_details = {
             **self.extracted_attributes,
             "rllivl": rllivl,
@@ -117,7 +117,7 @@ class UserReviewTestCase(unittest.TestCase):
         * grade is > 3 (that is, 4 or 5)
         * number of reviews > 3
         """
-        expected_ef = 2.0
+        expected_ef = 2.3
         review_details = {
             **self.extracted_attributes,
             "rllivl": 2048,
