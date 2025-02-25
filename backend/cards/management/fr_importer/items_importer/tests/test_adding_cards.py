@@ -4,23 +4,22 @@ from cards.management.fr_importer.items_importer.modules.imported_card import \
     ImportedCard
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
-from cards.models import Card
+from cards.models import Card, CardTemplate
 
 
 class AddingBasicCard(TestCase):
     """
     Adding a card (no template, no files) - just a question and answer.
     """
-    @classmethod
-    def setUpTestData(cls):
+    def setUp(self):
         question = "card question"
         answer = "card answer"
-        cls.formatted_card = HtmlFormattedCard({"question": question,
+        self.formatted_card = HtmlFormattedCard({"question": question,
                                                 "answer": answer})
-        cls.imported_card = ImportedCard(cls.formatted_card)
-        cls.imported_card.save()
-        cls.queried_cards = Card.objects.all()
-        cls.queried_card = Card.objects.first()
+        self.imported_card = ImportedCard(self.formatted_card)
+        self.imported_card.save()
+        self.queried_cards = Card.objects.all()
+        self.queried_card = Card.objects.first()
 
     def test_one_card_created(self):
         self.assertEqual(len(self.queried_cards), 1)
@@ -40,3 +39,14 @@ class AddingBasicCard(TestCase):
     def test_no_images(self):
         self.assertFalse(self.queried_card.front_images)
         self.assertFalse(self.queried_card.back_images)
+
+    def test_add_template(self):
+        """
+        Adding template to the card.
+        """
+        template = CardTemplate()
+        template.save()
+        self.imported_card.set_template(template)
+        self.queried_card.refresh_from_db()
+
+        self.assertEqual(self.queried_card.template_id, template.id)

@@ -2,7 +2,7 @@ from cards.management.fr_importer.items_parser.modules.html_formatted_card impor
     HtmlFormattedCard
 from cards.management.fr_importer.items_parser.modules.html_memorized_card import \
     HtmlFormattedMemorizedCard
-from cards.models import Card
+from cards.models import Card, CardTemplate
 
 
 class ImportedCard:
@@ -12,4 +12,8 @@ class ImportedCard:
                          back=card_object.answer_output_text)
 
     def save(self):
+        self.card.save()
+
+    def set_template(self, template: CardTemplate):
+        self.card.template = template
         self.card.save()
