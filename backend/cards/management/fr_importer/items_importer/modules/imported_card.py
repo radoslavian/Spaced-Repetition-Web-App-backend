@@ -10,11 +10,11 @@ from cards.models import Card, CardTemplate
 class ImportedCard:
     def __init__(self, card_object: HtmlFormattedCard
                                     | HtmlFormattedMemorizedCard):
-        self.card = Card(front=card_object.question_output_text,
-                         back=card_object.answer_output_text)
+        self._card = Card(front=card_object.question_output_text,
+                          back=card_object.answer_output_text)
 
     def save(self):
-        self.card.save()
+        self._card.save()
 
     def set_template_by_uuid(self, template_id: UUID|str):
         template = CardTemplate.objects.get(id=template_id)
@@ -25,5 +25,4 @@ class ImportedCard:
         self.set_template(template)
 
     def set_template(self, template: CardTemplate):
-        self.card.template = template
-        self.card.save()
+        self._card.template = template

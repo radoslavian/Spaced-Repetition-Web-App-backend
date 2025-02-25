@@ -54,25 +54,28 @@ class SettingTemplate(TestCase):
         self.template_title = "very odd title of a template"
         self.template = CardTemplate(title=self.template_title)
         self.template.save()
-        self.another_template = CardTemplate(title="another template")
+        CardTemplate(title="another template").save()
 
     def test_add_template(self):
         """
         Adding template to the card.
         """
         self.imported_card.set_template(self.template)
+        self.imported_card.save()
         card = Card.objects.first()
         self.assertEqual(card.template_id, self.template.id)
 
     def test_add_template_by_uuid(self):
         template_uuid = self.template.id
         self.imported_card.set_template_by_uuid(template_uuid)
+        self.imported_card.save()
         card = Card.objects.first()
         self.assertEqual(card.template_id, template_uuid)
 
     def test_add_template_by_uuid_string(self):
         template_uuid_string = str(self.template.id)
         self.imported_card.set_template_by_uuid(template_uuid_string)
+        self.imported_card.save()
         card = Card.objects.first()
         self.assertEqual(card.template_id, self.template.id)
 
@@ -90,6 +93,7 @@ class SettingTemplate(TestCase):
         Adding template by template title.
         """
         self.imported_card.set_template_by_title(self.template_title)
+        self.imported_card.save()
         card = Card.objects.first()
         self.assertEqual(card.template_id, self.template.id)
 
