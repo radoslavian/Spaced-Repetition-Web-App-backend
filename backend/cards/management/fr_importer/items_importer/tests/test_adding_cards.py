@@ -51,8 +51,10 @@ class SettingTemplate(TestCase):
             {"question": "q", "answer": "a"})
         self.imported_card = ImportedCard(self.formatted_card)
         self.imported_card.save()
-        self.template = CardTemplate()
+        self.template_title = "very odd title of a template"
+        self.template = CardTemplate(title=self.template_title)
         self.template.save()
+        self.another_template = CardTemplate(title="another template")
 
     def test_add_template(self):
         """
@@ -81,4 +83,20 @@ class SettingTemplate(TestCase):
         template_uuid = uuid.uuid4()
         raise_error = lambda: (
             self.imported_card.set_template_by_uuid(template_uuid))
+        self.assertRaises(ObjectDoesNotExist, raise_error)
+
+    def test_add_template_by_title(self):
+        """
+        Adding template by template title.
+        """
+        self.imported_card.set_template_by_title(self.template_title)
+        card = Card.objects.first()
+        self.assertEqual(card.template_id, self.template.id)
+
+    def test_add_template_wrong_title(self):
+        """
+        Should raise exception if template (searched by a title) was not found.
+        """
+        raise_error = lambda: self.imported_card.set_template_by_title(
+            "no title, even fake one")
         self.assertRaises(ObjectDoesNotExist, raise_error)

@@ -20,6 +20,10 @@ class ImportedCard:
         template = CardTemplate.objects.get(id=template_id)
         self.set_template(template)
 
+    def set_template_by_title(self, exact_template_title):
+        template = CardTemplate.objects.get(title=exact_template_title)
+        self.set_template(template)
+
     def set_template(self, template: CardTemplate):
         self.card.template = template
         self.card.save()
