@@ -21,7 +21,7 @@ class ImportedCard:
         self.set_template(template)
 
     def set_template_by_title(self, exact_template_title: str):
-        template = CardTemplate.objects.get(title=exact_template_title)
+        template = CardTemplate.objects.get(title__exact=exact_template_title)
         self.set_template(template)
 
     def set_template(self, template: CardTemplate):
