@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
 from cards.management.fr_importer.items_parser.modules.html_memorized_card import \
@@ -13,6 +15,10 @@ class ImportedCard:
 
     def save(self):
         self.card.save()
+
+    def set_template_by_uuid(self, template_id: UUID|str):
+        template = CardTemplate.objects.get(id=template_id)
+        self.set_template(template)
 
     def set_template(self, template: CardTemplate):
         self.card.template = template

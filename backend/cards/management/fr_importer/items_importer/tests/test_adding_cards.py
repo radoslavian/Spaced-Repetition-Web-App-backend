@@ -1,4 +1,7 @@
+import uuid
+
 from django.test import TestCase
+from django.core.exceptions import ObjectDoesNotExist
 
 from cards.management.fr_importer.items_importer.modules.imported_card import \
     ImportedCard
@@ -11,15 +14,16 @@ class AddingBasicCard(TestCase):
     """
     Adding a card (no template, no files) - just a question and answer.
     """
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         question = "card question"
         answer = "card answer"
-        self.formatted_card = HtmlFormattedCard({"question": question,
+        cls.formatted_card = HtmlFormattedCard({"question": question,
                                                 "answer": answer})
-        self.imported_card = ImportedCard(self.formatted_card)
-        self.imported_card.save()
-        self.queried_cards = Card.objects.all()
-        self.queried_card = Card.objects.first()
+        cls.imported_card = ImportedCard(cls.formatted_card)
+        cls.imported_card.save()
+        cls.queried_cards = Card.objects.all()
+        cls.queried_card = Card.objects.first()
 
     def test_one_card_created(self):
         self.assertEqual(len(self.queried_cards), 1)
@@ -40,13 +44,41 @@ class AddingBasicCard(TestCase):
         self.assertFalse(self.queried_card.front_images)
         self.assertFalse(self.queried_card.back_images)
 
+
+class SettingTemplate(TestCase):
+    def setUp(self):
+        self.formatted_card = HtmlFormattedCard(
+            {"question": "q", "answer": "a"})
+        self.imported_card = ImportedCard(self.formatted_card)
+        self.imported_card.save()
+        self.template = CardTemplate()
+        self.template.save()
+
     def test_add_template(self):
         """
         Adding template to the card.
         """
-        template = CardTemplate()
-        template.save()
-        self.imported_card.set_template(template)
-        self.queried_card.refresh_from_db()
+        self.imported_card.set_template(self.template)
+        card = Card.objects.first()
+        self.assertEqual(card.template_id, self.template.id)
 
-        self.assertEqual(self.queried_card.template_id, template.id)
+    def test_add_template_by_uuid(self):
+        template_uuid = self.template.id
+        self.imported_card.set_template_by_uuid(template_uuid)
+        card = Card.objects.first()
+        self.assertEqual(card.template_id, template_uuid)
+
+    def test_add_template_by_uuid_string(self):
+        template_uuid_string = str(self.template.id)
+        self.imported_card.set_template_by_uuid(template_uuid_string)
+        card = Card.objects.first()
+        self.assertEqual(card.template_id, self.template.id)
+
+    def test_raises_wrong_template_uuid(self):
+        """
+        Should raise exception if template was not found.
+        """
+        template_uuid = uuid.uuid4()
+        raise_error = lambda: (
+            self.imported_card.set_template_by_uuid(template_uuid))
+        self.assertRaises(ObjectDoesNotExist, raise_error)
