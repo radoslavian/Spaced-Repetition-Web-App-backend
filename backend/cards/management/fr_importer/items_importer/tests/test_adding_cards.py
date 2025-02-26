@@ -164,9 +164,9 @@ class SettingCategory(TestCase):
 
     def test_raises_invalid_argument(self):
         """
-        Raises value error if incorrect argument is passed.
+        Raises ValueError if incorrect argument is passed.
         """
-        incorrect_category = [1]
-        raise_error = lambda: self.imported_card.set_categories(
-            incorrect_category)
-        self.assertRaises(ValueError, raise_error)
+        invalid_category = [1]
+        expected_message = "Invalid argument for setting categories."
+        with self.assertRaisesMessage(ValueError, expected_message):
+            self.imported_card.set_categories(invalid_category)
