@@ -223,7 +223,7 @@ class CramQueue(ListAPIView):
             response = Response(serialized_data)
             response["Location"] = reverse(
                 "cram_single_card",
-                kwargs={"card_pk": card_review_data.question.id,
+                kwargs={"card_pk": card_review_data.card.id,
                         "user_id": card_review_data.user.id})
         return response
 
@@ -385,8 +385,8 @@ class GeneralStatistics(APIView):
             furthest_scheduled_card_data = None
         else:
             furthest_scheduled_card_data = {
-                "card_id": furthest_scheduled_card.question.id,
-                "card_title": str(furthest_scheduled_card.question),
+                "card_id": furthest_scheduled_card.card.id,
+                "card_title": str(furthest_scheduled_card.card),
                 "review_date": furthest_scheduled_card.review_date
             }
         return furthest_scheduled_card_data

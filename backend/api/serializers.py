@@ -54,17 +54,17 @@ class CrammedCardReviewDataSerializer(ModelSerializer):
 
     @staticmethod
     def get_front_audio(obj):
-        if obj.question.front_audio:
-            return obj.question.front_audio.sound_file.url
+        if obj.card.front_audio:
+            return obj.card.front_audio.sound_file.url
 
     @staticmethod
     def get_back_audio(obj):
-        if obj.question.back_audio:
-            return obj.question.back_audio.sound_file.url
+        if obj.card.back_audio:
+            return obj.card.back_audio.sound_file.url
 
     def get_body(self, obj):
         request = self.context.get("request")
-        return get_card_body(obj.question, request)
+        return get_card_body(obj.card, request)
 
     @staticmethod
     def get_cram_link(obj):
@@ -72,7 +72,7 @@ class CrammedCardReviewDataSerializer(ModelSerializer):
         cram-queued and which in turn may be used for removing card from cram.
         """
         return reverse("cram_single_card",
-                       kwargs={"card_pk": obj.question.id,
+                       kwargs={"card_pk": obj.card.id,
                                "user_id": obj.user.id})
 
     class Meta:
@@ -92,7 +92,7 @@ class CardReviewDataSerializer(CrammedCardReviewDataSerializer):
         """Returns reviews simulation for currently scheduled cards only.
         """
         if obj.current_real_interval > 0:
-            return obj.question.simulate_reviews(user=obj.user)
+            return obj.card.simulate_reviews(user=obj.user)
 
     def get_cram_link(self, obj):
         if not obj.crammed:
