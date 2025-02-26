@@ -48,19 +48,25 @@ class UserReview:
 
     @property
     def last_reviewed(self) -> datetime:
-        return self.review_date - self.computed_interval
+        return self.review_date - timedelta(days=self.computed_interval)
 
     @property
     def time_of_start(self) -> datetime:
         return dt.fromtimestamp(self._epoch_time_of_start)
 
     @property
-    def computed_interval(self) -> timedelta:
-        return timedelta(days=self._fr_review["ivl"])
+    def computed_interval(self) -> int:
+        """
+        Computed interval in days.
+        """
+        return self._fr_review["ivl"]
 
     @property
-    def last_real_interval(self) -> timedelta:
-        return timedelta(days=self._fr_review["rllivl"])
+    def last_real_interval(self) -> int:
+        """
+        Interval in days.
+        """
+        return self._fr_review["rllivl"]
 
     @property
     def easiness_factor(self) -> float:
@@ -70,12 +76,12 @@ class UserReview:
             decimal_places)
         return self._normalize_e_factor(e_factor)
 
-    def _get_ef_divisor(self):
+    def _get_ef_divisor(self) -> int:
         """
         Divisor for calculating EF - in order to prevent division/0 error.
         """
         fallback_interval = 1
-        return self.last_real_interval or timedelta(days=fallback_interval)
+        return self.last_real_interval or fallback_interval
 
     def _normalize_e_factor(self, new_e_factor) -> float:
         ef_max = 4.0
@@ -95,8 +101,8 @@ class UserReview:
         Special case ef - see the test: test_user_review.test_ef_special_case
         for details.
         """
-        max_real_interval = timedelta(days=1000)
-        min_computed_interval = timedelta(days=500)
+        max_real_interval = 1000
+        min_computed_interval = 500
         special_case = (
                 max_real_interval < self.last_real_interval >
                 self.computed_interval > min_computed_interval

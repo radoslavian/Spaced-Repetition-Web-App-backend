@@ -36,7 +36,7 @@ class ImportedMemorizedCard(ImportedCard):
         """
         # CardUserData.computed_interval type has to be changed
         # into DurationField.
-        computed_interval_days = int(user_review["computed_interval"].days)
+        computed_interval_days = user_review["computed_interval"]
         review_details = {**user_review,
                           "computed_interval": computed_interval_days}
         return review_details
