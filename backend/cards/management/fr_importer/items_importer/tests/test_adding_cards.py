@@ -1,5 +1,4 @@
 import uuid
-from tkinter.font import names
 
 from django.test import TestCase
 from django.core.exceptions import ObjectDoesNotExist

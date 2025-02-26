@@ -1,9 +1,5 @@
-import uuid
 from typing import Sequence
-from unicodedata import category
 from uuid import UUID
-
-from django.core.exceptions import ObjectDoesNotExist
 
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
