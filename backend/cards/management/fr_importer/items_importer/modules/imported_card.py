@@ -1,10 +1,15 @@
+import uuid
+from typing import Sequence
+from unicodedata import category
 from uuid import UUID
+
+from django.core.exceptions import ObjectDoesNotExist
 
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
 from cards.management.fr_importer.items_parser.modules.html_memorized_card import \
     HtmlFormattedMemorizedCard
-from cards.models import Card, CardTemplate
+from cards.models import Card, CardTemplate, Category
 
 
 class ImportedCard:
@@ -26,3 +31,19 @@ class ImportedCard:
 
     def set_template(self, template: CardTemplate):
         self._card.template = template
+
+    def set_categories(self, categories: Sequence[Category|UUID|str]):
+        _categories = [self._match_category(_category)
+                       for _category in categories]
+        self._card.categories.set(_categories)
+
+    @staticmethod
+    def _match_category(_category: Category | UUID | str):
+        match _category:
+            case UUID() | str():
+                return Category.objects.get(id=_category)
+            case Category():
+                return _category
+            case _:
+                raise ValueError("Invalid argument for setting categories.")
+
