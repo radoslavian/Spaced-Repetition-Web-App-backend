@@ -76,7 +76,7 @@ class CardUserData(models.Model):
     # cards memorization rate (value in days)
     MAX_DISTRIBUTION_RANGE = 31
 
-    def _set_crammed(self, status: bool = False):
+    def _set_crammed(self, status: bool=False):
         if self.crammed != status:
             self.crammed = status
             self.save()
