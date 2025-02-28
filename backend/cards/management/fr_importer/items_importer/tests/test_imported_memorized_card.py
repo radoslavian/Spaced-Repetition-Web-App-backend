@@ -110,17 +110,17 @@ class CramTestCase(TestCase):
         cls.user = User(username="user")
         cls.user.save()
         cls.time_of_start = 1186655166
+        cls.card_data = {
+            "question": "question",
+            "answer": "answer",
+            "review_details": cls.card_review_details
+        }
 
     def test_crammed_false(self):
         """
-        Shouldn't be added to the cram queue.
+        Card with grade > 3 shouldn't be crammed.
         """
-        card_data = {
-            "question": "question",
-            "answer": "answer",
-            "review_details": self.card_review_details
-        }
-        card = HtmlFormattedMemorizedCard(card_data, self.time_of_start)
+        card = HtmlFormattedMemorizedCard(self.card_data, self.time_of_start)
         ImportedMemorizedCard(card, self.user)
         database_card = Card.objects.first()
         database_user_review = CardUserData.objects.get(user=self.user,
@@ -129,14 +129,10 @@ class CramTestCase(TestCase):
 
     def test_crammed_true(self):
         """
-        Should be added to the cram queue.
+        Card with grade < 4 should be crammed.
         """
         card_review_details = {**self.card_review_details, "gr": "1"}
-        card_data = {
-            "question": "question",
-            "answer": "answer",
-            "review_details": card_review_details
-        }
+        card_data = {**self.card_data, "review_details": card_review_details}
         card = HtmlFormattedMemorizedCard(card_data, self.time_of_start)
         ImportedMemorizedCard(card, self.user)
         database_card = Card.objects.first()

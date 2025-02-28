@@ -12,7 +12,6 @@ from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue, \
     CardsDistributionRangeExceeded
 from .utils.helpers import today, validate_grade
 from .utils.supermemo2 import SM2
-from wsra.settings import ENVIRONMENT
 
 encoding = CardsConfig.default_encoding
 max_comment_len = CardsConfig.max_comment_len

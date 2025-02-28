@@ -9,7 +9,7 @@ from users.models import User
 class ImportedMemorizedCard(ImportedCard):
     def __init__(self, card_object: HtmlFormattedMemorizedCard, user: User):
         super().__init__(card_object)
-        super().save()
+        self.save()
         self._review_details = self.set_review_details(
             card_object["review_details"], user)
 
