@@ -2,6 +2,8 @@ import hashlib
 from datetime import datetime
 from functools import reduce
 
+from django.core.files import File
+
 from ..apps import CardsConfig
 
 encoding = CardsConfig.default_encoding
@@ -30,3 +32,13 @@ def compose(*functions):
         return lambda x: f(g(x))
 
     return reduce(compose2, functions, lambda x: x)
+
+
+def get_file_hash(file: File) -> str:
+    get_hash = hashlib.sha1()
+    if file.multiple_chunks():
+        for chunk in file.chunks():
+            get_hash.update(chunk)
+    else:
+        get_hash.update(file.read())
+    return get_hash.hexdigest()

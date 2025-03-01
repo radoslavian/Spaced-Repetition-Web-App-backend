@@ -12,8 +12,8 @@ class AddingNewFile(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.image_file_path = ("cards/management/fr_importer/"
-                                             "items_importer/tests/test_data/"
-                                             "fdb/images/teller.png")
+                               "items_importer/tests/test_data/"
+                               "fdb/images/teller.png")
         cls.image_file_name = os.path.basename(cls.image_file_path)
         ImageFileAppender(cls.image_file_path).file_instance
 
@@ -34,37 +34,43 @@ class AddingNewFile(TestCase):
         self.assertIsNotNone(image_instance)
 
 
-@skip
 class AddingExistingFile(TestCase):
     """
     Attempt to add to a database a file that is already there.
     """
+
     @classmethod
     def setUpTestData(cls):
-        cls.file_in_db_path = "test_data/fdb/images/chess_board.jpg"
-        cls.original_image_record = ImageFileAppender(cls.file_in_db_path)
-        # etc.... expand
+        cls.file_in_db_path = ("cards/management/fr_importer/"
+                               "items_importer/tests/test_data/"
+                               "fdb/images/chess_board.jpg")
+        cls.instance_1 = ImageFileAppender(cls.file_in_db_path).file_instance
+        cls.instance_2 = ImageFileAppender(cls.file_in_db_path).file_instance
 
     def test_no_new_record(self):
         """
         No new record should be created for an extra addition.
         """
-        ImageFileAppender(self.file_in_db_path)
+        expected_number_of_images_in_db = 1
+        received_number_of_images_in_db = Image.objects.count()
+        self.assertEqual(expected_number_of_images_in_db,
+                         received_number_of_images_in_db)
 
     def test_image_instance_returned(self):
         """
         A reference to already existing Image object should be returned.
-        In case a file with a given name already exists in the database,
+        In case a file already exists in the database,
         a reference to an instance of a record should be returned.
         """
-        image = ImageFileAppender(self.file_in_db_path)
-        self.assertIs(image, self.original_image_record)
+        self.assertEqual(str(self.instance_1),
+                         str(self.instance_2))
 
 
 class AddingNonExistentFile(TestCase):
     """
     Attempt to add a file from an invalid file path.
     """
+
     @classmethod
     def setUpTestData(cls):
         cls.invalid_file_path = "fake/path/to/image.png"

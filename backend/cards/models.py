@@ -11,7 +11,7 @@ from django.urls import reverse
 from .apps import CardsConfig
 from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue, \
     CardsDistributionRangeExceeded
-from .utils.helpers import today, validate_grade
+from .utils.helpers import today, validate_grade, get_file_hash
 from .utils.supermemo2 import SM2
 
 encoding = CardsConfig.default_encoding
@@ -415,18 +415,8 @@ class Image(models.Model):
     def save(self, *args, **kwargs):
         if self.image:
             with self.image.open('rb') as file:
-                self.sha1_digest = self.get_image_hash(file)
+                self.sha1_digest = get_file_hash(file)
                 super(Image, self).save(*args, **kwargs)
-
-    @staticmethod
-    def get_image_hash(file):
-        get_hash = hashlib.sha1()
-        if file.multiple_chunks():
-            for chunk in file.chunks():
-                get_hash.update(chunk)
-        else:
-            get_hash.update(file.read())
-        return get_hash.hexdigest()
 
     def __str__(self):
         return str(self.image)

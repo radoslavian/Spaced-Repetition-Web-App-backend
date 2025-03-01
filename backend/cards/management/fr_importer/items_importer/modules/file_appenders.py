@@ -1,13 +1,17 @@
 import os.path
+
 from django.core.files import File
+from django.db import IntegrityError, transaction
 from django.db.models import Model
 
 from cards.models import Image
+from cards.utils.helpers import get_file_hash
 
 
 class FileAppender:
     DatabaseFileModel: Model
     file_field: str
+    hash_field: str
 
     def __init__(self, file_path: str):
         self._file_instance = None
@@ -16,10 +20,11 @@ class FileAppender:
     @property
     def file_instance(self):
         if self._file_instance is None:
-            # get instance from the db or save?
-            # calculate sha/md5 hash and use it to get the file instance
-            # from the database
-            self.save_file()
+            try:
+                with transaction.atomic():
+                    self.save_file()
+            except IntegrityError:
+                self._file_instance = self._get_file_by_hash()
         return self._file_instance
 
     def save_file(self):
@@ -36,7 +41,14 @@ class FileAppender:
     def file_name(self) -> str:
         return os.path.basename(self._file_path)
 
+    def _get_file_by_hash(self) -> Model:
+        with open(self._file_path, "rb") as file:
+            file_hash_digest = get_file_hash(File(file))
+        search_parameter = {self.hash_field: file_hash_digest}
+        return self.DatabaseFileModel.objects.get(**search_parameter)
+
 
 class ImageFileAppender(FileAppender):
     DatabaseFileModel = Image
     file_field = "image"
+    hash_field = "sha1_digest"
