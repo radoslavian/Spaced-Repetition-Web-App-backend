@@ -1,7 +1,12 @@
+import random
 from datetime import timedelta, date, datetime
+from hashlib import md5, sha1
 from random import randint
+from unittest import skip
+
 import django.db.utils
 import time_machine
+from django.core.files import File
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -23,13 +28,11 @@ fake = Faker()
 class HelpersMixin:
     @staticmethod
     def get_image_instance():
-        small_gif = (
-            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
-            b'\x00\x00\x00\x00\x21\xf9\x04'
-            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
-            b'\x00\x01\x00\x01\x00\x00\x02'
-            b'\x02\x4c\x01\x00\x3b'
-        )
+        small_gif = HelpersMixin.gifs[0]
+        return HelpersMixin.get_instance_from_image(small_gif)
+
+    @staticmethod
+    def get_instance_from_image(small_gif):
         image = SimpleUploadedFile(name=fake.file_name(extension="gif"),
                                    content=small_gif,
                                    content_type="image/gif")
@@ -37,6 +40,29 @@ class HelpersMixin:
                                   description=fake.text(999))
         image_in_database.save()
         return image_in_database
+
+    gifs = [
+        (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
+            b'\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
+            b'\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        ),
+        (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
+            b'\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
+            b'\x00\x01\x00\x01\x00\x00\x02\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+    ]
+
+    @staticmethod
+    def get_random_gif():
+        return (b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
+                + random.randbytes(23)
+                + b'\x02\x4c\x01\x00\x3b')
 
     @staticmethod
     def create_category(category_name=None):
@@ -972,7 +998,6 @@ class CardsImagesTests(FakeUsersCards, HelpersMixin):
     def test_add_single_image_to_card(self):
         card, *_ = self.get_cards()
         image1_in_database = self.get_image_instance()
-        image2_in_database = self.get_image_instance()
         card_front_image = CardImage(card=card,
                                      image=image1_in_database,
                                      side="front")
@@ -981,7 +1006,7 @@ class CardsImagesTests(FakeUsersCards, HelpersMixin):
         self.assertEqual(image1_in_database.cards.count(), 1)
 
         card_back_image = CardImage(card=card,
-                                    image=image2_in_database,
+                                    image=image1_in_database,
                                     side="back")
         card_back_image.save()
         self.assertEqual(len(card.back_images), 1)
@@ -1247,8 +1272,19 @@ class SoundsInCards(HelpersMixin, TestCase):
 
 
 class ImageTests(HelpersMixin, TestCase):
+    @skip
     def test_image_embedding_in_card(self):
         pass
 
+    @skip
     def test_image_embedding_in_templates(self):
         pass
+
+    def test_image_hash_validity(self):
+        small_gif = SimpleUploadedFile(name=fake.file_name(extension="gif"),
+                                   content=HelpersMixin.gifs[0],
+                                   content_type="image/gif")
+        small_gif_sha1_digest = sha1(small_gif.open().read()).hexdigest()
+        image_in_db = Image(image=File(small_gif))
+        image_in_db.save()
+        self.assertEqual(small_gif_sha1_digest, image_in_db.sha1_digest)

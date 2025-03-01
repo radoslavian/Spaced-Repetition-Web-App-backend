@@ -152,7 +152,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
         """
         card, *_ = self.get_cards()
         first_image = self.get_image_instance()
-        second_image = self.get_image_instance()
+        second_image = self.get_instance_from_image(HelpersMixin.gifs[1])
         CardImage(card=card, image=first_image, side="front").save()
         CardImage(card=card, image=first_image, side="back").save()
         CardImage(card=card, image=second_image, side="back").save()

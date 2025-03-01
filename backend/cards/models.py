@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import uuid
 from datetime import date
 from django.contrib.auth import get_user_model
@@ -75,7 +76,7 @@ class CardUserData(models.Model):
     # cards memorization rate (value in days)
     MAX_DISTRIBUTION_RANGE = 31
 
-    def _set_crammed(self, status: bool=False):
+    def _set_crammed(self, status: bool = False):
         if self.crammed != status:
             self.crammed = status
             self.save()
@@ -391,15 +392,41 @@ class Category(AL_Node):
         return f"<{self.name}>"
 
 
+def get_random_sha1():
+    return hashlib.sha1(
+        bytes(str(uuid.uuid4()), "utf-8")).hexdigest()
+
 class Image(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
     )
-    image = models.ImageField(upload_to="images/")
+    image = models.ImageField(upload_to="images/",
+                              null=False)
+    sha1_digest = models.CharField(
+        max_length=40,
+        unique=True,
+        null=False,
+        default=get_random_sha1)
     description = models.CharField(max_length=1000)
     cards = models.ManyToManyField("Card", through="CardImage")
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            with self.image.open('rb') as file:
+                self.sha1_digest = self.get_image_hash(file)
+                super(Image, self).save(*args, **kwargs)
+
+    @staticmethod
+    def get_image_hash(file):
+        get_hash = hashlib.sha1()
+        if file.multiple_chunks():
+            for chunk in file.chunks():
+                get_hash.update(chunk)
+        else:
+            get_hash.update(file.read())
+        return get_hash.hexdigest()
 
     def __str__(self):
         return str(self.image)
