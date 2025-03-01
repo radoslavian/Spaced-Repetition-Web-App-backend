@@ -1,13 +1,16 @@
 import uuid
+from unittest import skip
 
 from django.test import TestCase
 from django.core.exceptions import ObjectDoesNotExist
 
+from cards.management.fr_importer.items_importer.modules.file_appenders import \
+    add_image_get_instance
 from cards.management.fr_importer.items_importer.modules.imported_card import \
     ImportedCard
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
-from cards.models import Card, CardTemplate, Category
+from cards.models import Card, CardTemplate, Category, CardImage
 
 
 class AddingBasicCard(TestCase):
@@ -44,6 +47,10 @@ class AddingBasicCard(TestCase):
     def test_no_images(self):
         self.assertFalse(self.queried_card.front_images)
         self.assertFalse(self.queried_card.back_images)
+
+    def test_getting_card_instance(self):
+        self.assertIn("card question",
+                      self.imported_card.card_instance.front)
 
 
 class SettingTemplate(TestCase):
@@ -170,3 +177,46 @@ class SettingCategory(TestCase):
         expected_message = "Invalid argument for setting categories."
         with self.assertRaisesMessage(ValueError, expected_message):
             self.imported_card.set_categories(invalid_category)
+
+
+class AddingImages(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.front_image_path = "images/teller.png"
+        cls.back_image_path = "images/chess_board.jpg"
+        cls.card = {
+            "question": f"question<img>{cls.front_image_path}</img>",
+            "answer": f"answer<img>{cls.back_image_path}</img>"
+        }
+        cls.formatted_card = HtmlFormattedCard(cls.card)
+        cls.formatted_card.expanding_path = ("cards/management/fr_importer/"
+                                             "items_importer/tests/test_data"
+                                             "/fdb")
+        cls.imported_card = ImportedCard(cls.formatted_card)
+        cls.imported_card.save()
+        cls.front_image_instance = add_image_get_instance(
+            cls.formatted_card["question"]["image_file_path"])
+        cls.back_image_instance = add_image_get_instance(
+            cls.formatted_card["answer"]["image_file_path"])
+        cls.card_image_query = CardImage.objects.filter(
+            card=cls.imported_card.card_instance)
+
+    def test_number_of_card_images(self):
+        """
+        Number of CardImage instances (2 - one for front, one for back).
+        """
+        expected_number = 2
+        received_number = self.card_image_query.count()
+        self.assertEqual(expected_number, received_number)
+
+    def test_front_image(self):
+        front_card_image = self.card_image_query.filter(
+            image=self.front_image_instance,
+            side="front").first()
+        self.assertIsNotNone(front_card_image)
+
+    def test_back_image(self):
+        back_card_image = self.card_image_query.filter(
+            image=self.back_image_instance,
+            side="back").first()
+        self.assertIsNotNone(back_card_image)

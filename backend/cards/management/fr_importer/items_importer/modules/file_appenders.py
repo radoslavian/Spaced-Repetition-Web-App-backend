@@ -23,7 +23,7 @@ class FileAppender:
         if os.path.exists(file_path):
             return file_path
         else:
-            raise FileNotFoundError
+            raise FileNotFoundError(f"{file_path} does not exist")
 
     @property
     def file_instance(self):
