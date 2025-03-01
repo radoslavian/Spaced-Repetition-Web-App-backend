@@ -60,3 +60,12 @@ class ImageFileAppender(FileAppender):
     DatabaseFileModel = Image
     file_field = "image"
     hash_field = "sha1_digest"
+
+
+def add_image_get_instance(path: str | PathLike):
+    """
+    Adds a new image to the database and returns Image instance or
+    returns instance for an image with an identical content already existing
+    in the database.
+    """
+    return ImageFileAppender(path).file_instance

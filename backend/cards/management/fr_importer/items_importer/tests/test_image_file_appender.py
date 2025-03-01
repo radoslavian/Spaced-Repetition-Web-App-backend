@@ -4,7 +4,7 @@ from unittest import skip
 from django.test import TestCase
 
 from cards.management.fr_importer.items_importer.modules.file_appenders import \
-    ImageFileAppender
+    ImageFileAppender, add_image_get_instance
 from cards.models import Image
 
 
@@ -42,6 +42,11 @@ class AddingNewFile(TestCase):
             image_instance = ImageFileAppender(invalid_path)
 
         self.assertRaises(FileNotFoundError, throw_file_not_found)
+
+    def test_add_image_get_instance(self):
+        image_instance = add_image_get_instance(self.image_file_path)
+        self.assertIsNotNone(image_instance)
+        self.assertTrue(hasattr(image_instance.image, "url"))
 
 
 class AddingExistingFile(TestCase):
