@@ -214,9 +214,66 @@ class AddingImages(TestCase):
             image=self.front_image_instance,
             side="front").first()
         self.assertIsNotNone(front_card_image)
+        self.assertRegex(str(front_card_image.image),
+                         r"images/teller.*\.png")
 
     def test_back_image(self):
         back_card_image = self.card_image_query.filter(
             image=self.back_image_instance,
             side="back").first()
         self.assertIsNotNone(back_card_image)
+        self.assertRegex(str(back_card_image.image),
+                         r"images/chess_board.*\.jpg")
+
+    def test_card_no_images(self):
+        card = {
+            "question": "card no images question",
+            "answer": "card no images answer"
+        }
+        formatted_card = HtmlFormattedCard(card)
+        imported_card = ImportedCard(formatted_card)
+        imported_card.save()
+        card_image_query = CardImage.objects.filter(
+            card=imported_card.card_instance)
+        self.assertFalse(card_image_query.all())
+
+
+    def test_front_image_only(self):
+        card = {
+            "question": "question - front image"
+                        f"<img>{self.front_image_path}</img>",
+            "answer": "answer - front image"
+        }
+        formatted_card = HtmlFormattedCard(card)
+        formatted_card.expanding_path = ("cards/management/fr_importer/"
+                                             "items_importer/tests/test_data"
+                                             "/fdb")
+        imported_card = ImportedCard(formatted_card)
+        imported_card.save()
+        card_image_query = CardImage.objects.filter(
+            card=imported_card.card_instance)
+        card_image = card_image_query.first()
+        number_card_image_instances = 1
+
+        self.assertEqual(card_image_query.count(), number_card_image_instances)
+        self.assertEqual(card_image.side, "front")
+
+    def test_back_image_only(self):
+        card = {
+            "question": "question - back image only",
+            "answer": "answer - back image only"
+                      f"<img>{self.back_image_path}</img>"
+        }
+        formatted_card = HtmlFormattedCard(card)
+        formatted_card.expanding_path = ("cards/management/fr_importer/"
+                                         "items_importer/tests/test_data"
+                                         "/fdb")
+        imported_card = ImportedCard(formatted_card)
+        imported_card.save()
+        card_image_query = CardImage.objects.filter(
+            card=imported_card.card_instance)
+        card_image = card_image_query.first()
+        number_card_image_instances = 1
+
+        self.assertEqual(card_image_query.count(), number_card_image_instances)
+        self.assertEqual(card_image.side, "back")
