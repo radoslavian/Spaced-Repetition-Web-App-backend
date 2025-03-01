@@ -1,4 +1,5 @@
 import os.path
+from os import PathLike
 
 from django.core.files import File
 from django.db import IntegrityError, transaction
@@ -15,7 +16,14 @@ class FileAppender:
 
     def __init__(self, file_path: str):
         self._file_instance = None
-        self._file_path = file_path
+        self._file_path = self.validate_path(file_path)
+
+    @staticmethod
+    def validate_path(file_path: str | PathLike):
+        if os.path.exists(file_path):
+            return file_path
+        else:
+            raise FileNotFoundError
 
     @property
     def file_instance(self):

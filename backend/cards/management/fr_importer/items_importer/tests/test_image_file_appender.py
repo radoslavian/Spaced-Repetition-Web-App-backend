@@ -33,6 +33,16 @@ class AddingNewFile(TestCase):
         image_instance = Image.objects.filter(image__iregex=file_name).first()
         self.assertIsNotNone(image_instance)
 
+    def test_invalid_path(self):
+        """
+        Should raise 'FileNotFoundError' if path is incorrect.
+        """
+        invalid_path = "./fake/path/to/image.png"
+        def throw_file_not_found():
+            image_instance = ImageFileAppender(invalid_path)
+
+        self.assertRaises(FileNotFoundError, throw_file_not_found)
+
 
 class AddingExistingFile(TestCase):
     """
@@ -64,19 +74,3 @@ class AddingExistingFile(TestCase):
         """
         self.assertEqual(str(self.instance_1),
                          str(self.instance_2))
-
-
-class AddingNonExistentFile(TestCase):
-    """
-    Attempt to add a file from an invalid file path.
-    """
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.invalid_file_path = "fake/path/to/image.png"
-
-    def test_invalid_path(self):
-        """
-        Should throw a 'FileNotFound' error.
-        """
-        pass
