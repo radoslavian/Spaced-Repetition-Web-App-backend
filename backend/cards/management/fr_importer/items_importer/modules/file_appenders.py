@@ -5,7 +5,7 @@ from django.core.files import File
 from django.db import IntegrityError, transaction
 from django.db.models import Model
 
-from cards.models import Image
+from cards.models import Image, Sound
 from cards.utils.helpers import get_file_hash
 
 
@@ -62,6 +62,12 @@ class ImageFileAppender(FileAppender):
     hash_field = "sha1_digest"
 
 
+class SoundFileAppender(FileAppender):
+    DatabaseFileModel = Sound
+    file_field = "sound_file"
+    hash_field = "sha1_digest"
+
+
 def add_image_get_instance(path: str | PathLike):
     """
     Adds a new image to the database and returns Image instance or
@@ -69,3 +75,12 @@ def add_image_get_instance(path: str | PathLike):
     in the database.
     """
     return ImageFileAppender(path).file_instance
+
+
+def add_sound_get_instance(path: str | PathLike):
+    """
+    Adds a new sound to the database and returns Sound instance or
+    returns instance for an image with an identical content already existing
+    in the database.
+    """
+    return SoundFileAppender(path).file_instance
