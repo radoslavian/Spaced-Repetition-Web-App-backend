@@ -445,8 +445,20 @@ class Sound(models.Model):
         default=uuid.uuid4,
         editable=False,
     )
-    sound_file = models.FileField(upload_to="sounds/")
+    sound_file = models.FileField(upload_to="sounds/",
+                                  null=False)
     description = models.CharField(max_length=1000)
+    sha1_digest = models.CharField(
+        max_length=40,
+        unique=True,
+        null=False,
+        default=get_random_sha1)
+
+    def save(self, *args, **kwargs):
+        if self.sound_file:
+            with self.sound_file.open('rb') as file:
+                self.sha1_digest = get_file_hash(file)
+                super(Sound, self).save(*args, **kwargs)
 
     def __str__(self):
         return str(self.sound_file)

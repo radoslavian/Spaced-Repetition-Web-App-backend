@@ -90,19 +90,29 @@ class HelpersMixin:
             cards.append(card)
         return cards
 
-    @staticmethod
-    def add_soundfile_to_database():
-        placeholder_audio = (
+    placeholder_audio_files = [
+        (
             b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
             b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
             b'\x01\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00'
             b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
             b'\x00\x00\x00'
+        ),
+        (
+            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
+            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
+            b'\x01\x11\x03\x00\x00\x00\x01\x00\x01\x00\x00'
+            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
+            b'\x00\x00\x00'
         )
+    ]
+
+    @staticmethod
+    def add_soundfile_to_database(placeholder_audio_file):
         file_name = fake.file_name(extension="mp3")
         audio_file = SimpleUploadedFile(
             name=file_name,
-            content=placeholder_audio,
+            content=placeholder_audio_file,
             content_type="audio/mpeg")
         database_audio_entry = Sound(sound_file=audio_file,
                                      description=fake.text(999))
@@ -1156,7 +1166,8 @@ class AbsoluteUrls(HelpersMixin, TestCase):
 class SoundFiles(HelpersMixin, TestCase):
     def setUp(self):
         (self.sound,
-         self.audio_filename) = self.add_soundfile_to_database()
+         self.audio_filename) = self.add_soundfile_to_database(
+            self.placeholder_audio_files[0])
 
     def test_adding_audio_to_database(self):
         filename_no_extension = self.audio_filename.split(".")[0]
@@ -1164,13 +1175,25 @@ class SoundFiles(HelpersMixin, TestCase):
             sound_file__contains=filename_no_extension).first()
         self.assertTrue(file_retrieved_from_db)
 
+    def test_sound_file_hashing(self):
+        sound_file = SimpleUploadedFile("audio file",
+                                        self.placeholder_audio_files[0],
+                                        "audio/mpeg")
+        sound_file_sha1_digest = sha1(sound_file.open().read()).hexdigest()
+        sound_file_instance_in_db = Sound.objects.get(
+            sha1_digest=sound_file_sha1_digest)
+        self.assertEqual(sound_file_sha1_digest,
+                         sound_file_instance_in_db.sha1_digest)
+
 
 class SoundsInCards(HelpersMixin, TestCase):
     def setUp(self):
         self.card_1, self.card_2 = self.make_fake_cards(2)
         sound_entries = []
-        for _ in range(2):
-            entry_in_db, name = self.add_soundfile_to_database()
+        # valid as long as .placeholder_audio_files has only two elements:
+        for placeholder_audio in self.placeholder_audio_files:
+            entry_in_db, name = self.add_soundfile_to_database(
+                placeholder_audio)
             sound_entries.append({
                 "entry": entry_in_db,
                 "name": name
@@ -1282,8 +1305,8 @@ class ImageTests(HelpersMixin, TestCase):
 
     def test_image_hash_validity(self):
         small_gif = SimpleUploadedFile(name=fake.file_name(extension="gif"),
-                                   content=HelpersMixin.gifs[0],
-                                   content_type="image/gif")
+                                       content=HelpersMixin.gifs[0],
+                                       content_type="image/gif")
         small_gif_sha1_digest = sha1(small_gif.open().read()).hexdigest()
         image_in_db = Image(image=File(small_gif))
         image_in_db.save()
