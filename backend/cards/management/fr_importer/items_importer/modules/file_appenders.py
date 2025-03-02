@@ -1,5 +1,6 @@
 import os.path
 from os import PathLike
+from typing import Type
 
 from django.core.files import File
 from django.db import IntegrityError, transaction
@@ -68,19 +69,24 @@ class SoundFileAppender(FileAppender):
     hash_field = "sha1_digest"
 
 
-def add_image_get_instance(path: str | PathLike):
-    """
-    Adds a new image to the database and returns Image instance or
-    returns instance for an image with an identical content already existing
-    in the database.
-    """
-    return ImageFileAppender(path).file_instance
+def create_new_appender_fn(AppenderClass: Type):
+    def appender_fn(path: str | PathLike):
+        return AppenderClass(path).file_instance
+
+    return appender_fn
 
 
-def add_sound_get_instance(path: str | PathLike):
-    """
-    Adds a new sound to the database and returns Sound instance or
-    returns instance for an image with an identical content already existing
-    in the database.
-    """
-    return SoundFileAppender(path).file_instance
+add_image_get_instance = create_new_appender_fn(ImageFileAppender)
+add_image_get_instance.__doc__ =  """
+Adds a new image to the database and returns an Image instance or
+instance for an image with an identical content, if such already exists
+in the database.
+"""
+
+
+add_sound_get_instance = create_new_appender_fn(SoundFileAppender)
+add_sound_get_instance.__doc__ = """
+Adds a new sound object to the database and returns a Sound instance or
+instance of a sound record with an identical content, if such already exists
+in the database.
+"""
