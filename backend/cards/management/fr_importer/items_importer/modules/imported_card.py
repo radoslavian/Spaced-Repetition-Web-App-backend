@@ -2,7 +2,7 @@ from typing import Sequence
 from uuid import UUID
 
 from cards.management.fr_importer.items_importer.modules.file_appenders import \
-    add_image_get_instance
+    add_image_get_instance, add_sound_get_instance
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
 from cards.management.fr_importer.items_parser.modules.html_memorized_card import \
@@ -13,15 +13,15 @@ from cards.models import Card, CardTemplate, Category, CardImage
 class ImportedCard:
     def __init__(self, card_object: HtmlFormattedCard
                                     | HtmlFormattedMemorizedCard):
-        self._card = self.create_card(card_object)
-        self._add_images(card_object)
+        self._card = None
+        self._create_card(card_object)
 
-    @staticmethod
-    def create_card(card_object):
-        card = Card(front=card_object.question_output_text,
-                    back=card_object.answer_output_text)
-        card.save()
-        return card
+    def _create_card(self, card_object):
+        self._card = Card(front=card_object.question_output_text,
+                          back=card_object.answer_output_text)
+        self._add_images(card_object)
+        self._add_sounds(card_object)
+        self.save()
 
     def _add_images(self, card_object):
         front_image_path = card_object["question"]["image_file_path"]
@@ -37,6 +37,18 @@ class ImportedCard:
                                image=image_instance,
                                side=side)
         card_image.save()
+
+    def _add_sounds(self, card_object):
+        front_sound = card_object["question"]["sound_file_path"]
+        back_sound = card_object["answer"]["sound_file_path"]
+        if front_sound:
+            self._add_sound(front_sound, "front_audio")
+        if back_sound:
+            self._add_sound(back_sound, "back_audio")
+
+    def _add_sound(self, sound_path, card_side):
+        sound_instance = add_sound_get_instance(sound_path)
+        setattr(self._card, card_side, sound_instance)
 
     def save(self):
         self._card.save()

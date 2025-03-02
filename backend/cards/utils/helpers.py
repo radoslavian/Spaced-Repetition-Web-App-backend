@@ -1,10 +1,8 @@
 import hashlib
 from datetime import datetime
 from functools import reduce
-from typing import Type
 
 from django.core.files import File
-from django.db.models import Model, Field
 
 from ..apps import CardsConfig
 
@@ -50,7 +48,7 @@ def get_file_hash(file: File) -> str:
 def make_saver(superclass, db_file_field: str,
                db_digest_field: str):
     """
-    Returns method for getting file sha1 file digest for
+    Returns method for getting sha1 file digest for
     Sound or Image instances.
     """
     def save(self, *args, **kwargs):

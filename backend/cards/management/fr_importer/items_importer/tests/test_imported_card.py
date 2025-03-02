@@ -1,3 +1,4 @@
+import os
 import uuid
 from unittest import skip
 
@@ -5,12 +6,12 @@ from django.test import TestCase
 from django.core.exceptions import ObjectDoesNotExist
 
 from cards.management.fr_importer.items_importer.modules.file_appenders import \
-    add_image_get_instance
+    add_image_get_instance, add_sound_get_instance
 from cards.management.fr_importer.items_importer.modules.imported_card import \
     ImportedCard
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
-from cards.models import Card, CardTemplate, Category, CardImage
+from cards.models import Card, CardTemplate, Category, CardImage, Sound
 
 
 class AddingBasicCard(TestCase):
@@ -189,9 +190,10 @@ class AddingImages(TestCase):
             "answer": f"answer<img>{cls.back_image_path}</img>"
         }
         cls.formatted_card = HtmlFormattedCard(cls.card)
-        cls.formatted_card.expanding_path = ("cards/management/fr_importer/"
-                                             "items_importer/tests/test_data"
-                                             "/fdb")
+        cls.expanding_path = ("cards/management/fr_importer/"
+                              "items_importer/tests/test_data"
+                              "/fdb")
+        cls.formatted_card.expanding_path = cls.expanding_path
         cls.imported_card = ImportedCard(cls.formatted_card)
         cls.imported_card.save()
         cls.front_image_instance = add_image_get_instance(
@@ -244,14 +246,7 @@ class AddingImages(TestCase):
                         f"<img>{self.front_image_path}</img>",
             "answer": "answer - front image"
         }
-        formatted_card = HtmlFormattedCard(card)
-        formatted_card.expanding_path = ("cards/management/fr_importer/"
-                                             "items_importer/tests/test_data"
-                                             "/fdb")
-        imported_card = ImportedCard(formatted_card)
-        imported_card.save()
-        card_image_query = CardImage.objects.filter(
-            card=imported_card.card_instance)
+        card_image_query = self.add_card(card)
         card_image = card_image_query.first()
         number_card_image_instances = 1
 
@@ -264,16 +259,98 @@ class AddingImages(TestCase):
             "answer": "answer - back image only"
                       f"<img>{self.back_image_path}</img>"
         }
-        formatted_card = HtmlFormattedCard(card)
-        formatted_card.expanding_path = ("cards/management/fr_importer/"
-                                         "items_importer/tests/test_data"
-                                         "/fdb")
-        imported_card = ImportedCard(formatted_card)
-        imported_card.save()
-        card_image_query = CardImage.objects.filter(
-            card=imported_card.card_instance)
+        card_image_query = self.add_card(card)
         card_image = card_image_query.first()
         number_card_image_instances = 1
 
         self.assertEqual(card_image_query.count(), number_card_image_instances)
         self.assertEqual(card_image.side, "back")
+
+    def add_card(self, card):
+        formatted_card = HtmlFormattedCard(card)
+        formatted_card.expanding_path = self.expanding_path
+        imported_card = ImportedCard(formatted_card)
+        imported_card.save()
+        card_image_query = CardImage.objects.filter(
+            card=imported_card.card_instance)
+        return card_image_query
+
+
+class AddingSounds(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.front_sound_path = "snds/but_the_only_jobs.mp3"
+        cls.back_sound_path = "snds/english_examples_0609.mp3"
+        cls.card = {
+            "question": f"question<snd>{cls.front_sound_path}</snd>",
+            "answer": f"answer<snd>{cls.back_sound_path}</snd>"
+        }
+        cls.formatted_card = HtmlFormattedCard(cls.card)
+        cls.expanding_path = ("cards/management/fr_importer/"
+                              "items_importer/tests/test_data"
+                              "/fdb")
+        cls.formatted_card.expanding_path = cls.expanding_path
+        cls.imported_card = ImportedCard(cls.formatted_card)
+        cls.imported_card.save()
+        cls.card_instance = cls.imported_card.card_instance
+
+    def test_number_of_card_sounds(self):
+        expected_number = 2
+        received_number = Sound.objects.count()
+        self.assertEqual(expected_number, received_number)
+
+    def test_front_sound(self):
+        file_name_no_extension = os.path.basename(
+            self.front_sound_path).split(".")[0]
+        self.assertIsNotNone(self.card_instance.front_audio)
+        self.assertIn(file_name_no_extension,
+                      str(self.card_instance.front_audio))
+
+    def test_back_sound(self):
+        file_name_no_extension = os.path.basename(
+            self.back_sound_path).split(".")[0]
+        self.assertIsNotNone(self.card_instance.back_audio)
+        self.assertIn(file_name_no_extension,
+                      str(self.card_instance.back_audio))
+
+    def test_card_no_sounds(self):
+        card = {
+            "question": f"question - no sounds",
+            "answer": f"answer - no sounds"
+        }
+        imported_card = self.add_imported_card(card)
+        self.assertFalse(imported_card.card_instance.front_audio)
+        self.assertFalse(imported_card.card_instance.back_audio)
+
+    def test_front_sound_only(self):
+        card = {
+            "question": f"question<snd>{self.front_sound_path}</snd>",
+            "answer": f"answer - no sounds"
+        }
+        imported_card = self.add_imported_card(card)
+        file_name_no_extension = os.path.basename(
+            self.front_sound_path).split(".")[0]
+        self.assertTrue(imported_card.card_instance.front_audio)
+        self.assertFalse(imported_card.card_instance.back_audio)
+        self.assertIn(file_name_no_extension,
+                      str(imported_card.card_instance.front_audio))
+
+    def test_back_sound_only(self):
+        card = {
+            "question": f"question - no sounds",
+            "answer": f"answer<snd>{self.back_sound_path}</snd>"
+        }
+        imported_card = self.add_imported_card(card)
+        file_name_no_extension = os.path.basename(
+            self.back_sound_path).split(".")[0]
+        self.assertTrue(imported_card.card_instance.back_audio)
+        self.assertFalse(imported_card.card_instance.front_audio)
+        self.assertIn(file_name_no_extension,
+                      str(imported_card.card_instance.back_audio))
+
+    def add_imported_card(self, card):
+        formatted_card = HtmlFormattedCard(card)
+        formatted_card.expanding_path = self.expanding_path
+        imported_card = ImportedCard(formatted_card)
+        imported_card.save()
+        return imported_card
