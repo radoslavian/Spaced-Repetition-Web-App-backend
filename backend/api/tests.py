@@ -207,8 +207,10 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
     """
 
     def audio_testing(self):
-        self.sound_front, _ = self.add_soundfile_to_database()
-        self.sound_back, _ = self.add_soundfile_to_database()
+        self.sound_front, _ = self.add_soundfile_to_database(
+            self.placeholder_audio_files[0])
+        self.sound_back, _ = self.add_soundfile_to_database(
+            self.placeholder_audio_files[1])
         self.card = self.make_fake_cards(1)[0]
 
     def test_audio_fields_in_memorized_card(self):

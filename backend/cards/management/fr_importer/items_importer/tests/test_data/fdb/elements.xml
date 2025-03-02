@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE fullrecall [
+	<!ELEMENT fullrecall (category?)>
+	<!ELEMENT category (item?)>
+	<!ELEMENT item (q, a)>
+	<!ELEMENT q (#PCDATA)>
+	<!ELEMENT a (#PCDATA)>
+	<!ATTLIST fullrecall core_version CDATA #IMPLIED
+		time_of_start CDATA #REQUIRED>
+	<!ATTLIST category name CDATA #REQUIRED
+		qbgclr CDATA #IMPLIED
+		abgclr CDATA #IMPLIED
+		qfntclr CDATA #IMPLIED
+		afntclr CDATA #IMPLIED
+		qfont CDATA #IMPLIED
+		afont CDATA #IMPLIED
+		qimg CDATA #IMPLIED
+		aimg CDATA #IMPLIED>
+	<!ATTLIST item id ID #REQUIRED
+		tmtrpt CDATA #REQUIRED
+		stmtrpt CDATA #REQUIRED
+		llivl CDATA #REQUIRED
+		rlivl CDATA #REQUIRED
+		ivl CDATA #REQUIRED
+		rp CDATA #REQUIRED
+		gr CDATA #REQUIRED
+		sstick IDREF #IMPLIED
+		hstick IDREF #IMPLIED>
+]>
+<fullrecall core_version="12" time_of_start="1186655166">
+  <category name="category_1">
+    <item id="1254521103" tmtrpt="6411" stmtrpt="6411" livl="268" rllivl="271" ivl="33" rp="12" gr="1">
+      <q>question 1</q>
+      <a><![CDATA[answer 1<img>images/chess_board.jpg</img><snd>snds/english_examples_0609.mp3</snd>]]></a>
+    </item>
+    <category name="category_2">
+      <item id="1262379523" tmtrpt="7438" stmtrpt="7438" livl="879" rllivl="1545" ivl="1632" rp="9" gr="4">
+<q>question 2</q>
+<a><![CDATA[answer 2<snd>snds/english_examples_1959.mp3</snd>]]></a>
+      </item>
+      <category name="category 3">
+        <item id="1234800390" tmtrpt="7440" stmtrpt="7440" livl="1099" rllivl="1646" ivl="1551" rp="14" gr="5">
+          <q><![CDATA[question 3<img>images/lang/teller.png</img>]]></q>
+          <a><![CDATA[answer 3<snd>snds/but_the_only_jobs.mp3</snd>]]></a>
+        </item>
+      </category>
+    </category>
+  </category>
+</fullrecall>

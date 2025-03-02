@@ -11,7 +11,7 @@ from django.urls import reverse
 from .apps import CardsConfig
 from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue, \
     CardsDistributionRangeExceeded
-from .utils.helpers import today, validate_grade, get_file_hash
+from .utils.helpers import today, validate_grade, get_file_hash, make_saver
 from .utils.supermemo2 import SM2
 
 encoding = CardsConfig.default_encoding
@@ -413,10 +413,8 @@ class Image(models.Model):
     cards = models.ManyToManyField("Card", through="CardImage")
 
     def save(self, *args, **kwargs):
-        if self.image:
-            with self.image.open('rb') as file:
-                self.sha1_digest = get_file_hash(file)
-                super(Image, self).save(*args, **kwargs)
+        _save = make_saver(Image, "image", "sha1_digest")
+        _save(self, *args, **kwargs)
 
     def __str__(self):
         return str(self.image)
@@ -455,10 +453,8 @@ class Sound(models.Model):
         default=get_random_sha1)
 
     def save(self, *args, **kwargs):
-        if self.sound_file:
-            with self.sound_file.open('rb') as file:
-                self.sha1_digest = get_file_hash(file)
-                super(Sound, self).save(*args, **kwargs)
+        _save = make_saver(Sound, "sound_file", "sha1_digest")
+        _save(self, *args, **kwargs)
 
     def __str__(self):
         return str(self.sound_file)

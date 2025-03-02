@@ -1,10 +1,13 @@
 import hashlib
 from datetime import datetime
 from functools import reduce
+from typing import Type
 
 from django.core.files import File
+from django.db.models import Model, Field
 
 from ..apps import CardsConfig
+
 
 encoding = CardsConfig.default_encoding
 
@@ -42,3 +45,16 @@ def get_file_hash(file: File) -> str:
     else:
         get_hash.update(file.read())
     return get_hash.hexdigest()
+
+
+def make_saver(superclass, db_file_field: str,
+               db_digest_field: str):
+
+    def save(self, *args, **kwargs):
+        file_field = getattr(self, db_file_field)
+        if file_field:
+            with file_field.open('rb') as f:
+                file_hash = get_file_hash(f)
+                setattr(self, db_digest_field, file_hash)
+                super(superclass, self).save(*args, **kwargs)
+    return save
