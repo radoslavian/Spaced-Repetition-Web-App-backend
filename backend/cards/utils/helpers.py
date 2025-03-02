@@ -49,9 +49,13 @@ def get_file_hash(file: File) -> str:
 
 def make_saver(superclass, db_file_field: str,
                db_digest_field: str):
-
+    """
+    Returns method for getting file sha1 file digest for
+    Sound or Image instances.
+    """
     def save(self, *args, **kwargs):
         file_field = getattr(self, db_file_field)
+        # in order for this to work, a file_field has to be non-nullable!
         if file_field:
             with file_field.open('rb') as f:
                 file_hash = get_file_hash(f)
