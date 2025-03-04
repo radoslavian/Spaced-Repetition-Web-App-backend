@@ -443,8 +443,7 @@ class Sound(models.Model):
         default=uuid.uuid4,
         editable=False,
     )
-    sound_file = models.FileField(upload_to="sounds/",
-                                  null=False)
+    sound_file = models.FileField(upload_to="sounds/", null=False)
     description = models.CharField(max_length=1000)
     sha1_digest = models.CharField(
         max_length=40,
