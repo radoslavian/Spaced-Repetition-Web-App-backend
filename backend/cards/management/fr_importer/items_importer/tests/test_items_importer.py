@@ -1,15 +1,19 @@
+import datetime
 from unittest import skip
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned
 from django.test import TestCase
 from faker import Faker
 
 from cards.management.fr_importer.items_importer.modules.items_importer import \
-    ItemsImporter
+    PendingItemsImporter, MemorizedItemsImporter
 from cards.management.fr_importer.items_parser.items_parser import ItemsParser
 from cards.management.fr_importer.items_parser.modules.html_formatted_card import \
     HtmlFormattedCard
-from cards.models import Category, Card, CardTemplate
+from cards.management.fr_importer.items_parser.modules.user_review import \
+    UserReview
+from cards.models import Category, Card, CardTemplate, CardUserData
 
 
 class ItemsImporterTests(TestCase):
@@ -39,7 +43,7 @@ class ItemsImporterTests(TestCase):
                              "tests/test_data/fdb/elements.xml")
 
     def setUp(self):
-        self.items_importer = ItemsImporter(self.elements_path)
+        self.items_importer = PendingItemsImporter(self.elements_path)
 
     def test_number_of_cards(self):
         """
@@ -195,3 +199,43 @@ class ItemsImporterTests(TestCase):
         self.assertEqual(received_number_of_cards, expected_number_of_cards)
         self.assertEqual(received_card.front, expected_question_value)
         self.assertEqual(received_card.back, expected_answer_value)
+
+
+class MemorizedItemsImporterTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        User = get_user_model()
+        cls.user = User(username="user")
+        cls.user.save()
+        review_data = dict(id="1234800390",
+                           tmtrpt="7440",
+                           stmtrpt="7440",
+                           livl="1099",
+                           rllivl="1646",
+                           ivl="1551",
+                           rp="14",
+                           gr="5")
+        cls.user_review = UserReview(review_data, time_of_start="1186655166")
+        cls.elements_path = ("cards/management/fr_importer/items_importer/"
+                             "tests/test_data/fdb/elements.xml")
+        cls.import_category_path = "category_1.category_2.category 3"
+
+    def setUp(self):
+        self.card_importer = MemorizedItemsImporter(self.elements_path,
+                                                    user=self.user)
+        self.card_importer.set_import_category(self.import_category_path)
+
+    def test_card_user_review(self):
+        """
+        Should create CardUserData instance for a given user and card.
+        """
+        self.card_importer.import_cards_into_db()
+        card = Card.objects.first()
+        review_data = CardUserData.objects.get(card=card, user=self.user)
+        introduced_on = datetime.datetime(2009, 2, 16, 16, 6, 30,
+                                          tzinfo=datetime.timezone.utc)
+        dict_user_review = {**dict(self.user_review),
+                            "last_reviewed": datetime.date(2023, 9, 23),
+                            "introduced_on": introduced_on,
+                            'review_date': datetime.date(2027, 12, 22)}
+        self.assertDictEqual(dict_user_review, dict(review_data))

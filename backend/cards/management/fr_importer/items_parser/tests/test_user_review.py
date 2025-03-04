@@ -1,6 +1,8 @@
 import unittest
 from datetime import datetime, timedelta
 
+import pytz
+
 from cards.management.fr_importer.items_parser.modules.user_review import UserReview
 
 
@@ -31,7 +33,8 @@ class UserReviewTestCase(unittest.TestCase):
             # grade (0-5; 0=the worst, 5=the best)
             "gr": "4"
         }
-        time_of_start = datetime.fromtimestamp(cls.time_of_start)
+        timezone = pytz.timezone(pytz.country_timezones["PL"][0])
+        time_of_start = datetime.fromtimestamp(cls.time_of_start, tz=timezone)
         # output:
         cls.user_review = {
             "computed_interval": 499,
@@ -42,7 +45,7 @@ class UserReviewTestCase(unittest.TestCase):
                 days=int(cls.extracted_attributes["stmtrpt"])) - timedelta(
                 days=int(cls.extracted_attributes["ivl"])),
             "introduced_on": datetime.fromtimestamp(
-                int(cls.extracted_attributes["id"])),
+                int(cls.extracted_attributes["id"]), tz=timezone),
             # actually the 'next review date'
             "review_date": time_of_start + timedelta(
                 days=int(cls.extracted_attributes["stmtrpt"])),

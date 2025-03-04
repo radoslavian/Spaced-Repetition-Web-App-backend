@@ -231,9 +231,27 @@ class CardUserData(models.Model):
     class Meta:
         unique_together = ("card", "user",)
 
-    def __str__(self):
+    @staticmethod
+    def keys():
+        return ['computed_interval', 'lapses', 'reviews', 'total_reviews',
+                'last_reviewed', 'introduced_on', 'review_date', 'grade',
+                'easiness_factor', 'crammed', 'comment']
+
+    def values(self):
+        return [self.computed_interval, self.lapses, self.reviews,
+                self.total_reviews, self.last_reviewed, self.introduced_on,
+                self.review_date, self.grade, self.easiness_factor,
+                self.crammed, self.comment]
+
+    def __getitem__(self, key):
+        return dict(zip(self.keys(), self.values()))[key]
+
+    def __repr__(self):
         return f"CardUserData(user='{str(self.user)}' " \
                f"card='{str(self.card)}')"
+
+    def __str__(self):
+        return "\n".join(f"{key}: {self[key]}" for key in self.keys())
 
 
 class Card(models.Model):

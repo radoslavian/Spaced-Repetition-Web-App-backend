@@ -2,6 +2,8 @@ import datetime
 from datetime import datetime as dt, timedelta
 from typing import Any
 
+import pytz
+
 
 class UserReview:
     """
@@ -12,6 +14,7 @@ class UserReview:
         self._fr_review = self.convert_values_into_integers(fr_review)
         self._epoch_time_of_start = int(time_of_start)
         self.max_for_cram = 3
+        self._timezone = pytz.timezone(pytz.country_timezones["PL"][0])
 
     @staticmethod
     def convert_values_into_integers(fr_review):
@@ -44,7 +47,7 @@ class UserReview:
 
     @property
     def introduced_on(self) -> datetime:
-        return dt.fromtimestamp(self._fr_review["id"])
+        return dt.fromtimestamp(self._fr_review["id"], tz=self._timezone)
 
     @property
     def last_reviewed(self) -> datetime:
@@ -52,7 +55,7 @@ class UserReview:
 
     @property
     def time_of_start(self) -> datetime:
-        return dt.fromtimestamp(self._epoch_time_of_start)
+        return dt.fromtimestamp(self._epoch_time_of_start, tz=self._timezone)
 
     @property
     def computed_interval(self) -> int:
