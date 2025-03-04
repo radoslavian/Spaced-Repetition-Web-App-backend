@@ -40,7 +40,7 @@
       </item>
       <category name="category 3">
         <item id="1234800390" tmtrpt="7440" stmtrpt="7440" livl="1099" rllivl="1646" ivl="1551" rp="14" gr="5">
-          <q><![CDATA[question 3<img>images/lang/teller.png</img>]]></q>
+          <q><![CDATA[question 3<img>images/teller.png</img>]]></q>
           <a><![CDATA[answer 3<snd>snds/but_the_only_jobs.mp3</snd>]]></a>
         </item>
       </category>
