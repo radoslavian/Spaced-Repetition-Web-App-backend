@@ -19,9 +19,9 @@ class ImportedCard:
     def _create_card(self, card_object):
         self._card = Card(front=card_object.question_output_text,
                           back=card_object.answer_output_text)
+        self.save()
         self._add_images(card_object)
         self._add_sounds(card_object)
-        self.save()
 
     def _add_images(self, card_object):
         front_image_path = card_object["question"]["image_file_path"]
@@ -45,6 +45,7 @@ class ImportedCard:
             self._add_sound(front_sound, "front_audio")
         if back_sound:
             self._add_sound(back_sound, "back_audio")
+        self.save()
 
     def _add_sound(self, sound_path, card_side):
         sound_instance = add_sound_get_instance(sound_path)

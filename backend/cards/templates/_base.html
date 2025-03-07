@@ -9,7 +9,7 @@
       font-size: 13pt;
   }
 
-  .card-body .question-example-seraparing-hr {
+  .card-body .question-example-separating-hr {
       margin-left: 5%;
       margin-right: 5%;
       border: 0;
@@ -24,7 +24,7 @@
   }
 
   .card-body .question-hidden-letter:hover,
-  .card-body .extracted-text:hover {
+  .card-body .highlighted-text:hover {
       background: yellow;
   }
 
@@ -37,7 +37,7 @@
       padding-right: 5pt;
   }
 
-  .card-body .extracted-text {
+  .card-body .highlighted-text {
       background: #fae396;
       padding: 3px;
       border-radius: 3px;
@@ -62,16 +62,30 @@
       line-height: 14pt
   }
 
-  .card-body .phonetic-spelling:hover {
+  .card-body .phonetic-spelling > .phonetic-entity:hover {
       color: red;
   }
 
-  .card-body div.answer-example-sentences > p {
-      padding-left: 15pt;
+  .card-body .”answer-example-sentences” span {
+      padding: 2px;
   }
 
-  .card-body div.answer-example-sentences span:hover {
+
+  .card-body div.answer-example-sentences > p {
+      padding-left: 10px;
+  }
+
+  .card-body .”answer-example-sentences” > p {
+      padding-left: 10px;
+  }
+
+  /* original: */
+  .answer-example-sentences span:hover {
       background-color: #eded5c;
+  }
+
+  .”answer-example-sentences” span:hover {
+      background-color: #fae396;
   }
   {% endblock styles %} 
 </style>

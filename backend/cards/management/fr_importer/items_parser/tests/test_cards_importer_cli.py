@@ -19,7 +19,7 @@ class CLIImportingCardsTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.options = {"elements": "path/to/elements.xml"}
+        cls.options = {"elements_path": "path/to/elements.xml"}
         cls.path_memorized_items_importer = (
             "cards.management.commands.import_fr_cards"
             ".MemorizedItemsImporter")
@@ -44,8 +44,8 @@ class CLIImportingCardsTestCase(TestCase):
         invokes PendingItemsImporter class.
         """
         with self.patch_pending_items_importer() as items_importer:
-            call_command(self.command, self.options["elements"])
-            items_importer.assert_called_once_with(self.options["elements"])
+            call_command(self.command, self.options["elements_path"])
+            items_importer.assert_called_once_with(self.options["elements_path"])
 
     def test_import_cards_for_user_id(self):
         """
@@ -55,19 +55,19 @@ class CLIImportingCardsTestCase(TestCase):
         options = {"user_id": str(self.user.id)}
         with self.patch_memorized_items_importer() as memorized_items_importer:
             call_command(self.command,
-                         self.options["elements"],
+                         self.options["elements_path"],
                          **options)
             memorized_items_importer.assert_called_once_with(
-                self.options["elements"], self.user)
+                self.options["elements_path"], self.user)
 
     def test_import_cards_for_user_by_username(self):
         options = {"username": self.user.username}
         with self.patch_memorized_items_importer() as memorized_items_importer:
             call_command(self.command,
-                         self.options["elements"],
+                         self.options["elements_path"],
                          **options)
             memorized_items_importer.assert_called_once_with(
-                self.options["elements"], self.user)
+                self.options["elements_path"], self.user)
 
     def test_setting_template_by_uuid(self):
         options = {"template_by_id": str(self.template.id)}
@@ -76,7 +76,7 @@ class CLIImportingCardsTestCase(TestCase):
         with patch(self.path_pending_items_importer, autospec=True,
                    return_value=mocked_instance):
             call_command(self.command,
-                         self.options["elements"],
+                         self.options["elements_path"],
                          **options)
             mocked_instance.set_template_by_uuid.assert_called_once_with(
                 options["template_by_id"])
@@ -88,7 +88,7 @@ class CLIImportingCardsTestCase(TestCase):
         with patch(self.path_pending_items_importer, autospec=True,
                    return_value=mocked_instance):
             call_command(self.command,
-                         self.options["elements"],
+                         self.options["elements_path"],
                          **options)
             mocked_instance.set_template_by_title.assert_called_once_with(
                 options["template_by_title"])
@@ -100,24 +100,22 @@ class CLIImportingCardsTestCase(TestCase):
         with patch(self.path_pending_items_importer, autospec=True,
                    return_value=mocked_instance):
             call_command(self.command,
-                         self.options["elements"],
+                         self.options["elements_path"],
                          **options)
             mocked_instance.set_import_category.assert_called_once_with(
                 options["import_from_category"])
 
-    def test_into_categories(self):
-        options = {"import_into_categories":
-                       [uuid.uuid4(), uuid.uuid4(), uuid.uuid4()]}
-
+    def test_import_into_category(self):
+        options = {"import_into_category": str(uuid.uuid4())}
         mocked_instance = MagicMock()
 
         with patch(self.path_pending_items_importer, autospec=True,
                    return_value=mocked_instance):
             call_command(self.command,
-                         self.options["elements"],
+                         self.options["elements_path"],
                          **options)
             mocked_instance.set_categories.assert_called_once_with(
-                options["import_into_categories"])
+                [options["import_into_category"]])
 
     def patch_pending_items_importer(self):
         return patch(self.path_pending_items_importer, autospec=True)

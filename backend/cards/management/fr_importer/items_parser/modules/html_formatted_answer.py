@@ -60,7 +60,7 @@ class HTMLFormattedAnswer(Answer):
     @property
     def example_sentences_block(self):
         example_sentences_block = (
-            '<div class=”answer-example-sentences”>'
+            '<div class="answer-example-sentences">'
             + "".join(self.example_sentences)
             + '</div>'
             if super().example_sentences else None)

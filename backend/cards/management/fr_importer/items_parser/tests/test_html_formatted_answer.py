@@ -63,7 +63,7 @@ class Fields(TestCase):
     def test_example_sentences_block(self):
         joined_examples = "".join(["<p><span>sentence 1</span></p>",
                                    "<p><span>sentence 2</span></p>"])
-        expected = ('<div class=”answer-example-sentences”>'
+        expected = ('<div class="answer-example-sentences">'
                     + joined_examples
                     + '</div>')
         answer = HTMLFormattedAnswer(self.side_text_no_key)
@@ -186,17 +186,17 @@ class OutputText(TestCase):
         sentences = "".join(f"<p><span>{sentence}</span></p>" for sentence in
                        self.example_sentences.splitlines())
         example_sentences = (
-            f'<div class=”answer-example-sentences”>{sentences}</div>')
+            f'<div class="answer-example-sentences">{sentences}</div>')
         expected_output = (self.answer_component + phonetics_key
                            + example_sentences)
-        self.assertEqual(answer.output_text, expected_output)
+        self.assertEqual(expected_output, answer.output_text)
 
     def test_answer_phonetics_examples(self):
         answer = HTMLFormattedAnswer(self.answer_phonetics_examples)
         answer_phonetics = (
             f'<div class="answer">{self.answer} '
             f'{self.formatted_phonetics}</div>')
-        example_sentences = ('<div class=”answer-example-sentences”><p>'
+        example_sentences = ('<div class="answer-example-sentences"><p>'
                              '<span>sentence 1</span></p><p><span>sentence 2'
                              '</span></p></div>')
         expected_output = f"{answer_phonetics}{example_sentences}"

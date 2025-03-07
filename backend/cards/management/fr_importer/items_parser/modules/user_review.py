@@ -43,7 +43,8 @@ class UserReview:
 
     @property
     def time_to_repeat(self) -> timedelta:
-        return timedelta(days=self._fr_review["stmtrpt"])
+        # changed from stmtrpt - now it should calculate correct time
+        return timedelta(days=self._fr_review["tmtrpt"])
 
     @property
     def introduced_on(self) -> datetime:
