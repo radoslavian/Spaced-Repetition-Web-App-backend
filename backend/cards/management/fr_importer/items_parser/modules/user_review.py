@@ -105,12 +105,12 @@ class UserReview:
         Special case ef - see the test: test_user_review.test_ef_special_case
         for details.
         """
-        max_real_interval = 1000
+        max_real_interval = 900
         min_computed_interval = 500
         special_case = (
                 max_real_interval < self.last_real_interval >
                 self.computed_interval > min_computed_interval
-                and self.grade > 3 and self.reviews > 3)
+                and self.grade > 2 and self.reviews > 3)
         return special_case
 
     @property
