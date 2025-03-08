@@ -50,7 +50,7 @@ class UserReviewTestCase(unittest.TestCase):
             "review_date": time_of_start + timedelta(
                 days=int(cls.extracted_attributes["stmtrpt"])),
             "grade": int(cls.extracted_attributes["gr"]),
-            "easiness_factor": 1.5,
+            "easiness_factor": 1.7,
             "crammed": False,
             "comment": None
         }
@@ -66,7 +66,7 @@ class UserReviewTestCase(unittest.TestCase):
         # the formula is: ivl/rlivl
         rllivl = 271  # last real interval
         ivl = 33  # (current) interval
-        expected_ef = 1.5
+        expected_ef = 1.7
         review_details = {
             **self.extracted_attributes,
             "rllivl": rllivl,

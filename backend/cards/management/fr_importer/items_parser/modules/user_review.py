@@ -10,7 +10,8 @@ class UserReview:
     Translates the fr user review fields (from the elements.xml file) for use
     in a local database.
     """
-    def __init__(self, fr_review: dict, time_of_start: int|str):
+
+    def __init__(self, fr_review: dict, time_of_start: int | str):
         self._fr_review = self.convert_values_into_integers(fr_review)
         self._epoch_time_of_start = int(time_of_start)
         self.max_for_cram = 3
@@ -75,7 +76,7 @@ class UserReview:
     @property
     def easiness_factor(self) -> float:
         decimal_places = 2
-        e_factor =  round(
+        e_factor = round(
             self.computed_interval / self._get_ef_divisor(),
             decimal_places)
         return self._normalize_e_factor(e_factor)
@@ -89,10 +90,10 @@ class UserReview:
 
     def _normalize_e_factor(self, new_e_factor) -> float:
         ef_max = 4.0
-        ef_min = 1.5
+        ef_min = 1.7
         ef_for_special_case = 2.3
 
-        if self._ef_special_case():
+        if self.ef_special_case:
             return ef_for_special_case
         elif new_e_factor > ef_max:
             return ef_max
@@ -100,18 +101,17 @@ class UserReview:
             return ef_min
         return new_e_factor
 
-    def _ef_special_case(self) -> bool:
+    @property
+    def ef_special_case(self) -> bool:
         """
         Special case ef - see the test: test_user_review.test_ef_special_case
         for details.
         """
         max_real_interval = 900
         min_computed_interval = 500
-        special_case = (
-                max_real_interval < self.last_real_interval >
+        return (max_real_interval < self.last_real_interval >
                 self.computed_interval > min_computed_interval
                 and self.grade > 2 and self.reviews > 3)
-        return special_case
 
     @property
     def crammed(self) -> bool:
