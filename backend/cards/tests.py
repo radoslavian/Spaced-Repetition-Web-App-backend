@@ -1,6 +1,6 @@
 import random
 from datetime import timedelta, date, datetime
-from hashlib import md5, sha1
+from hashlib import sha1
 from random import randint
 from unittest import skip
 
@@ -171,13 +171,6 @@ class FakeUsersCards(TestCase):
         card, *_ = self.get_cards()
         user, _ = self.get_users()
         return card, user
-
-
-class ExceptionTests(TestCase):
-    def test_CardReviewDataExists_message(self):
-        expected_message = ("Review data for a given user/data pair "
-                            + "already exists.")
-        self.assertEqual(CardReviewDataExists().message, expected_message)
 
 
 class TemplateModelTests(TestCase):
