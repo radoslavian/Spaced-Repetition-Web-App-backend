@@ -2,31 +2,14 @@ import django.db.utils
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from faker import Faker
 from cards.models import Card, CardTemplate
-
-fake = Faker()
-
-
-def fake_card_data():
-    return {
-        "front": fake.text(100),
-        "back": fake.text(100)
-    }
-
-
-def fake_template_data():
-    return {
-        "title": fake.text(60),
-        "description": fake.text(300),
-        "body": fake.text(300)
-    }
+from cards.tests.fake_data import get_fake_card_data, get_fake_template_data
 
 
 class CreatingTemplate(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.template_data = fake_template_data()
+        cls.template_data = get_fake_template_data()
 
     def setUp(self):
         self.template = CardTemplate.objects.create(**self.template_data)
@@ -74,8 +57,8 @@ class TemplateCardRelationship(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.card_data = fake_card_data()
-        cls.template_data = fake_template_data()
+        cls.card_data = get_fake_card_data()
+        cls.template_data = get_fake_template_data()
 
     def setUp(self):
         self.template = CardTemplate.objects.create(**self.template_data)
