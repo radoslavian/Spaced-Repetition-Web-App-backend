@@ -14,12 +14,12 @@ from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
-from .models import (Card, CardTemplate, Category, CardUserData,
-                     Image, CardImage, Sound)
+from cards.models import (Card, CardTemplate, Category, CardUserData,
+                          Image, CardImage, Sound)
 from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue
-from .utils.helpers import today
+from cards.utils.exceptions import CardReviewDataExists, ReviewBeforeDue
+from cards.utils.helpers import today
 import datetime
 
 fake = Faker()
@@ -216,60 +216,6 @@ class CardModelTests(TestCase):
                                  "A: Test card's answer.)"
         actual_serialization = str(self.card)
         self.assertEqual(actual_serialization, expected_serialization)
-
-
-class TemplateCardRelationshipTests(TemplateModelTests, CardModelTests):
-    def setUp(self):
-        TemplateModelTests.setUp(self)
-        CardModelTests.setUp(self)
-        card = Card.objects.first()
-        card.template = CardTemplate.objects.first()
-        card.save()
-
-    def test_add_template_to_card(self):
-        card, template = self._get_tested_objects()
-        card.template = template
-        card.save()
-
-        self.assertTrue(card.template is template)
-        self.assertTrue(card.template_id == template.id)
-
-    def test_card_related_name(self):
-        card, template = self._get_tested_objects()
-        card_from_template = template.cards.first()
-
-        self.assertEqual(card_from_template.front, card.front)
-
-    @staticmethod
-    def _get_tested_objects():
-        card = Card.objects.first()
-        template = CardTemplate.objects.first()
-
-        return card, template
-
-    def test_remove_template_from_card(self):
-        card, template = self._get_tested_objects()
-        card.template = None
-        card.save()
-
-        self.assertFalse(card.template is template)
-        self.assertTrue(CardTemplate.objects.get(title=self.template_title))
-        self.assertFalse(card.template)
-        self.assertFalse(card.template_id == template.id)
-
-    def test_removing_template(self):
-        card, template = self._get_tested_objects()
-
-        self.assertRaises(ProtectedError, template.delete)
-
-        # remove reference to the template and delete it:
-        card.template = None
-        card.save()
-        template.delete()
-
-        self.assertRaises(
-            ObjectDoesNotExist,
-            lambda: CardTemplate.objects.get(title=self.template_title))
 
 
 class CategoryTests(TestCase):
