@@ -1,0 +1,28 @@
+{# Grammar commentary displayed above the question. #}
+
+{% extends "grammar_basic.html" %}
+{% block styles %}
+  {{ block.super }}
+  .card-body #grammar-commentary {
+      background-color: #f7f7f7;
+      padding: 5px;
+  }
+{% endblock styles %}
+  {% block content %}
+    <div id="grammar-commentary">
+      {% block grammar_commentary %}
+        <div class="card-question-definition">
+          <p>
+            {% block commentary_header %}
+            {% endblock commentary_header %}
+          </p>
+        </div>
+
+        <div class="card-question-example" id="commentary-body">
+          {% block commentary_body %}
+          {% endblock commentary_body %}
+        </div>
+      {% endblock grammar_commentary %}
+    </div>
+  {{ block.super }}
+{% endblock content %}

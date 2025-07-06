@@ -1,6 +1,10 @@
 <!-- base template for cards -->
 <style type="text/css">
   {% block styles %}
+  .card-body ol li {
+      margin-top: 10.0px;
+  }
+
   .card-body .card-question-definition {
       text-align: left;
       padding-left: 5pt;
@@ -24,7 +28,8 @@
   }
 
   .card-body .question-hidden-letter:hover,
-  .card-body .highlighted-text:hover {
+  .card-body .highlighted-text:hover,
+  .card-body .highlighted-dotted-text:hover {
       background: yellow;
   }
 
@@ -37,10 +42,18 @@
       padding-right: 5pt;
   }
 
-  .card-body .highlighted-text {
+  .card-body .highlighted-text,
+  .card-body .highlighted-dotted-text {
       background: #fae396;
       padding: 3px;
       border-radius: 3px;
+  }
+
+  .card-body .highlighted-dotted-text {
+      text-decoration: underline dotted green;
+      padding-left: 2px;
+      padding-right: 2px;
+      text-underline-offset: 3px;
   }
 
   .card-body .card-question, .card-body .card-answer {
@@ -62,8 +75,12 @@
       line-height: 14pt
   }
 
-  .card-body .phonetic-spelling > .phonetic-entity:hover {
+  .card-body .phonetic-entity:hover {
       color: red;
+  }
+
+  .card-body .answer-example-sentences {
+      margin-left: 10px;
   }
 
   .card-body .answer-example-sentences span {
@@ -77,16 +94,23 @@
   .answer-example-sentences span:hover {
       background-color: #fae396;
   }
+  .card-body div.word-box {
+      border-left: 5px solid #9c9c9c;
+      padding: 10px;
+      background-color: #edebeb;
+  }
   {% endblock styles %} 
 </style>
 <div class="card-body">
   {% block content %}
   <div class="card-question">
     {% block question %}
+    {{ card.front|safe }}
     {% endblock question %}
   </div>
   <div class="card-answer">
     {% block answer %}
+      {{ card.back|safe }}
     {% endblock answer %}
   </div>
   {% endblock content %}

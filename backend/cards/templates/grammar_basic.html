@@ -1,0 +1,32 @@
+{# Removes some boiler-plate code from grammar cards. #}
+
+{% extends "card_vocabulary.html" %}
+{% block styles %}
+  {{ block.super }}
+
+  .card-body #card-question-image {
+      display: flex;
+      align-items: flex-end;
+  }
+{% endblock styles %}
+
+{% block question_text %}
+  <h3>
+    {% block task_description %}
+    {% endblock task_description %}
+  </h3>
+
+  <div class="card-question-example" id="grammar-task-text">
+    <p>
+      {% block task_text %}
+        {{ card.front|safe }}
+      {% endblock task_text %}
+    </p>
+  </div>
+{% endblock question_text %}
+  
+{% block answer_text %}
+ <div class="answer" id="main-answer-phrase">
+	 <p>{{ card.back|safe }}</p>
+ </div>
+{% endblock answer_text %}
