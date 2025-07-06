@@ -28,7 +28,7 @@ CSRF_COOKIE_SECURE = True
 SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = [False, True][int(os.environ.get('DEBUG', 0))]
+DEBUG = [False, True][int(os.environ.get('DEBUG', 1))]
 
 # according to 'Django for Professionals':
 ALLOWED_HOSTS = ['localhost', '127.0.0.1',
@@ -175,8 +175,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # for tests, SessionAuthentication should be turned on
-        'rest_framework.authentication.SessionAuthentication'
-        # 'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication'
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
