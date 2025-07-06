@@ -307,3 +307,8 @@ class PhoneticsConverter:
 
     def is_at_end(self):
         return self._current >= len(self._phonetics)
+
+
+def convert_techland_phonetics(phonetics):
+    converter = PhoneticsConverter(phonetics)
+    return converter.converted_phonetics

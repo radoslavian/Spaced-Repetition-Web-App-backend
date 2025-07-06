@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from cards.management.fr_importer.items_parser.modules.phonetics_converter import PhoneticsConverter, \
-    Token
+from cards.management.fr_importer.items_parser.modules.phonetics_converter \
+    import PhoneticsConverter, Token, convert_techland_phonetics
 
 
 class ConvertPhoneticsTestCase(TestCase):
@@ -10,6 +10,7 @@ class ConvertPhoneticsTestCase(TestCase):
         The "tokens" property can not be mutated from outside the class object.
         """
         converter = PhoneticsConverter("Fake")
+
         def this_fails():
             converter.tokens = "abc"
 
@@ -123,3 +124,12 @@ class ConvertPhoneticsTestCase(TestCase):
                                    ' - our - as in sour">aʊə</span>')
         self.assertEqual(converter.converted_phonetics,
                          expected_html_phonetics)
+
+    def test_techland_phonetics_converting_function(self):
+        input_phonetics = "(e)"
+        expected_output = ('<span class='
+                           '"phonetic-entity" title="(ə) - as in '
+                           'beaten">(ə)</span>')
+        received_output = convert_techland_phonetics(input_phonetics)
+
+        self.assertEqual(received_output, expected_output)
