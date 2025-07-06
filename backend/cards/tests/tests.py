@@ -173,51 +173,6 @@ class FakeUsersCards(TestCase):
         return card, user
 
 
-class CardModelTests(TestCase):
-    def setUp(self):
-        self.front = "Test card's question."
-        self.back = "Test card's answer."
-
-        self.card = Card.objects.create(
-            front=self.front,
-            back=self.back
-        )
-
-    def test_duplicate_card(self):
-        def duplicate_card():
-            card = Card.objects.create(
-                front=self.front,
-                back=self.back
-            )
-            card.save()
-
-        self.assertRaises(django.db.utils.IntegrityError, duplicate_card)
-
-    @staticmethod
-    def test_uuids():
-        for i in range(3):
-            CardTemplate.objects.create(
-                title=fake.text(15),
-                description=fake.text(20),
-                body=fake.text(20)
-            )
-
-    def test_last_modified_update(self):
-        """Test if last_modified attribute changes when modified.
-        """
-        prev_last_modified = self.card.last_modified
-        self.card.front = "New test card's question."
-        self.card.save()
-
-        self.assertNotEqual(self.card.last_modified, prev_last_modified)
-
-    def test_serialization(self):
-        expected_serialization = "Card(Q: Test card's question.; " \
-                                 "A: Test card's answer.)"
-        actual_serialization = str(self.card)
-        self.assertEqual(actual_serialization, expected_serialization)
-
-
 class CategoryTests(TestCase):
     def setUp(self):
         CATEGORY_NAME_LEN = 20

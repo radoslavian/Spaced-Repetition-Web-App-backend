@@ -1,0 +1,46 @@
+import django.db.utils
+from django.test import TestCase
+from cards.models import Card
+
+
+class CardModel(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake_card_data = {
+            "front": "Test card's question.",
+            "back": "Test card's answer."
+        }
+
+    def setUp(self):
+        self.card = Card.objects.create(**self.fake_card_data)
+
+    def test_duplicate_card(self):
+        def duplicate_card():
+            card = Card.objects.create(**self.fake_card_data)
+            card.save()
+
+        self.assertRaises(django.db.utils.IntegrityError, duplicate_card)
+
+    def test_uuids(self):
+        for i in range(3):
+            str_i = str(i)
+            Card.objects.create(
+                front=self.fake_card_data["front"] + str_i,
+                back=self.fake_card_data["back"] + str_i
+            )
+
+    def test_last_modified_update(self):
+        """
+        Test if last_modified attribute changes when the card is modified.
+        """
+        prev_last_modified = self.card.last_modified
+        self.card.front = "New test card's question."
+        self.card.save()
+
+        self.assertNotEqual(self.card.last_modified, prev_last_modified)
+
+    def test_serialization(self):
+        expected_serialization = f"Card(Q: Test card's question.; " \
+                                 f"A: Test card's answer.)"
+        actual_serialization = str(self.card)
+        self.assertEqual(actual_serialization, expected_serialization)
