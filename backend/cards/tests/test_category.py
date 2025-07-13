@@ -77,8 +77,9 @@ class CategoryTests(TestCase):
             lambda: self.get_category(self.first_sibling_category_name))
 
         # as stated in the documentation, treebeard relies on raw
-        # SQL expressions to manage model, so after applying changes model
-        # requires re-fetch from the database in order to stay up-to-date
+        # SQL expressions to manage the model, so after applying changes,
+        # the model requires re-fetching from a database in order
+        # to stay up-to-date
         self.assertTrue(self.get_category(self.top_level_category_name))
 
     def test_deleting_non_empty_top_category(self):
