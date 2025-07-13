@@ -27,9 +27,5 @@ def make_fake_cards(number_of_cards):
 
 def make_fake_users(number_of_users):
     User = get_user_model()
-    users = []
-    for _ in range(number_of_users):
-        user = User(username=fake.profile()["username"])
-        user.save()
-        users.append(user)
-    return users
+    return [User.objects.create(username=fake.profile()["username"])
+            for _ in range(number_of_users)]
