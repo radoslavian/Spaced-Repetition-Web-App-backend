@@ -68,19 +68,12 @@ class CategoryTests(TestCase):
         self.assertIn(subcategory_2, subcategories_from_parent)
 
     def test_deleting_empty_subcategory(self):
-        first_category = self.get_category(self.top_level_category_name)
-        for sub_category in first_category.sub_categories.all():
-            sub_category.delete()
+        self.top_level_category.sub_categories.all().delete()
 
         self.assertRaises(
             ObjectDoesNotExist,
             lambda: self.get_category(self.first_sibling_category_name))
-
-        # as stated in the documentation, treebeard relies on raw
-        # SQL expressions to manage the model, so after applying changes,
-        # the model requires re-fetching from a database in order
-        # to stay up-to-date
-        self.assertTrue(self.get_category(self.top_level_category_name))
+        self.assertFalse(self.top_level_category.sub_categories.all())
 
     def test_deleting_non_empty_top_category(self):
         self.assertRaises(ProtectedError,
