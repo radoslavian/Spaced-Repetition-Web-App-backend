@@ -83,9 +83,8 @@ class CategoryTests(TestCase):
         self.assertTrue(self.get_category(self.top_level_category_name))
 
     def test_deleting_non_empty_top_category(self):
-        first_category = self.get_category(self.top_level_category_name)
-
-        self.assertRaises(ProtectedError, first_category.delete)
+        self.assertRaises(ProtectedError,
+                          self.top_level_category.delete)
 
     def test_emptying_and_deleting(self):
         """Test deleting top category after clearing subcategories.
