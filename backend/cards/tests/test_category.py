@@ -2,20 +2,19 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from faker import Faker
 from cards.models import Category
-
-
-fake = Faker()
+from cards.tests.fake_data import fake
 
 
 class CategoryTests(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         category_name_len = 20
-        self.first_category_name = fake.text(category_name_len)
-        self.second_category_name = fake.text(category_name_len)
-        self.third_category_name = fake.text(category_name_len)
+        cls.first_category_name = fake.text(category_name_len)
+        cls.second_category_name = fake.text(category_name_len)
+        cls.third_category_name = fake.text(category_name_len)
 
+    def setUp(self):
         first_category = Category.objects.create(
             name=self.first_category_name
         )

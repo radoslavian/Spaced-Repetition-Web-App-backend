@@ -15,13 +15,11 @@ from django.test import TestCase
 from django.urls import reverse
 from cards.models import (Card, Category, CardUserData,
                           Image, CardImage, Sound)
-from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cards.utils.exceptions import CardReviewDataExists, ReviewBeforeDue
 from cards.utils.helpers import today
+from cards.tests.fake_data import fake
 import datetime
-
-fake = Faker()
 
 
 class HelpersMixin:
