@@ -18,7 +18,7 @@ from cards.models import (Card, Category, CardUserData,
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cards.utils.exceptions import CardReviewDataExists, ReviewBeforeDue
 from cards.utils.helpers import today
-from cards.tests.fake_data import fake
+from cards.tests.fake_data import fake, make_fake_cards, make_fake_users
 import datetime
 
 
@@ -67,25 +67,6 @@ class HelpersMixin:
             category_name = fake.text(20)
         category = Category.objects.create(name=category_name)
         return category
-
-    @staticmethod
-    def make_fake_users(number_of_users):
-        User = get_user_model()
-        users = []
-        for _ in range(number_of_users):
-            user = User(username=fake.profile()["username"])
-            user.save()
-            users.append(user)
-        return users
-
-    @staticmethod
-    def make_fake_cards(number_of_cards):
-        cards = []
-        for _ in range(number_of_cards):
-            card = Card(front=fake.text(20), back=fake.text(20))
-            card.save()
-            cards.append(card)
-        return cards
 
     placeholder_audio_files = [
         (
@@ -170,39 +151,6 @@ class FakeUsersCards(TestCase):
         return card, user
 
 
-class CramQueueTests(TestCase, HelpersMixin):
-    def setUp(self):
-        self.card_1, self.card_2, self.card_3 = self.make_fake_cards(3)
-
-    def test_cram(self):
-        user = self.make_fake_users(1)[0]
-        # TODO: split into several tests
-        # TODO: following should go into setUp
-        # memorizing adds cards to cram
-        for card in self.card_1, self.card_2, self.card_3:
-            card.memorize(user, 3)
-
-        self.assertEqual(len(user.crammed_cards), 3)
-
-        # removing from cram - status change
-        card_review_data = CardUserData.objects.get(user=user,
-                                                    card=self.card_1)
-        self.assertTrue(card_review_data.crammed)
-        status = card_review_data.remove_from_cram()
-        self.assertFalse(status)
-        self.assertEqual(len(user.crammed_cards), 2)
-        self.assertFalse(card_review_data.crammed)
-
-        # removing from cram - no status change
-        status = card_review_data.remove_from_cram()
-        self.assertFalse(status)  # card wasn't crammed
-
-        # manually adding to cram
-        status = card_review_data.add_to_cram()
-        self.assertTrue(status)
-        self.assertTrue(card_review_data.crammed)
-
-
 class CardCommentsTests(FakeUsersCards):
     def setUp(self):
         super().setUp()
@@ -273,7 +221,7 @@ class CardReviewsTests(FakeUsersCards, HelpersMixin):
     def test_updating_review_data(self):
         """Updating card’s comment field doesn’t affect other fields.
         """
-        card = self.make_fake_cards(1)[0]
+        card = make_fake_cards(1)[0]
         user, _ = self.get_users()
         card_user_data = card.memorize(user)
         card_user_data_dict = {
@@ -790,7 +738,7 @@ class CardsImagesTests(FakeUsersCards, HelpersMixin):
     def test_deleting_card(self):
         """Should keep image in the database after deleting the card.
         """
-        card = self.make_fake_cards(1)[0]
+        card = make_fake_cards(1)[0]
         image = self.get_image_instance()
         card_image = CardImage(card=card,
                                image=image,
@@ -865,9 +813,9 @@ class AbsoluteUrls(HelpersMixin, TestCase):
         # this should be inherited from the ApiTestHelpersMixin
         # which currently resides in api.tests
         self.client = APIClient()
-        self.user = self.make_fake_users(1)[0]
+        self.user = make_fake_users(1)[0]
         self.client.force_authenticate(user=self.user)
-        self.card = self.make_fake_cards(1)[0]
+        self.card = make_fake_cards(1)[0]
 
     def test_card_user_data_canonical_url(self):
         card_user_data = self.card.memorize(self.user)
@@ -903,7 +851,7 @@ class SoundFiles(HelpersMixin, TestCase):
 
 class SoundsInCards(HelpersMixin, TestCase):
     def setUp(self):
-        self.card_1, self.card_2 = self.make_fake_cards(2)
+        self.card_1, self.card_2 = make_fake_cards(2)
         sound_entries = []
         # valid as long as .placeholder_audio_files has only two elements:
         for placeholder_audio in self.placeholder_audio_files:
