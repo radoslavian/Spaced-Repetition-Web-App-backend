@@ -1,8 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from cards.models import Category
+from cards.models import Card, Category
 from cards.tests.fake_data import fake
 
 
@@ -107,3 +108,40 @@ class CategoryTests(TestCase):
     @staticmethod
     def get_category(name: str):
         return Category.objects.get(name=name)
+
+
+class CategoryJoins(TestCase):
+    def test_user_categories(self):
+        user_model = get_user_model()
+        username = fake.profile()["username"]
+        user = user_model.objects.create_user(username=username)
+        parent_category = Category(name="Parent category")
+        first_subcategory = Category(
+            name="first subcategory",
+            parent=parent_category
+        )
+        parent_category.save()
+        first_subcategory.save()
+        user.selected_categories.add(first_subcategory)
+        user.save()
+
+        self.assertEqual(first_subcategory.category_users.first().username,
+                         user.username)
+        self.assertEqual(user.selected_categories.first().name,
+                         first_subcategory.name)
+
+    def test_ignored_cards(self):
+        user_model = get_user_model()
+        user = user_model(username=fake.text(6))
+        user.save()
+        card = Card(
+            front=fake.text(100),
+            back=fake.text(100)
+        )
+        card.save()
+        user.ignored_cards.add(card)
+
+        self.assertEqual(user.ignored_cards.first().front,
+                         card.front)
+        self.assertEqual(card.ignoring_users.first().username,
+                         user.username)
