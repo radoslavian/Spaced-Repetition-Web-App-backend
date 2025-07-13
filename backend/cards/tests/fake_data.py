@@ -3,6 +3,7 @@ from faker import Faker
 from cards.models import Card
 
 fake = Faker()
+User = get_user_model()
 
 
 def get_fake_card_data():
@@ -26,6 +27,5 @@ def make_fake_cards(number_of_cards):
 
 
 def make_fake_users(number_of_users):
-    User = get_user_model()
     return [User.objects.create(username=fake.profile()["username"])
             for _ in range(number_of_users)]
