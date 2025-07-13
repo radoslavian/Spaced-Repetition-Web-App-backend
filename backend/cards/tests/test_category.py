@@ -10,21 +10,21 @@ class CategoryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         category_name_len = 20
-        cls.first_category_name = fake.text(category_name_len)
-        cls.second_category_name = fake.text(category_name_len)
-        cls.third_category_name = fake.text(category_name_len)
+        cls.top_level_category_name = fake.text(category_name_len)
+        cls.first_sibling_category_name = fake.text(category_name_len)
+        cls.second_sibling_category_name = fake.text(category_name_len)
 
     def setUp(self):
-        first_category = Category.objects.create(
-            name=self.first_category_name
+        self.top_level_category = Category.objects.create(
+            name=self.top_level_category_name
         )
-        Category.objects.create(
-            name=self.second_category_name,
-            parent=first_category
+        self.first_sibling_category = Category.objects.create(
+            name=self.first_sibling_category_name,
+            parent=self.top_level_category
         )
-        Category.objects.create(
-            parent=first_category,
-            name=self.third_category_name
+        self.second_sibling_category = Category.objects.create(
+            parent=self.top_level_category,
+            name=self.second_sibling_category_name
         )
 
     @staticmethod
@@ -37,56 +37,55 @@ class CategoryTests(TestCase):
             Category.objects.create(name=fake.text(15))
 
     def test_serialization(self):
-        category = Category.objects.first()
-        expected_serialization = f"<{category.name}>"
-
-        self.assertEqual(expected_serialization, str(category))
+        expected_serialization = f"<{self.top_level_category.name}>"
+        self.assertEqual(expected_serialization,
+                         str(self.top_level_category))
 
     def test_self_reference(self):
         number_of_sub_categories = 2
-        first_category = self.get_category(self.first_category_name)
-        second_category = self.get_category(self.second_category_name)
+        first_category = self.get_category(self.top_level_category_name)
+        second_category = self.get_category(self.first_sibling_category_name)
 
         self.assertEqual(first_category.sub_categories.count(),
                          number_of_sub_categories)
         self.assertEqual(second_category.parent.name,
-                         self.first_category_name)
+                         self.top_level_category_name)
 
     def test_deleting_empty_subcategory(self):
-        first_category = self.get_category(self.first_category_name)
+        first_category = self.get_category(self.top_level_category_name)
         for sub_category in first_category.sub_categories.all():
             sub_category.delete()
 
         self.assertRaises(
             ObjectDoesNotExist,
-            lambda: self.get_category(self.second_category_name))
+            lambda: self.get_category(self.first_sibling_category_name))
 
         # as stated in the documentation, treebeard relies on raw
         # SQL expressions to manage model, so after applying changes model
         # requires re-fetch from the database in order to stay up-to-date
-        self.assertTrue(self.get_category(self.first_category_name))
+        self.assertTrue(self.get_category(self.top_level_category_name))
 
     def test_deleting_non_empty_top_category(self):
-        first_category = self.get_category(self.first_category_name)
+        first_category = self.get_category(self.top_level_category_name)
 
         self.assertRaises(ProtectedError, first_category.delete)
 
     def test_emptying_and_deleting(self):
         """Test deleting top category after clearing subcategories.
         """
-        first_category = self.get_category(self.first_category_name)
+        first_category = self.get_category(self.top_level_category_name)
         first_category.sub_categories.set([])
         first_category.save()
 
         self.assertTrue(first_category.delete())
-        self.assertTrue(all([self.get_category(self.second_category_name),
-                             self.get_category(self.third_category_name)]))
+        self.assertTrue(all([self.get_category(self.first_sibling_category_name),
+                             self.get_category(self.second_sibling_category_name)]))
 
     def test_duplicate_category(self):
         """Attempt to add same-named sibling category.
         """
-        parent_category = self.get_category(self.first_category_name)
-        new_category = Category(name=self.second_category_name)
+        parent_category = self.get_category(self.top_level_category_name)
+        new_category = Category(name=self.first_sibling_category_name)
         new_category.save()
 
         def duplicate_category():
