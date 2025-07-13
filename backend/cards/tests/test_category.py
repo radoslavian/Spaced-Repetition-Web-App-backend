@@ -111,37 +111,36 @@ class CategoryTests(TestCase):
 
 
 class CategoryJoins(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.User = get_user_model()
+        cls.username = fake.profile()["username"]
+
+    def setUp(self):
+        self.user = self.User.objects.create_user(username=self.username)
+
     def test_user_categories(self):
-        user_model = get_user_model()
-        username = fake.profile()["username"]
-        user = user_model.objects.create_user(username=username)
-        parent_category = Category(name="Parent category")
-        first_subcategory = Category(
+        parent_category = Category.objects.create(name="Parent category")
+        subcategory = Category.objects.create(
             name="first subcategory",
             parent=parent_category
         )
-        parent_category.save()
-        first_subcategory.save()
-        user.selected_categories.add(first_subcategory)
-        user.save()
+        self.user.selected_categories.add(subcategory)
+        self.user.save()
 
-        self.assertEqual(first_subcategory.category_users.first().username,
-                         user.username)
-        self.assertEqual(user.selected_categories.first().name,
-                         first_subcategory.name)
+        self.assertEqual(subcategory.category_users.first().username,
+                         self.user.username)
+        self.assertEqual(self.user.selected_categories.first().name,
+                         subcategory.name)
 
     def test_ignored_cards(self):
-        user_model = get_user_model()
-        user = user_model(username=fake.text(6))
-        user.save()
-        card = Card(
+        card = Card.objects.create(
             front=fake.text(100),
             back=fake.text(100)
         )
-        card.save()
-        user.ignored_cards.add(card)
+        self.user.ignored_cards.add(card)
 
-        self.assertEqual(user.ignored_cards.first().front,
+        self.assertEqual(self.user.ignored_cards.first().front,
                          card.front)
         self.assertEqual(card.ignoring_users.first().username,
-                         user.username)
+                         self.user.username)
