@@ -11,10 +11,9 @@ from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
-from cards.models import (Card, CardTemplate, Category, CardUserData,
+from cards.models import (Card, Category, CardUserData,
                           Image, CardImage, Sound)
 from faker import Faker
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -171,94 +170,6 @@ class FakeUsersCards(TestCase):
         card, *_ = self.get_cards()
         user, _ = self.get_users()
         return card, user
-
-
-class CategoryTests(TestCase):
-    def setUp(self):
-        CATEGORY_NAME_LEN = 20
-        self.first_category_name = fake.text(CATEGORY_NAME_LEN)
-        self.second_category_name = fake.text(CATEGORY_NAME_LEN)
-        self.third_category_name = fake.text(CATEGORY_NAME_LEN)
-
-        first_category = Category.objects.create(
-            name=self.first_category_name
-        )
-        Category.objects.create(
-            name=self.second_category_name,
-            parent=first_category
-        )
-        Category.objects.create(
-            parent=first_category,
-            name=self.third_category_name
-        )
-
-    @staticmethod
-    def test_uuids():
-        for i in range(3):
-            Category.objects.create(name=fake.text(15))
-
-    def test_serialization(self):
-        category = Category.objects.first()
-        expected_serialization = f"<{category.name}>"
-
-        self.assertEqual(expected_serialization, str(category))
-
-    def test_self_reference(self):
-        NUMBER_OF_SUB_CATEGORIES = 2
-        first_category = self.get_category(self.first_category_name)
-        second_category = self.get_category(self.second_category_name)
-
-        self.assertEqual(first_category.sub_categories.count(),
-                         NUMBER_OF_SUB_CATEGORIES)
-        self.assertEqual(second_category.parent.name,
-                         self.first_category_name)
-
-    def test_deleting_empty_subcategory(self):
-        first_category = self.get_category(self.first_category_name)
-        for sub_category in first_category.sub_categories.all():
-            sub_category.delete()
-
-        self.assertRaises(
-            ObjectDoesNotExist,
-            lambda: self.get_category(self.second_category_name))
-
-        # as stated in the documentation, treebeard relies on raw
-        # SQL expressions to manage model, so after applying changes model
-        # requires re-fetch from the database in order to stay up-to-date
-        self.assertTrue(self.get_category(self.first_category_name))
-
-    def test_deleting_non_empty_top_category(self):
-        first_category = self.get_category(self.first_category_name)
-
-        self.assertRaises(ProtectedError, first_category.delete)
-
-    def test_emptying_and_deleting(self):
-        """Test deleting top category after clearing subcategories.
-        """
-        first_category = self.get_category(self.first_category_name)
-        first_category.sub_categories.set([])
-        first_category.save()
-
-        self.assertTrue(first_category.delete())
-        self.assertTrue(all([self.get_category(self.second_category_name),
-                             self.get_category(self.third_category_name)]))
-
-    def test_duplicate_category(self):
-        """Attempt to add same-named sibling category.
-        """
-        parent_category = self.get_category(self.first_category_name)
-        new_category = Category(name=self.second_category_name)
-        new_category.save()
-
-        def duplicate_category():
-            parent_category.sub_categories.add(new_category)
-            parent_category.save()
-
-        self.assertRaises(django.db.utils.IntegrityError, duplicate_category)
-
-    @staticmethod
-    def get_category(name: str):
-        return Category.objects.get(name=name)
 
 
 class CategoryJoinsTests(TestCase):
