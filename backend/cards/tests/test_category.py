@@ -30,7 +30,7 @@ class CategoryTests(TestCase):
     @staticmethod
     def test_uuids():
         """
-        The test fails if an exception caused by the same uuid repetition
+        The test fails if an exception caused by the uuid repetition
         is raised.
         """
         for i in range(3):
@@ -41,15 +41,31 @@ class CategoryTests(TestCase):
         self.assertEqual(expected_serialization,
                          str(self.top_level_category))
 
-    def test_self_reference(self):
-        number_of_sub_categories = 2
-        first_category = self.get_category(self.top_level_category_name)
-        second_category = self.get_category(self.first_sibling_category_name)
-
-        self.assertEqual(first_category.sub_categories.count(),
-                         number_of_sub_categories)
-        self.assertEqual(second_category.parent.name,
+    def test_parent_reference(self):
+        """
+        Self-referencing hierarchical categories: siblings reference parent.
+        """
+        self.assertEqual(self.first_sibling_category.parent.name,
                          self.top_level_category_name)
+        self.assertEqual(self.second_sibling_category.parent.name,
+                         self.top_level_category_name)
+
+    def test_subcategories_reference(self):
+        """
+        Self-referencing hierarchical categories: parent references
+        sub-categories
+        """
+        number_of_sub_categories = 2
+        subcategory_1 = str(self.first_sibling_category)
+        subcategory_2 = str(self.second_sibling_category)
+        subcategories_from_parent = [
+            str(subcategory) for subcategory
+            in self.top_level_category.sub_categories.all()]
+
+        self.assertEqual(self.top_level_category.sub_categories.count(),
+                         number_of_sub_categories)
+        self.assertIn(subcategory_1, subcategories_from_parent)
+        self.assertIn(subcategory_2, subcategories_from_parent)
 
     def test_deleting_empty_subcategory(self):
         first_category = self.get_category(self.top_level_category_name)
@@ -78,8 +94,9 @@ class CategoryTests(TestCase):
         first_category.save()
 
         self.assertTrue(first_category.delete())
-        self.assertTrue(all([self.get_category(self.first_sibling_category_name),
-                             self.get_category(self.second_sibling_category_name)]))
+        self.assertTrue(
+            all([self.get_category(self.first_sibling_category_name),
+                 self.get_category(self.second_sibling_category_name)]))
 
     def test_duplicate_category(self):
         """Attempt to add same-named sibling category.
