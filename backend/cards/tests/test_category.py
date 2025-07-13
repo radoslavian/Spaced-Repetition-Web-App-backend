@@ -80,13 +80,13 @@ class CategoryTests(TestCase):
                           self.top_level_category.delete)
 
     def test_emptying_and_deleting(self):
-        """Test deleting top category after clearing subcategories.
         """
-        first_category = self.get_category(self.top_level_category_name)
-        first_category.sub_categories.set([])
-        first_category.save()
+        Test deleting top category after clearing subcategories.
+        """
+        self.top_level_category.sub_categories.set([])
+        self.top_level_category.save()
 
-        self.assertTrue(first_category.delete())
+        self.assertTrue(self.top_level_category.delete())
         self.assertTrue(
             all([self.get_category(self.first_sibling_category_name),
                  self.get_category(self.second_sibling_category_name)]))
