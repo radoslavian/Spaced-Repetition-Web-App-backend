@@ -92,15 +92,15 @@ class CategoryTests(TestCase):
                  self.get_category(self.second_sibling_category_name)]))
 
     def test_duplicate_category(self):
-        """Attempt to add same-named sibling category.
         """
-        parent_category = self.get_category(self.top_level_category_name)
+        Attempt to add same-named sibling category.
+        """
         new_category = Category(name=self.first_sibling_category_name)
         new_category.save()
 
         def duplicate_category():
-            parent_category.sub_categories.add(new_category)
-            parent_category.save()
+            self.top_level_category.sub_categories.add(new_category)
+            self.top_level_category.save()
 
         self.assertRaises(IntegrityError, duplicate_category)
 
