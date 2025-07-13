@@ -29,6 +29,10 @@ class CategoryTests(TestCase):
 
     @staticmethod
     def test_uuids():
+        """
+        The test fails if an exception caused by the same uuid repetition
+        is raised.
+        """
         for i in range(3):
             Category.objects.create(name=fake.text(15))
 
