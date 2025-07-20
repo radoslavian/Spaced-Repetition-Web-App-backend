@@ -1,5 +1,4 @@
 from django.test import TestCase
-from cards.models import CardUserData
 from cards.tests.fake_data import (fake, make_fake_card, make_fake_cards,
                                    make_fake_user, make_fake_users)
 
