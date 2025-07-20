@@ -22,10 +22,16 @@ def get_fake_template_data():
 
 
 def make_fake_cards(number_of_cards):
-    return [Card.objects.create(front=fake.text(20), back=fake.text(20))
-            for _ in range(number_of_cards)]
+    return [make_fake_card() for _ in range(number_of_cards)]
+
+
+def make_fake_card():
+    return Card.objects.create(front=fake.text(20), back=fake.text(20))
 
 
 def make_fake_users(number_of_users):
-    return [User.objects.create(username=fake.profile()["username"])
-            for _ in range(number_of_users)]
+    return [make_fake_user() for _ in range(number_of_users)]
+
+
+def make_fake_user():
+    return User.objects.create(username=fake.profile()["username"])
