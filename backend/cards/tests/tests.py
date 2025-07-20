@@ -1,4 +1,3 @@
-import random
 from datetime import timedelta, date, datetime
 from hashlib import sha1
 from random import randint
@@ -13,92 +12,17 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.test import TestCase
 from django.urls import reverse
-from cards.models import (Card, Category, CardUserData,
-                          Image, Sound)
+from cards.models import (Card, CardUserData, Image, Sound)
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cards.utils.exceptions import CardReviewDataExists, ReviewBeforeDue
 from cards.utils.helpers import today
-from cards.tests.fake_data import fake, make_fake_cards, make_fake_users
+from cards.tests.fake_data import fake, fake_data_objects, Helpers
 import datetime
 
-
-class Helpers:
-    @staticmethod
-    def get_image_instance():
-        small_gif = Helpers.gifs[0]
-        return Helpers.get_instance_from_image(small_gif)
-
-    @staticmethod
-    def get_instance_from_image(small_gif):
-        image = SimpleUploadedFile(name=fake.file_name(extension="gif"),
-                                   content=small_gif,
-                                   content_type="image/gif")
-        image_in_database = Image(image=image,
-                                  description=fake.text(999))
-        image_in_database.save()
-        return image_in_database
-
-    gifs = [
-        (
-            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
-            b'\x00\x00\x00\x00\x21\xf9\x04'
-            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
-            b'\x00\x01\x00\x01\x00\x00\x02'
-            b'\x02\x4c\x01\x00\x3b'
-        ),
-        (
-            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
-            b'\x00\x00\x00\x00\x21\xf9\x04'
-            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00'
-            b'\x00\x01\x00\x01\x00\x00\x02\x02'
-            b'\x02\x4c\x01\x00\x3b'
-        )
-    ]
-
-    @staticmethod
-    def get_random_gif():
-        return (b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
-                + random.randbytes(23)
-                + b'\x02\x4c\x01\x00\x3b')
-
-    @staticmethod
-    def create_category(category_name=None):
-        if not category_name:
-            category_name = fake.text(20)
-        category = Category.objects.create(name=category_name)
-        return category
-
-    placeholder_audio_files = [
-        (
-            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
-            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
-            b'\x01\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00'
-            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
-            b'\x00\x00\x00'
-        ),
-        (
-            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
-            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
-            b'\x01\x11\x03\x00\x00\x00\x01\x00\x01\x00\x00'
-            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
-            b'\x00\x00\x00'
-        )
-    ]
-
-    @staticmethod
-    def add_soundfile_to_database(placeholder_audio_file):
-        file_name = fake.file_name(extension="mp3")
-        audio_file = SimpleUploadedFile(
-            name=file_name,
-            content=placeholder_audio_file,
-            content_type="audio/mpeg")
-        database_audio_entry = Sound(sound_file=audio_file,
-                                     description=fake.text(999))
-        database_audio_entry.save()
-        return database_audio_entry, file_name
-
+make_fake_cards = fake_data_objects.make_fake_cards
 
 class FakeUsersCards(TestCase):
+    # TODO: Delete this whole class !!!
     user_model = get_user_model()
 
     def setUp(self):
@@ -653,7 +577,8 @@ class CardCategories(FakeUsersCards, Helpers):
     def test_card_multiple_categories(self):
         card_1, card_2, _ = self.get_cards()
         category_names = [fake.text(20) for _ in range(4)]
-        categories = [self.create_category(name) for name in category_names]
+        categories = [fake_data_objects.make_fake_category(name)
+                      for name in category_names]
         card_1.categories.add(*categories[:2])
         card_2.categories.add(*categories[2:])
         [card.save() for card in (card_1, card_2,)]
@@ -675,7 +600,7 @@ class CardCategories(FakeUsersCards, Helpers):
 
     def card_with_category(self, category_name=fake.text(20)):
         card, *_ = self.get_cards()
-        category = self.create_category(category_name)
+        category = fake_data_objects.make_fake_category(category_name)
         card.categories.add(category)
         card.save()
         return card, category
@@ -686,7 +611,7 @@ class AbsoluteUrls(Helpers, TestCase):
         # this should be inherited from the ApiTestHelpersMixin
         # which currently resides in api.tests
         self.client = APIClient()
-        self.user = make_fake_users(1)[0]
+        self.user = fake_data_objects.make_fake_user()
         self.client.force_authenticate(user=self.user)
         self.card = make_fake_cards(1)[0]
 

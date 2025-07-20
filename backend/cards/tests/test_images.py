@@ -2,13 +2,11 @@ import django.db.utils
 from django.db import transaction
 from django.test import TestCase
 from cards.models import CardImage
-from cards.tests import Helpers as fake_objects
-from cards.tests.fake_data import make_fake_card
-
+from cards.tests.fake_data import fake_objects, fake_data_objects
 
 class CardImageCase(TestCase):
     def setUp(self):
-        self.card = make_fake_card()
+        self.card = fake_data_objects.make_fake_card()
         self.image_in_database = fake_objects.get_image_instance()
         self.card_front_image = CardImage(card=self.card,
                                           image=self.image_in_database,

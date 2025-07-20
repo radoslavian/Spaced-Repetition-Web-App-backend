@@ -1,14 +1,14 @@
 from django.test import TestCase
-from cards.tests.fake_data import (fake, make_fake_card, make_fake_cards,
-                                   make_fake_user)
+from cards.tests.fake_data import fake, fake_data_objects
 
 
 class CramQueue(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.low_grade, cls.high_grade = 2, 5
-        cls.card_1, cls.card_2, cls.card_3 = make_fake_cards(3)
-        cls.user = make_fake_user()
+        cls.card_1, cls.card_2, cls.card_3 = fake_data_objects \
+                                              .make_fake_cards(3)
+        cls.user = fake_data_objects.make_fake_user()
 
     def setUp(self):
         self.crammed_card = self.card_1.memorize(self.user, self.low_grade)
@@ -65,8 +65,8 @@ class CardCommentCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         comment_len = 100
-        cls.user = make_fake_user()
-        cls.card = make_fake_card()
+        cls.user = fake_data_objects.make_fake_user()
+        cls.card = fake_data_objects.make_fake_card()
         cls.comment_text = fake.text(comment_len)
 
     def setUp(self):

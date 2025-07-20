@@ -22,8 +22,9 @@ if __name__ == "__main__" and __package__ is None:
 
 from rest_framework.test import APIClient
 from django.urls import reverse
-from cards.tests import FakeUsersCards, Helpers
-from cards.tests.fake_data import fake, make_fake_cards, make_fake_users
+from cards.tests import FakeUsersCards
+from cards.tests.fake_data import Helpers
+from cards.tests.fake_data import fake, fake_data_objects
 
 
 def get_card_ids(response):
@@ -51,10 +52,10 @@ def convert_zulu_timestamp(timestamp: str):
         timestamp.replace("Z", "+00:00").replace("T", " "))
 
 
-class ApiTestHelpers(Helpers):
+class ApiTestHelpers(Helpers, TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = make_fake_users(1)[0]
+        self.user = fake_data_objects.make_fake_user()
         self.client.force_authenticate(user=self.user)
 
 
@@ -185,8 +186,8 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
 
     def test_card_multiple_categories(self):
         card, *_ = self.get_cards()
-        category_1 = self.create_category()
-        category_2 = self.create_category()
+        category_1 = fake_data_objects.make_fake_category()
+        category_2 = fake_data_objects.make_fake_category()
         card.categories.add(category_1, category_2)
         card.save()
         response = self.client.get(
@@ -209,7 +210,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             self.placeholder_audio_files[0])
         self.sound_back, _ = self.add_soundfile_to_database(
             self.placeholder_audio_files[1])
-        self.card = make_fake_cards(1)[0]
+        self.card = fake_data_objects.make_fake_card()
 
     def test_audio_fields_in_memorized_card(self):
         self.audio_testing()
@@ -277,7 +278,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         """Test response to an attempt to unauthorized access to a card.
         """
         client = APIClient()
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = client.get(
             reverse("memorized_card", kwargs={
                 "pk": card.id,
@@ -300,7 +301,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
     def test_card_body_fallback_template(self):
         """Test user card rendering using fallback template.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.get(
             reverse("queued_card", kwargs={"pk": card.id,
                                            "user_id": self.user.id}))
@@ -315,7 +316,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         """Tests response to request for user data for not memorized card
         using endpoint for getting a memorized card.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.get(
             reverse("memorized_card", kwargs={
                 "pk": card.id,
@@ -325,7 +326,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_card_body_template(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         template = CardTemplate()
         template.body = """<!-- test template -->
         {% extends '_base.html' %}
@@ -349,7 +350,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertTrue(card.front in received_card_body)
 
     def test_review_data(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         review_data = card.memorize(self.user, 5)
         response = self.client.get(
             reverse("memorized_card", kwargs={
@@ -385,7 +386,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertDictEqual(expected_data, received_data)
 
     def test_projected_review_data(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card_review_data = card.memorize(self.user, 4)
         with time_machine.travel(card_review_data.review_date):
             six_days = str(date.today() + timedelta(days=6))
@@ -433,7 +434,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         """Serializer shouldn't return any reviews simulation for date earlier
         than review due date.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user, 4)
         response = self.client.get(reverse("memorized_card",
                                            kwargs={
@@ -444,9 +445,9 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertFalse(response.json()["projected_review_data"])
 
     def test_user_memorized_card_single_category(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
-        category = self.create_category()
+        category = fake_data_objects.make_fake_category()
         card.categories.add(category)
         card.save()
         response = self.client.get(
@@ -462,8 +463,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
     def test_get_forbidden_for_other_users(self):
         """Test if users cannot see each other's memorized cards.
         """
-        card = make_fake_cards(1)[0]
-        user = make_fake_users(1)[0]
+        card = fake_data_objects.make_fake_card()
+        user = fake_data_objects.make_fake_user()
         card.memorize(self.user)
         card.memorize(user)
         response = self.client.get(
@@ -475,10 +476,10 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_memorized_card_two_categories(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
-        category_1 = self.create_category()
-        category_2 = self.create_category()
+        category_1 = fake_data_objects.make_fake_category()
+        category_2 = fake_data_objects.make_fake_category()
         card.categories.add(category_1, category_2)
         card.save()
         response = self.client.get(
@@ -493,8 +494,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
                             categories_from_response[1])
 
     def test_user_not_memorized_card_single_category(self):
-        card = make_fake_cards(1)[0]
-        category = self.create_category()
+        card = fake_data_objects.make_fake_card()
+        category = fake_data_objects.make_fake_category()
         card.categories.add(category)
         card.save()
         response = self.client.get(
@@ -508,9 +509,9 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertEqual(category_name_from_response, category.name)
 
     def test_queued_card_two_categories(self):
-        card = make_fake_cards(1)[0]
-        category_1 = self.create_category()
-        category_2 = self.create_category()
+        card = fake_data_objects.make_fake_card()
+        category_1 = fake_data_objects.make_fake_category()
+        category_2 = fake_data_objects.make_fake_category()
         card.categories.add(category_1, category_2)
         card.save()
         response = self.client.get(
@@ -525,7 +526,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
     def test_user_queued_card(self):
         """Test fields from the queued card: id and created_on.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.get(
             reverse("queued_card", kwargs={"pk": card.id,
                                            "user_id": self.user.id}))
@@ -539,8 +540,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertEqual(card_created_on, response_card_created_on)
 
     def test_access_other_user_queued_card(self):
-        user = make_fake_users(1)[0]
-        card = make_fake_cards(1)[0]
+        user = fake_data_objects.make_fake_user()
+        card = fake_data_objects.make_fake_card()
         response = self.client.get(
             reverse("queued_card", kwargs={"pk": card.id,
                                            "user_id": user.id}))
@@ -552,8 +553,8 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.json()["detail"], response_detail)
 
     def test_access_other_user_queued_cards(self):
-        user = make_fake_users(1)[0]
-        make_fake_cards(1)
+        user = fake_data_objects.make_fake_user()
+        fake_data_objects.make_fake_card()
         response = self.client.get(
             reverse("queued_cards", kwargs={"user_id": user.id}))
         response_detail = "You do not have permission to perform this action."
@@ -574,7 +575,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             body="Absolute url: {{ request.build_absolute_uri }}"
         )
         Card.objects.all().delete()
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.template = template
         card.save()
         card.memorize(self.user)
@@ -594,7 +595,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
             body="Absolute url: {{ request.build_absolute_uri }}"
         )
         Card.objects.all().delete()
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.template = template
         card.save()
         response = self.client.get(reverse_queued_cards(self.user.id))
@@ -632,8 +633,8 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
     def test_memorize_card_forbidden(self):
         """Attempt to memorize card from other user's queue.
         """
-        card = make_fake_cards(1)[0]
-        user = make_fake_users(1)[0]
+        card = fake_data_objects.make_fake_card()
+        user = fake_data_objects.make_fake_user()
         response = self.client.patch(
             reverse("queued_card",
                     kwargs={"pk": card.id,
@@ -643,7 +644,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
     def test_memorize_card_conflict(self):
         """Conflict (409) response when attempting re-memorized a card.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
         response = self.client.patch(
             reverse("queued_card", kwargs={"pk": card.id,
@@ -659,7 +660,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
 
     def test_memorize_success(self):
         grade = 1
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.patch(
             reverse("queued_card", kwargs={"pk": card.id,
                                            "user_id": self.user.id}),
@@ -676,7 +677,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         """Successful memorization with default grade.
         """
         default_grade = 4
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.patch(
             reverse("queued_card", kwargs={"pk": card.id,
                                            "user_id": self.user.id}))
@@ -688,7 +689,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.json()["grade"], default_grade)
 
     def test_forgetting_card_success(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
         request_url = reverse("memorized_card",
                               kwargs={"pk": card.id,
@@ -704,7 +705,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
     def test_forgetting_not_memorized(self):
         """Response to attempt to forget not memorized card.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         request_url = reverse("memorized_card",
                               kwargs={"pk": card.id,
                                       "user_id": self.user.id})
@@ -736,8 +737,8 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
     def test_review_forbidden_for_other_users(self):
         """Test if users cannot review each other's cards.
         """
-        card = make_fake_cards(1)[0]
-        user = make_fake_users(1)[0]
+        card = fake_data_objects.make_fake_card()
+        user = fake_data_objects.make_fake_user()
         user_data = card.memorize(self.user)
         card.memorize(user)
         with time_machine.travel(user_data.review_date):
@@ -764,7 +765,7 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.json()["detail"], "Not found.")
 
     def test_grading(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         review_card_data = card.memorize(self.user)
         review_grade = 3
         with time_machine.travel(review_card_data.review_date):
@@ -786,7 +787,7 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
     def test_grading_before_review_date(self):
         """Test response to attempt to review card before it's review date.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
         response = self.client.patch(
             reverse("memorized_card", kwargs={
@@ -807,8 +808,8 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
 
 class ListOfCardsForUser(ApiTestHelpers, TestCase):
     def test_memorized_no_permission(self):
-        cards = make_fake_cards(2)
-        user = make_fake_users(1)[0]
+        cards = fake_data_objects.make_fake_cards(2)
+        user = fake_data_objects.make_fake_user()
         for card in cards:
             card.memorize(user)
         response = self.client.get(reverse_memorized_cards(user.id))
@@ -820,8 +821,8 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
         """
         NUMBER_OF_CARDS = 15
         half_of_cards = ceil(NUMBER_OF_CARDS / 2)
-        cards = make_fake_cards(NUMBER_OF_CARDS)
-        user_2 = make_fake_users(1)[0]
+        cards = fake_data_objects.make_fake_cards(NUMBER_OF_CARDS)
+        user_2 = fake_data_objects.make_fake_user()
         shuffle(cards)
         memorized_cards = [card.memorize(self.user)
                            for card in cards[:half_of_cards]]
@@ -840,8 +841,8 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
                       response_content["results"][0]["body"])
 
     def test_get_list_of_memorized_cards_unauthorized_user(self):
-        cards = make_fake_cards(2)
-        control_user = make_fake_users(1)[0]
+        cards = fake_data_objects.make_fake_cards(2)
+        control_user = fake_data_objects.make_fake_user()
         for card in cards:
             card.memorize(control_user)
         client = APIClient()
@@ -856,7 +857,7 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
 
     def test_list_of_queued_unauthorized(self):
         client = APIClient()
-        make_fake_cards(2)
+        fake_data_objects.make_fake_cards(2)
         response = client.get(reverse("queued_cards",
                                       kwargs={"user_id": self.user.id}))
 
@@ -865,8 +866,8 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
     def test_list_of_queued_cards(self):
         NUMBER_OF_CARDS = 10
         half_of_cards = ceil(NUMBER_OF_CARDS / 2)
-        cards = make_fake_cards(NUMBER_OF_CARDS)
-        user_1 = make_fake_users(1)[0]
+        cards = fake_data_objects.make_fake_cards(NUMBER_OF_CARDS)
+        user_1 = fake_data_objects.make_fake_user()
         memorized_cards = [card.memorize(self.user)
                            for card in cards[:half_of_cards]]
         not_memorized_cards = cards[half_of_cards:]
@@ -891,8 +892,8 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
         """Test if only cards for currently authorized user are returned.
         """
         NUMBER_OF_CARDS = 2
-        card_1, card_2 = make_fake_cards(NUMBER_OF_CARDS)
-        user_2 = make_fake_users(1)[0]
+        card_1, card_2 = fake_data_objects.make_fake_cards(NUMBER_OF_CARDS)
+        user_2 = fake_data_objects.make_fake_user()
         card_1.memorize(self.user)
         card_2.memorize(user_2)
         response = self.client.get(reverse("queued_cards",
@@ -911,7 +912,7 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
         """
         NUMBER_OF_CARDS = 20
         portion_of_cards = ceil(NUMBER_OF_CARDS / 2)
-        cards = make_fake_cards(NUMBER_OF_CARDS)
+        cards = fake_data_objects.make_fake_cards(NUMBER_OF_CARDS)
         for card in cards[:portion_of_cards]:
             card.memorize(self.user)
         response_not_memorized = self.client.get(
@@ -935,10 +936,10 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
         due_for_memorized = date.today() + timedelta(days=3)
         due_for_review = due_for_memorized + timedelta(days=6)
 
-        not_memorized_cards = make_fake_cards(
+        not_memorized_cards = fake_data_objects.make_fake_cards(
             NUMBER_OF_NOT_MEMORIZED_CARDS)
-        memorized_cards = make_fake_cards(NUMBER_OF_MEMORIZED_CARDS)
-        reviewed_cards = make_fake_cards(NUMBER_OF_REVIEWED_CARDS)
+        memorized_cards = fake_data_objects.make_fake_cards(NUMBER_OF_MEMORIZED_CARDS)
+        reviewed_cards = fake_data_objects.make_fake_cards(NUMBER_OF_REVIEWED_CARDS)
 
         for card in memorized_cards:
             card.memorize(self.user)
@@ -980,8 +981,8 @@ class ListOfCardsForUser(ApiTestHelpers, TestCase):
     def test_outstanding_cards_another_user(self):
         """Attempt to access list of outstanding cards from another user.
         """
-        card = make_fake_cards(1)[0]
-        user = make_fake_users(1)[0]
+        card = fake_data_objects.make_fake_card()
+        user = fake_data_objects.make_fake_user()
         card.memorize(user, 2)
         response = self.client.get(reverse("outstanding_cards",
                                            kwargs={"user_id": user.id}))
@@ -999,7 +1000,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
                         "(scheme and host)",
             body="Absolute url: {{ request.build_absolute_uri }}"
         )
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.template = template
         card.save()
         response = self.client.get(reverse_all_cards(self.user.id))
@@ -1008,7 +1009,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
                       card_body)
 
     def test_body_memorized(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
         response = self.client.get(reverse_all_cards(self.user.id))
         card_body = response.json()["results"][0]["body"]
@@ -1016,7 +1017,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
         self.assertIn(card.back, card_body)
 
     def test_body_queried(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.get(reverse_all_cards(self.user.id))
         card_body = response.json()["results"][0]["body"]
         self.assertIn(card.front, card_body)
@@ -1026,7 +1027,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
         """List for "all cards" should be ordered (sorted) by
         the card creation date.
         """
-        card_1, card_2, card_3, card_4 = make_fake_cards(4)
+        card_1, card_2, card_3, card_4 = fake_data_objects.make_fake_cards(4)
         card_1.memorize(self.user)
         card_3.memorize(self.user)
         sorted_cards = sorted([card_1, card_2, card_3, card_4],
@@ -1041,7 +1042,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
     def test_cards_memorized_queued(self):
         """Test making list composed of both memorized and queued cards.
         """
-        card_memorized, card_queued = make_fake_cards(2)
+        card_memorized, card_queued = fake_data_objects.make_fake_cards(2)
         card_memorized.memorize(self.user)
         response = self.client.get(reverse_all_cards(self.user.id))
         response_json = response.json()
@@ -1055,7 +1056,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
     def test_memorized_only(self):
         """Test endpoint when only memorized card is to be returned.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
         response = self.client.get(reverse_all_cards(self.user.id))
         response_json = response.json()
@@ -1063,7 +1064,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
         self.assertEqual(response_json["count"], 1)
 
     def test_queued_only(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.get(reverse_all_cards(self.user.id))
         response_json = response.json()
 
@@ -1076,7 +1077,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
         category = Category(name="main category")
         category.save()
         self.user.selected_categories.add(category)
-        card_memorized, card_queued = make_fake_cards(2)
+        card_memorized, card_queued = fake_data_objects.make_fake_cards(2)
         card_memorized.categories.add(category)
         card_queued.categories.add(category)
         card_queued.save()
@@ -1095,7 +1096,7 @@ class ListAllCards(ApiTestHelpers, TestCase):
         card_category.save()
         user_category.save()
         self.user.selected_categories.add(user_category)
-        card_memorized, card_queued = make_fake_cards(2)
+        card_memorized, card_queued = fake_data_objects.make_fake_cards(2)
         card_memorized.categories.add(card_category)
         card_queued.categories.add(card_category)
         card_queued.save()
@@ -1108,8 +1109,8 @@ class ListAllCards(ApiTestHelpers, TestCase):
 
 class Cram(ApiTestHelpers, TestCase):
     def test_adding_to_cram_success(self):
-        card_1 = make_fake_cards(1)[0]
-        user_2 = make_fake_users(1)[0]
+        card_1 = fake_data_objects.make_fake_card()
+        user_2 = fake_data_objects.make_fake_user()
         card_1.memorize(self.user, 5)
         card_1.memorize(user_2, 5)
         card_1_data = {"card_pk": card_1.id}
@@ -1139,7 +1140,7 @@ class Cram(ApiTestHelpers, TestCase):
         self.assertIn("<!-- fallback card template -->", response_card_body)
 
     def test_adding_to_cram_bad_request(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card_request = {"card_pk": card.id}
         response = self.client.put(
             reverse("cram_queue",
@@ -1154,10 +1155,10 @@ class Cram(ApiTestHelpers, TestCase):
 
     def test_retrieving_cram_queue(self):
         NUMBER_OF_CARDS = 5
-        cards = make_fake_cards(NUMBER_OF_CARDS)
+        cards = fake_data_objects.make_fake_cards(NUMBER_OF_CARDS)
         cards_ids = [str(card.id) for card in cards]
-        user = make_fake_users(1)[0]
-        user_cards = make_fake_cards(NUMBER_OF_CARDS)
+        user = fake_data_objects.make_fake_user()
+        user_cards = fake_data_objects.make_fake_cards(NUMBER_OF_CARDS)
         user_cards_ids = [str(card.id) for card in user_cards]
         for card in user_cards:
             card.memorize(user, 2)
@@ -1187,8 +1188,8 @@ class Cram(ApiTestHelpers, TestCase):
     def test_adding_to_another_users_cram(self):
         """Attempt to add card to another user's cram is forbidden.
         """
-        card = make_fake_cards(1)[0]
-        user = make_fake_users(1)[0]
+        card = fake_data_objects.make_fake_card()
+        user = fake_data_objects.make_fake_user()
         card.memorize(user, 3)
         response = self.client.put(reverse(
             "cram_queue", kwargs={"user_id": user.id}),
@@ -1203,8 +1204,8 @@ class Cram(ApiTestHelpers, TestCase):
     def test_access_to_another_user_cram(self):
         """Attempt to retrieve other user's cram, which is forbidden.
         """
-        card = make_fake_cards(1)[0]
-        user = make_fake_users(1)[0]
+        card = fake_data_objects.make_fake_card()
+        user = fake_data_objects.make_fake_user()
         user_data = card.memorize(user, 3)
         user_data.add_to_cram()
         response = self.client.get(
@@ -1221,7 +1222,7 @@ class Cram(ApiTestHelpers, TestCase):
         """Test response to attempt to delete not memorized card
         with user-data.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         response = self.client.delete(
             reverse("cram_single_card",
                     kwargs={"card_pk": card.id,
@@ -1237,7 +1238,7 @@ class Cram(ApiTestHelpers, TestCase):
         self.assertEqual(response_json["detail"], error_detail)
 
     def test_removing_card_from_cram(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card_user_cata = card.memorize(self.user)
         response = self.client.delete(
             reverse("cram_single_card",
@@ -1251,7 +1252,7 @@ class Cram(ApiTestHelpers, TestCase):
     def test_delete_from_cram_fake_user(self):
         """Attempt to drop a card from cram using fake user's id.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         fake_user_id = uuid.uuid4()
         response = self.client.delete(
             reverse("cram_single_card",
@@ -1264,8 +1265,8 @@ class Cram(ApiTestHelpers, TestCase):
     def test_deleting_from_cram_forbidden(self):
         """Attempt to drop another user's crammed card.
         """
-        card = make_fake_cards(1)[0]
-        user = make_fake_users(1)[0]
+        card = fake_data_objects.make_fake_card()
+        user = fake_data_objects.make_fake_user()
         card_user_data = card.memorize(user, 3)
         card_user_data.add_to_cram()
         response = self.client.delete(
@@ -1285,7 +1286,7 @@ class Cram(ApiTestHelpers, TestCase):
     def test_post_not_allowed(self):
         """Post method shouldn't be allowed for cram queue route.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.memorize(self.user)
         response = self.client.post(
             reverse("cram_single_card",
@@ -1299,9 +1300,9 @@ class Cram(ApiTestHelpers, TestCase):
     def test_deleting_user_cram_queue(self):
         """Test deleting all cards from user's cram queue.
         """
-        cards = make_fake_cards(5)
-        other_cards = make_fake_cards(5)
-        other_user = make_fake_users(1)[0]
+        cards = fake_data_objects.make_fake_cards(5)
+        other_cards = fake_data_objects.make_fake_cards(5)
+        other_user = fake_data_objects.make_fake_user()
         cards_userdata = []
         other_cards_userdata = []
         for card in cards:
@@ -1328,8 +1329,8 @@ class Cram(ApiTestHelpers, TestCase):
                              for card in other_cards_userdata]))
 
     def test_deleting_another_users_cram_queue(self):
-        cards = make_fake_cards(2)
-        user = make_fake_users(1)[0]
+        cards = fake_data_objects.make_fake_cards(2)
+        user = fake_data_objects.make_fake_user()
         for card in cards:
             card_user_data = card.memorize(user, 3)
             card_user_data.add_to_cram()
@@ -1350,7 +1351,7 @@ class Cram(ApiTestHelpers, TestCase):
     def test_crammed_card_no_projected_reviews(self):
         """Crammed cards shouldn't have projected intervals.
         """
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card_review_data = card.memorize(self.user, 1)
         with time_machine.travel(card_review_data.review_date):
             response = self.client.get(reverse(
@@ -1372,7 +1373,7 @@ class Cram(ApiTestHelpers, TestCase):
             body="Absolute url: {{ request.build_absolute_uri }}"
         )
         Card.objects.all().delete()
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.template = template
         card.save()
         card_user_data = card.memorize(self.user)
@@ -1492,7 +1493,7 @@ class MemorizedCardsFiltering(ApiTestHelpers, TestCase):
 
     def setUp(self):
         super().setUp()
-        self.cards = make_fake_cards(5)
+        self.cards = fake_data_objects.make_fake_cards(5)
         self.selected_card = choice(self.cards)
         for card in self.cards:
             card.memorize(self.user)
@@ -1500,7 +1501,7 @@ class MemorizedCardsFiltering(ApiTestHelpers, TestCase):
     def test_user_search_permission(self):
         """Check if a user is forbidden from accessing another user's cards.
         """
-        control_user = make_fake_users(1)[0]
+        control_user = fake_data_objects.make_fake_user()
         self.cards[0].memorize(control_user)
         url_control_user = add_url_params(
             reverse_memorized_cards(control_user.id),
@@ -1532,7 +1533,7 @@ class MemorizedCardsFiltering(ApiTestHelpers, TestCase):
                          str(self.selected_card.id))
 
     def test_card_template_search(self):
-        other_user = make_fake_users(1)[0]
+        other_user = fake_data_objects.make_fake_user()
         for card in self.cards:
             card.memorize(other_user)
         template_text = fake.text(20)
@@ -1561,7 +1562,7 @@ class MemorizedCardsFiltering(ApiTestHelpers, TestCase):
 class QueuedCardsFiltering(ApiTestHelpers, TestCase):
     def setUp(self):
         super().setUp()
-        self.cards = make_fake_cards(5)
+        self.cards = fake_data_objects.make_fake_cards(5)
         self.selected_card = choice(self.cards)
 
     def test_card_front(self):
@@ -1623,7 +1624,7 @@ class CardsMultipleSubcategories(ApiTestHelpers, TestCase):
                                            parent=self.parent)
         self.third_sub_category.save()
 
-        self.card_1, self.card_2, self.card_3 = make_fake_cards(3)
+        self.card_1, self.card_2, self.card_3 = fake_data_objects.make_fake_cards(3)
 
         self.card_1.categories.add(self.first_sub_category)
         self.card_2.categories.add(self.second_sub_category)
@@ -1716,7 +1717,7 @@ class CardsMultipleSubcategories(ApiTestHelpers, TestCase):
         self.user.selected_categories.set([self.first_sub_category])
         self.user.save()
         # additional card attached to the root category
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.categories.add(self.parent)
         card.save()
         card.memorize(self.user)
@@ -1739,7 +1740,7 @@ class CardsMultipleSubcategories(ApiTestHelpers, TestCase):
         self.user.selected_categories.set([self.first_sub_category])
         self.user.save()
         # additional card attached to the root category
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.categories.add(self.parent)
         card.save()
         card.memorize(self.user)
@@ -1763,7 +1764,7 @@ class CardsMultipleSubcategories(ApiTestHelpers, TestCase):
         self.user.selected_categories.set([self.first_sub_category])
         self.user.save()
         # additional card attached to the root category
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.categories.add(self.parent)
         card.save()
         response_all_cards = self.client.get(
@@ -1838,7 +1839,7 @@ class CategoryTree(ApiTestHelpers, TestCase):
         self.sub_sub_category.save()
         (self.card_top_level, self.card_sub_category,
          self.card_sibling_category,
-         self.card_lowest_category) = self.cards = make_fake_cards(4)
+         self.card_lowest_category) = self.cards = fake_data_objects.make_fake_cards(4)
 
         self.card_top_level.categories.add(self.top_level_category)
         self.card_sub_category.categories.add(self.sub_category)
@@ -1930,7 +1931,7 @@ class CategoryTree(ApiTestHelpers, TestCase):
     def cards_for_no_categories_tests(self):
         category = Category.objects.create(name="Test Category")
         self.memorize_cards()
-        cards = make_fake_cards(3)
+        cards = fake_data_objects.make_fake_cards(3)
         for card in [*self.cards, *cards]:
             card.categories.add(category)
             card.save()
@@ -1939,7 +1940,7 @@ class CategoryTree(ApiTestHelpers, TestCase):
         """Should return uncategorized card only.
         """
         self.cards_for_no_categories_tests()
-        uncategorized_card = make_fake_cards(1)[0]
+        uncategorized_card = fake_data_objects.make_fake_card()
         response = self.client.get(reverse_queued_cards(self.user.id))
         response_data = response.json()
 
@@ -1951,7 +1952,7 @@ class CategoryTree(ApiTestHelpers, TestCase):
         """Should return uncategorized card only.
         """
         self.cards_for_no_categories_tests()
-        uncategorized_card = make_fake_cards(1)[0]
+        uncategorized_card = fake_data_objects.make_fake_card()
         uncategorized_card.memorize(self.user)
         response = self.client.get(reverse_memorized_cards(self.user.id))
         response_data = response.json()
@@ -1964,8 +1965,8 @@ class CategoryTree(ApiTestHelpers, TestCase):
         """Should return uncategorized cards only.
         """
         self.cards_for_no_categories_tests()
-        uncategorized_queued_card = make_fake_cards(1)[0]
-        uncategorized_memorized_card = make_fake_cards(1)[0]
+        uncategorized_queued_card = fake_data_objects.make_fake_card()
+        uncategorized_memorized_card = fake_data_objects.make_fake_card()
         uncategorized_memorized_card.memorize(self.user)
         card_ids = [str(card_id) for card_id
                     in (uncategorized_queued_card.id,
@@ -2091,7 +2092,7 @@ class CategoryApi(ApiTestHelpers, TestCase):
         id in the URL.
         """
         self.select_category()
-        user = make_fake_users(1)[0]
+        user = fake_data_objects.make_fake_user()
         response = self.client.get(reverse_selected_categories(user.id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -2123,7 +2124,7 @@ class CategoryApi(ApiTestHelpers, TestCase):
         in the URL.
         """
         categories_ids = self.get_categories_ids()
-        user = make_fake_users(1)[0]
+        user = fake_data_objects.make_fake_user()
         response = self.client.put(
             reverse_selected_categories(user.id),
             json.dumps(list(categories_ids)), format="json"
@@ -2194,9 +2195,9 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.user.save()
 
     def prepare_test_data_distinct_cards(self):
-        card1, card2 = make_fake_cards(2)
-        category1 = self.create_category()
-        category2 = self.create_category()
+        card1, card2 = fake_data_objects.make_fake_cards(2)
+        category1 = fake_data_objects.make_fake_category()
+        category2 = fake_data_objects.make_fake_category()
         categories = [category1, category2]
         card1.categories.set(categories)
         card2.categories.set(categories)
@@ -2252,7 +2253,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         expected_response = {}
         number_of_cards = 5
 
-        for card in make_fake_cards(number_of_cards):
+        for card in fake_data_objects.make_fake_cards(number_of_cards):
             if timedelta_days <= days_range:
                 timedelta_days = 0
             card.categories.set([self.selected_category])
@@ -2344,7 +2345,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         expected_response = {}
         number_of_cards = 5
 
-        for card in make_fake_cards(number_of_cards):
+        for card in fake_data_objects.make_fake_cards(number_of_cards):
             if timedelta_days > days_range:
                 timedelta_days = 1
             card.categories.set([self.selected_category])
@@ -2370,7 +2371,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         number_of_cards = 5
         cards_selected_category_number = ceil(number_of_cards / 2)
         cards = [card.memorize(self.user) for card in
-                 make_fake_cards(number_of_cards)]
+                 fake_data_objects.make_fake_cards(number_of_cards)]
         self.unselected_category = Category.objects.create(
             name="not selected category")
         for card in cards[:cards_selected_category_number]:
@@ -2452,7 +2453,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.assertDictEqual(received_data, expected_data)
 
     def test_grades_distribution(self):
-        cards = make_fake_cards(10)
+        cards = fake_data_objects.make_fake_cards(10)
         self.client.force_authenticate(user=self.user)
         grades_distribution = {str(grade): 0 for grade in range(0, 6)}
 
@@ -2470,7 +2471,7 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.assertDictEqual(grades_distribution, response_data)
 
     def test_e_factor_distribution(self):
-        cards = make_fake_cards(10)
+        cards = fake_data_objects.make_fake_cards(10)
         distribution = []
         e_factors = {}
         for i in range(len(cards)):
@@ -2512,7 +2513,7 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.number_of_memorized_cards = int(self.number_of_cards / 2)
         self.number_of_failed_cards = int(self.number_of_memorized_cards / 2)
 
-        self.cards = make_fake_cards(self.number_of_cards)
+        self.cards = fake_data_objects.make_fake_cards(self.number_of_cards)
 
         # half of the cards is memorized
         self.memorized_cards = self.cards[:self.number_of_memorized_cards]
@@ -2533,7 +2534,7 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.response = self.client.get(url)
 
     def test_furthest_scheduled_review(self):
-        furthest_scheduled_card = make_fake_cards(1)[0]
+        furthest_scheduled_card = fake_data_objects.make_fake_card()
         future_date = date.today() + timedelta(days=10)
         with time_machine.travel(future_date):
             furthest_scheduled_card.memorize(self.user)
@@ -2611,7 +2612,7 @@ class UtilsTests(ApiTestFakeUsersCardsMixin, TestCase):
                 {% endblock content %}
                 """
         )
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card.template = template
         card.save()
         card_body = get_card_body(card, {})
@@ -2623,7 +2624,7 @@ class UtilsTests(ApiTestFakeUsersCardsMixin, TestCase):
         self.assertIn(card.back, card_body)
 
     def test_get_card_body_fallback_template(self):
-        card = make_fake_cards(1)[0]
+        card = fake_data_objects.make_fake_card()
         card_body = get_card_body(card, {})
 
         self.assertIn("<!-- base template for cards -->", card_body)
