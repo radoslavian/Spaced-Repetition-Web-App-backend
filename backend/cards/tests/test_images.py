@@ -46,12 +46,13 @@ class CardImageCase(TestCase):
         self.assertTrue(self.card.id)
         self.assertTrue(self.image_in_database.id)
 
-    def test_deleting_card(self):
+    def test_delete_card_keep_image(self):
         """
         Should keep an image instance in the database after deleting the card.
         """
         self.card.delete()
-        self.assertFalse(self.card_front_image.pk)
+        self.assertRaises(CardImage.DoesNotExist,
+                          self.card_front_image.refresh_from_db)
         self.assertTrue(self.image_in_database.id)
 
     def test_uniqueness_card_image_side(self):
@@ -69,15 +70,6 @@ class CardImageCase(TestCase):
 
         self.assertRaises(django.db.utils.IntegrityError,
                           lambda: add_once("front"))
-
-    def test_deleting_card(self):
-        """
-        Should keep an image in the database after deleting the card.
-        """
-        self.card.delete()
-        self.image_in_database.refresh_from_db()
-
-        self.assertTrue(self.image_in_database)
 
     def test_side_check_constraint(self):
         """
