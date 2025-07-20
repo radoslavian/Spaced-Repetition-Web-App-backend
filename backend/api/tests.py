@@ -22,7 +22,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from rest_framework.test import APIClient
 from django.urls import reverse
-from cards.tests import FakeUsersCards, HelpersMixin
+from cards.tests import FakeUsersCards, Helpers
 from cards.tests.fake_data import fake, make_fake_cards, make_fake_users
 
 
@@ -51,17 +51,17 @@ def convert_zulu_timestamp(timestamp: str):
         timestamp.replace("Z", "+00:00").replace("T", " "))
 
 
-class ApiTestHelpersMixin(HelpersMixin):
+class ApiTestHelpers(Helpers):
     def setUp(self):
         self.client = APIClient()
         self.user = make_fake_users(1)[0]
         self.client.force_authenticate(user=self.user)
 
 
-class ApiTestFakeUsersCardsMixin(ApiTestHelpersMixin, FakeUsersCards):
+class ApiTestFakeUsersCardsMixin(ApiTestHelpers, FakeUsersCards):
     def setUp(self):
         FakeUsersCards.setUp(self)
-        ApiTestHelpersMixin.setUp(self)
+        ApiTestHelpers.setUp(self)
 
 
 class TestBackendCards(ApiTestFakeUsersCardsMixin):
@@ -150,7 +150,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
         """
         card, *_ = self.get_cards()
         first_image = self.get_image_instance()
-        second_image = self.get_instance_from_image(HelpersMixin.gifs[1])
+        second_image = self.get_instance_from_image(Helpers.gifs[1])
         CardImage(card=card, image=first_image, side="front").save()
         CardImage(card=card, image=first_image, side="back").save()
         CardImage(card=card, image=second_image, side="back").save()
@@ -805,7 +805,7 @@ class ReviewingCard(ApiTestFakeUsersCardsMixin):
                          "is forbidden.")
 
 
-class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
+class ListOfCardsForUser(ApiTestHelpers, TestCase):
     def test_memorized_no_permission(self):
         cards = make_fake_cards(2)
         user = make_fake_users(1)[0]
@@ -988,7 +988,7 @@ class ListOfCardsForUser(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class ListAllCards(ApiTestHelpersMixin, TestCase):
+class ListAllCards(ApiTestHelpers, TestCase):
     """Tests for endpoint returning all cards:
     /users/{id}/cards/
     """
@@ -1106,7 +1106,7 @@ class ListAllCards(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response_json["count"], 0)
 
 
-class Cram(ApiTestHelpersMixin, TestCase):
+class Cram(ApiTestHelpers, TestCase):
     def test_adding_to_cram_success(self):
         card_1 = make_fake_cards(1)[0]
         user_2 = make_fake_users(1)[0]
@@ -1383,7 +1383,7 @@ class Cram(ApiTestHelpersMixin, TestCase):
                       card_body)
 
 
-class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
+class AllCardsFiltering(ApiTestHelpers, TestCase):
     def setUp(self):
         super().setUp()
         self.memorized_front_text = ("Lorem ipsum dolor sit amet, "
@@ -1486,7 +1486,7 @@ class AllCardsFiltering(ApiTestHelpersMixin, TestCase):
                          str(self.memorized_card.id))
 
 
-class MemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
+class MemorizedCardsFiltering(ApiTestHelpers, TestCase):
     """Test DRF's searching-filtering functionality for memorized cards.
     """
 
@@ -1558,7 +1558,7 @@ class MemorizedCardsFiltering(ApiTestHelpersMixin, TestCase):
                          str(self.selected_card.id))
 
 
-class QueuedCardsFiltering(ApiTestHelpersMixin, TestCase):
+class QueuedCardsFiltering(ApiTestHelpers, TestCase):
     def setUp(self):
         super().setUp()
         self.cards = make_fake_cards(5)
@@ -1606,7 +1606,7 @@ class QueuedCardsFiltering(ApiTestHelpersMixin, TestCase):
                          str(self.selected_card.id))
 
 
-class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
+class CardsMultipleSubcategories(ApiTestHelpers, TestCase):
     def setUp(self):
         super().setUp()
         self.parent = Category(name="first parent category")
@@ -1821,7 +1821,7 @@ class CardsMultipleSubcategories(ApiTestHelpersMixin, TestCase):
         self.assertEqual(response.json()["count"], 1)
 
 
-class CategoryTree(ApiTestHelpersMixin, TestCase):
+class CategoryTree(ApiTestHelpers, TestCase):
     def setUp(self):
         super().setUp()
         self.top_level_category = Category(name="Toplevel")
@@ -1978,7 +1978,7 @@ class CategoryTree(ApiTestHelpersMixin, TestCase):
         self.assertIn(response_data["results"][1]["id"], card_ids)
 
 
-class CategoryApi(ApiTestHelpersMixin, TestCase):
+class CategoryApi(ApiTestHelpers, TestCase):
     def setUp(self):
         super().setUp()
         self.top_category = Category.objects.create(name="Top level category")

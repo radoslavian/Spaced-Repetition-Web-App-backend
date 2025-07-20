@@ -14,7 +14,7 @@ from django.db import transaction
 from django.test import TestCase
 from django.urls import reverse
 from cards.models import (Card, Category, CardUserData,
-                          Image, CardImage, Sound)
+                          Image, Sound)
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cards.utils.exceptions import CardReviewDataExists, ReviewBeforeDue
 from cards.utils.helpers import today
@@ -22,11 +22,11 @@ from cards.tests.fake_data import fake, make_fake_cards, make_fake_users
 import datetime
 
 
-class HelpersMixin:
+class Helpers:
     @staticmethod
     def get_image_instance():
-        small_gif = HelpersMixin.gifs[0]
-        return HelpersMixin.get_instance_from_image(small_gif)
+        small_gif = Helpers.gifs[0]
+        return Helpers.get_instance_from_image(small_gif)
 
     @staticmethod
     def get_instance_from_image(small_gif):
@@ -151,7 +151,7 @@ class FakeUsersCards(TestCase):
         return card, user
 
 
-class CardReviewsTests(FakeUsersCards, HelpersMixin):
+class CardReviewsTests(FakeUsersCards, Helpers):
     def test_no_user_foreign_keys_in_join_table(self):
         card, *_ = self.get_cards()
         self.assertRaises(django.db.utils.IntegrityError,
@@ -631,98 +631,7 @@ class CardReviewsTests(FakeUsersCards, HelpersMixin):
         self.assertRaises(ReviewBeforeDue, lambda: card_userdata.review(5))
 
 
-class CardsImagesTests(FakeUsersCards, HelpersMixin):
-    def test_add_single_image_to_card(self):
-        card, *_ = self.get_cards()
-        image1_in_database = self.get_image_instance()
-        card_front_image = CardImage(card=card,
-                                     image=image1_in_database,
-                                     side="front")
-        card_front_image.save()
-        self.assertEqual(len(card.front_images), 1)
-        self.assertEqual(image1_in_database.cards.count(), 1)
-
-        card_back_image = CardImage(card=card,
-                                    image=image1_in_database,
-                                    side="back")
-        card_back_image.save()
-        self.assertEqual(len(card.back_images), 1)
-
-        # card.front_images, card.back_images - properties
-        self.assertEqual(len(card.front_images), 1)
-        self.assertEqual(len(card.back_images), 1)
-
-    def test_remove_card_to_image(self):
-        """Test deleting image from the card, should keep image file entry
-         in the database.
-        """
-        card, *_ = self.get_cards()
-        image_in_database = self.get_image_instance()
-        card_image = CardImage(card=card,
-                               image=image_in_database,
-                               side="front")
-        card_image.save()
-        card_image.delete()
-
-        self.assertTrue(card.id)
-
-        card.delete()
-        self.assertFalse(card_image.id)
-        self.assertTrue(image_in_database.id)
-
-    def test_uniqueness_card_image_side(self):
-        card, *_ = self.get_cards()
-        image_in_database = self.get_image_instance()
-
-        def add_once(side):
-            card_image = CardImage(card=card,
-                                   image=image_in_database,
-                                   side=side)
-            card_image.save()
-
-        add_once("front")
-        self.assertRaises(django.db.utils.IntegrityError,
-                          lambda: add_once("front"))
-
-    def test_uniqueness_card_image(self):
-        """As opposite to test_uniqueness_card_image_side,
-        the test shouldn't raise exception after adding twice Card/Image
-        relationship, but with different 'side' value.
-        """
-        card, *_ = self.get_cards()
-        image_in_database = self.get_image_instance()
-
-        CardImage(card=card,
-                  image=image_in_database,
-                  side="front").save()
-        CardImage(card=card,
-                  image=image_in_database,
-                  side="back").save()
-
-    def test_deleting_card(self):
-        """Should keep image in the database after deleting the card.
-        """
-        card = make_fake_cards(1)[0]
-        image = self.get_image_instance()
-        card_image = CardImage(card=card,
-                               image=image,
-                               side="front")
-        card_image.save()
-        card.delete()
-        image.refresh_from_db()
-
-        self.assertTrue(image)
-
-    def test_side_check_constraint(self):
-        card, *_ = self.get_cards()
-        image_in_database = self.get_image_instance()
-
-        self.assertRaises(
-            django.db.utils.IntegrityError,
-            CardImage(card=card, image=image_in_database, side="fff").save)
-
-
-class CardCategories(FakeUsersCards, HelpersMixin):
+class CardCategories(FakeUsersCards, Helpers):
     def test_card_single_category(self):
         category_name = fake.text(20)
         card, category = self.card_with_category(category_name)
@@ -772,7 +681,7 @@ class CardCategories(FakeUsersCards, HelpersMixin):
         return card, category
 
 
-class AbsoluteUrls(HelpersMixin, TestCase):
+class AbsoluteUrls(Helpers, TestCase):
     def setUp(self):
         # this should be inherited from the ApiTestHelpersMixin
         # which currently resides in api.tests
@@ -790,7 +699,7 @@ class AbsoluteUrls(HelpersMixin, TestCase):
         self.assertEqual(card_user_data.get_absolute_url(), canonical_url)
 
 
-class SoundFiles(HelpersMixin, TestCase):
+class SoundFiles(Helpers, TestCase):
     def setUp(self):
         (self.sound,
          self.audio_filename) = self.add_soundfile_to_database(
@@ -813,7 +722,7 @@ class SoundFiles(HelpersMixin, TestCase):
                          sound_file_instance_in_db.sha1_digest)
 
 
-class SoundsInCards(HelpersMixin, TestCase):
+class SoundsInCards(Helpers, TestCase):
     def setUp(self):
         self.card_1, self.card_2 = make_fake_cards(2)
         sound_entries = []
@@ -921,7 +830,7 @@ class SoundsInCards(HelpersMixin, TestCase):
         self.assertTrue(self.sound_entry_1)
 
 
-class ImageTests(HelpersMixin, TestCase):
+class ImageTests(Helpers, TestCase):
     @skip
     def test_image_embedding_in_card(self):
         pass
@@ -932,7 +841,7 @@ class ImageTests(HelpersMixin, TestCase):
 
     def test_image_hash_validity(self):
         small_gif = SimpleUploadedFile(name=fake.file_name(extension="gif"),
-                                       content=HelpersMixin.gifs[0],
+                                       content=Helpers.gifs[0],
                                        content_type="image/gif")
         small_gif_sha1_digest = sha1(small_gif.open().read()).hexdigest()
         image_in_db = Image(image=File(small_gif))

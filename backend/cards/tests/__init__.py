@@ -1,6 +1,6 @@
-from .tests import FakeUsersCards, HelpersMixin
+from .tests import FakeUsersCards, Helpers
 
 
 all = [
-    FakeUsersCards, HelpersMixin
+    FakeUsersCards, Helpers
 ]
