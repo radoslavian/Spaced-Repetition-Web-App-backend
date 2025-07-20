@@ -1,5 +1,7 @@
 from django.test import TestCase
-from cards.tests.fake_data import make_fake_cards, make_fake_users
+from cards.models import CardUserData
+from cards.tests.fake_data import (fake, make_fake_card, make_fake_cards,
+                                   make_fake_user, make_fake_users)
 
 
 class CramQueue(TestCase):
@@ -52,3 +54,38 @@ class CramQueue(TestCase):
 
         self.assertTrue(status)
         self.assertTrue(self.not_crammed_card.crammed)
+
+
+class CardCommentCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        comment_len = 100
+        cls.user = make_fake_user()
+        cls.card = make_fake_card()
+        cls.comment_text = fake.text(comment_len)
+
+    def setUp(self):
+        self.card_user_data = self.card.memorize(self.user)
+        self.card_user_data.comment = self.comment_text
+        self.card_user_data.save()
+
+    def tearDown(self):
+        self.card_user_data.delete()
+
+    def test_add_comment(self):
+        self.assertEqual(self.card_user_data.comment, self.comment_text)
+
+    def test_remove_comment(self):
+        self.card_user_data.comment = None  # or .clear()? or = "" ?
+        self.card_user_data.save()
+        self.card_user_data.refresh_from_db()
+
+        self.assertFalse(self.card_user_data.comment)
+
+    def test_update_comment(self):
+        fake_comment = fake.text(100)
+        self.card_user_data.comment = fake_comment
+        self.card_user_data.save()
+        self.card_user_data.refresh_from_db()
+
+        self.assertEqual(self.card_user_data.comment, fake_comment)

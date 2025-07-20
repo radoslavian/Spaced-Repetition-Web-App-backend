@@ -151,42 +151,6 @@ class FakeUsersCards(TestCase):
         return card, user
 
 
-class CardCommentsTests(FakeUsersCards):
-    def setUp(self):
-        super().setUp()
-        self.user, *_ = self.get_users()
-        self.card, *_ = self.get_cards()
-        self.comment_text = fake.text(100)
-        card_user_data = self.card.memorize(self.user)
-        card_user_data.comment = self.comment_text
-        card_user_data.save()
-
-    def test_add_comment(self):
-        card_user_data = CardUserData.objects.get(user=self.user,
-                                                  card=self.card)
-
-        self.assertEqual(card_user_data.comment, self.comment_text)
-
-    def test_remove_comment(self):
-        card_user_data = CardUserData.objects.get(user=self.user,
-                                                  card=self.card)
-        card_user_data.comment = None  # or .clear()? or = "" ?
-        card_user_data.save()
-        card_user_data.refresh_from_db()
-
-        self.assertFalse(card_user_data.comment)
-
-    def test_update_comment(self):
-        fake_comment = fake.text(100)
-        card_user_data = CardUserData.objects.get(user=self.user,
-                                                  card=self.card)
-        card_user_data.comment = fake_comment
-        card_user_data.save()
-        card_user_data.refresh_from_db()
-
-        self.assertEqual(card_user_data.comment, fake_comment)
-
-
 class CardReviewsTests(FakeUsersCards, HelpersMixin):
     def test_no_user_foreign_keys_in_join_table(self):
         card, *_ = self.get_cards()
