@@ -17,6 +17,12 @@ class CramQueue(TestCase):
                                                      self.high_grade)
         self.reference_card = self.card_3.memorize(self.user, self.low_grade)
 
+    def tearDown(self):
+        for card in [self.crammed_card,
+                     self.not_crammed_card,
+                     self.reference_card]:
+            card.delete()
+
     def test_user_crammed_cards(self):
         """
         User.crammed_cards reports number of cards in the cram queue.
