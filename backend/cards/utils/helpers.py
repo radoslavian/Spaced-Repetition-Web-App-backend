@@ -19,8 +19,12 @@ def today():
 
 
 def validate_grade(grade):
-    if 0 > grade or grade > 5 or type(grade) is not int:
-        raise ValueError("Grade should be 0-5 integer.")
+    message = "Grade should be a 0-5 integer."
+
+    if type(grade) is not int:
+        raise TypeError(message)
+    if 0 > grade or grade > 5:
+        raise ValueError(message)
 
 
 def compose(*functions):
