@@ -28,12 +28,15 @@ class FileAppender:
 
     @property
     def file_instance(self):
+        fetch_from_db = False
         if self._file_instance is None:
-            try:
-                with transaction.atomic():
+            with transaction.atomic():
+                try:
                     self.save_file()
-            except IntegrityError:
-                self._file_instance = self._get_file_by_hash()
+                except IntegrityError:
+                    fetch_from_db = True
+        if fetch_from_db:
+            self._file_instance = self._get_file_by_hash()
         return self._file_instance
 
     def save_file(self):
