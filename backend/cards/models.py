@@ -11,7 +11,7 @@ from django.urls import reverse
 from .apps import CardsConfig
 from .utils.exceptions import CardReviewDataExists, ReviewBeforeDue, \
     CardsDistributionRangeExceeded
-from .utils.helpers import today, validate_grade, get_file_hash, make_saver
+from .utils.helpers import today, validate_grade, make_saver
 from .utils.supermemo2 import SM2
 
 encoding = CardsConfig.default_encoding
@@ -189,7 +189,8 @@ class CardUserData(models.Model):
         return min(dates_reviews, key=dates_reviews.get)
 
     def review(self, grade):
-        """Update record with current review data.
+        """
+        Update the record with current review data.
         """
         validate_grade(grade)
         if self.review_date > datetime.datetime.today().date():
@@ -308,14 +309,15 @@ class Card(models.Model):
     back_images = property(fget=_make_images_getter("back"))
 
     def memorize(self, user, grade: int = 4) -> CardUserData:
-        """Generate initial review data for a particular user and (this) card
+        """
+        Generate initial review data for a particular user and (this) card
         and put it into CardUserData.
         """
+        validate_grade(grade)
         if grade < 4:
             crammed = True
         else:
             crammed = False
-        validate_grade(grade)
         first_review = SM2.first_review(grade)
         review_data = CardUserData(
             card=self,
@@ -338,7 +340,8 @@ class Card(models.Model):
         return review_data
 
     def review(self, user, grade: int = 4):
-        """Shorthand for making a review.
+        """
+        Shorthand for making a review.
         """
         review_data = CardUserData.objects.get(user=user, card=self)
         review_data.review(grade=grade)
@@ -348,21 +351,19 @@ class Card(models.Model):
         CardUserData.objects.get(card=self, user=user).delete()
 
     def simulate_reviews(self, user=None):
-        """Simulates reviews for all 0-5 grades. The next review date
+        """
+        Simulates reviews for all 0-5 grades. The next review date
         (review_date) is approximate - does not take into account
         daily burden (number of reviews already scheduled for a particular
         day).
         """
         grades = range(6)  # 0-5
-        if not user or (review_data := CardUserData.objects.filter(
-                user=user, card=self).first()) is None:
+        review_data = CardUserData.objects.filter(user=user, card=self).first()
+
+        if not user or review_data is None:
             review_fn = SM2.first_review
         else:
-            def review_fn(grade):
-                sm = SM2(review_data.easiness_factor,
-                         review_data.current_real_interval,
-                         review_data.reviews)
-                return sm.review(grade)
+            review_fn = review_data.new_review
 
         simulation = {}
         for grade in grades:
