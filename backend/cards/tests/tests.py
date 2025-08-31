@@ -66,57 +66,6 @@ class FakeUsersCards(TestCase):
         return card, user
 
 
-class CardCategories(FakeUsersCards, Helpers):
-    def test_card_single_category(self):
-        category_name = fake.text(20)
-        card, category = self.card_with_category(category_name)
-
-        self.assertEqual(len(card.categories.all()), 1)
-        self.assertEqual(card.categories.first().name, category_name)
-
-    def test_deleting_category_keeps_card(self):
-        card, category = self.card_with_category()
-        category.delete()
-        self.assertTrue(card.id)
-
-    def test_deleting_card_keeps_category(self):
-        card, category = self.card_with_category()
-        card.delete()
-        self.assertFalse(card.id)
-        self.assertTrue(category.id)
-
-    def test_card_multiple_categories(self):
-        card_1, card_2, _ = self.get_cards()
-        category_names = [fake.text(20) for _ in range(4)]
-        categories = [fake_data_objects.make_fake_category(name)
-                      for name in category_names]
-        card_1.categories.add(*categories[:2])
-        card_2.categories.add(*categories[2:])
-        [card.save() for card in (card_1, card_2,)]
-        card_1_categories = card_1.categories.all()
-        card_2_categories = card_2.categories.all()
-
-        self.assertEqual(len(card_1_categories), 2)
-        self.assertEqual(len(card_2_categories), 2)
-        self.assertFalse(card_1_categories[1] in card_2_categories)
-        self.assertTrue(card_1_categories[0].name in category_names[:2])
-        self.assertTrue(card_2_categories[0].name in category_names[2:])
-        self.assertFalse(card_2_categories[0].name in category_names[:2])
-
-        category_from_card_1 = card_1_categories[0]
-        card_1.categories.set([])
-        card_1.save()
-        category_from_card_1.refresh_from_db()
-        self.assertTrue(category_from_card_1.id)
-
-    def card_with_category(self, category_name=fake.text(20)):
-        card, *_ = self.get_cards()
-        category = fake_data_objects.make_fake_category(category_name)
-        card.categories.add(category)
-        card.save()
-        return card, category
-
-
 class AbsoluteUrls(Helpers, TestCase):
     def setUp(self):
         # this should be inherited from the ApiTestHelpersMixin

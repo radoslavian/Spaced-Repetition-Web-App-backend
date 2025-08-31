@@ -1,10 +1,11 @@
+from typing import List
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from cards.models import Card, Category
-from cards.tests.fake_data import fake
+from cards.tests.fake_data import fake, fake_data_objects
 
 
 class CategoryTests(TestCase):
@@ -144,3 +145,110 @@ class CategoryJoins(TestCase):
                          card.front)
         self.assertEqual(card.ignoring_users.first().username,
                          self.user.username)
+
+
+class CardSingleCategory(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        category_name_len = 20
+        cls.category_name = fake.text(category_name_len)
+
+    def setUp(self):
+        self.card = self.make_card_with_category(self.category_name)
+        self.category = self.card.categories.first()
+
+    def tearDown(self):
+        self.category.id and self.category.delete()
+        self.card.id and self.card.delete()
+
+    def test_card_category(self):
+        expected_number_of_categories = 1
+        received_number_of_categories = len(self.card.categories.all())
+        self.assertEqual(received_number_of_categories,
+                         expected_number_of_categories)
+        self.assertEqual(self.card.categories.first().name, self.category_name)
+
+    def test_deleting_category_keeps_card(self):
+        self.category.delete()
+        self.card.refresh_from_db()
+        self.assertTrue(self.card.id)
+
+    def test_deleting_card_keeps_category(self):
+        self.card.delete()
+        self.category.refresh_from_db()
+        self.assertFalse(self.card.id)
+        self.assertTrue(self.category.id)
+
+    def test_clearing_categories(self):
+        """
+        Clearing card categories shouldn't cause a category to be removed.
+        """
+        self.card.categories.set([])
+        self.category.refresh_from_db()
+        self.assertTrue(self.category.id)
+
+    @staticmethod
+    def make_card_with_category(category_name=fake.text(20)):
+        card = fake_data_objects.make_fake_card()
+        category = fake_data_objects.make_fake_category(category_name)
+        card.categories.add(category)
+        return card
+
+
+class CardMultipleCategories(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.setup_categories()
+        cls.setup_cards()
+
+    @classmethod
+    def setup_categories(cls):
+        cls.category_names_card_1 = cls.make_category_names()
+        cls.category_names_card_2 = cls.make_category_names()
+        cls.card_1_categories = cls.make_categories(cls.category_names_card_1)
+        cls.card_2_categories = cls.make_categories(cls.category_names_card_2)
+
+    @classmethod
+    def setup_cards(cls):
+        number_of_cards = 2
+        cls.card_1, cls.card_2 = fake_data_objects.make_fake_cards(
+            number_of_cards)
+        cls.card_1.categories.set(cls.card_1_categories)
+        cls.card_2.categories.set(cls.card_2_categories)
+
+    @staticmethod
+    def make_categories(category_names: List[str]):
+        return [fake_data_objects.make_fake_category(name)
+                for name in category_names]
+
+    @staticmethod
+    def make_category_names():
+        # number for a single card, 4 in total (for the whole class)
+        card_number_of_categories = range(2)
+        category_name_len = 20
+
+        return [fake.text(category_name_len)
+                for _ in card_number_of_categories]
+
+    def test_number_of_categories(self):
+        """
+        Each card is assigned to 2 categories.
+        """
+        expected_number_of_categories = 2  # for each card
+        received_number_of_categories_c1 = self.card_1.categories.count()
+        received_number_of_categories_c2 = self.card_2.categories.count()
+
+        self.assertEqual(expected_number_of_categories,
+                         received_number_of_categories_c1)
+        self.assertEqual(expected_number_of_categories,
+                         received_number_of_categories_c2)
+
+    def test_proper_categories_card1(self):
+        expected_categories = set(self.card_1_categories)
+        received_categories = set(self.card_1.categories.all())
+        self.assertSetEqual(expected_categories, received_categories)
+
+    def test_proper_categories_card2(self):
+        expected_categories = set(self.card_2_categories)
+        received_categories = set(self.card_2.categories.all())
+        self.assertSetEqual(expected_categories, received_categories)
