@@ -113,12 +113,11 @@ class CategoryTests(TestCase):
 
 class CategoryJoins(TestCase):
     @classmethod
-    def setUpTestData(cls):
-        cls.User = get_user_model()
-        cls.username = fake.profile()["username"]
-
     def setUp(self):
-        self.user = self.User.objects.create_user(username=self.username)
+        self.user = fake_data_objects.make_fake_user()
+
+    def tearDown(self):
+        self.user.delete()
 
     def test_user_categories(self):
         parent_category = Category.objects.create(name="Parent category")
@@ -135,16 +134,12 @@ class CategoryJoins(TestCase):
                          subcategory.name)
 
     def test_ignored_cards(self):
-        card = Card.objects.create(
-            front=fake.text(100),
-            back=fake.text(100)
-        )
+        # TODO: should go elsewhere
+        card = fake_data_objects.make_fake_card()
         self.user.ignored_cards.add(card)
 
-        self.assertEqual(self.user.ignored_cards.first().front,
-                         card.front)
-        self.assertEqual(card.ignoring_users.first().username,
-                         self.user.username)
+        self.assertEqual(self.user.ignored_cards.first(), card)
+        self.assertEqual(card.ignoring_users.first(), self.user)
 
 
 class CardSingleCategory(TestCase):
