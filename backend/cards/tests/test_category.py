@@ -126,19 +126,21 @@ class CategoryJoins(TestCase):
             parent=parent_category
         )
         self.user.selected_categories.add(subcategory)
-        self.user.save()
 
-        self.assertEqual(subcategory.category_users.first().username,
-                         self.user.username)
-        self.assertEqual(self.user.selected_categories.first().name,
-                         subcategory.name)
+        self.assertEqual(subcategory.category_users.first(), self.user)
+        self.assertEqual(self.user.selected_categories.first(), subcategory)
 
     def test_ignored_cards(self):
         # TODO: should go elsewhere
         card = fake_data_objects.make_fake_card()
         self.user.ignored_cards.add(card)
 
+        number_of_ignored_cards = 1
+        card_ignoring_users = 1
+        self.assertEqual(self.user.ignored_cards.count(),
+                         number_of_ignored_cards)
         self.assertEqual(self.user.ignored_cards.first(), card)
+        self.assertEqual(card.ignoring_users.count(), card_ignoring_users)
         self.assertEqual(card.ignoring_users.first(), self.user)
 
 
