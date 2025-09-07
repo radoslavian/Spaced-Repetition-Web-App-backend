@@ -46,20 +46,34 @@ class FakeData:
         return User.objects.create(username=fake.profile()["username"])
 
 
-class Helpers:
-    def get_image_instance(self):
-        small_gif = self.gifs[0]
-        return self.get_instance_from_image(small_gif)
-
     @staticmethod
-    def get_instance_from_image(image):
-        image = SimpleUploadedFile(name=fake.file_name(extension="gif"),
-                                   content=image,
-                                   content_type="image/gif")
-        image_in_database = Image(image=image,
-                                  description=fake.text(999))
-        image_in_database.save()
-        return image_in_database
+    def add_sound_entry_to_database(placeholder_audio_file):
+        file_name = fake.file_name(extension="mp3")
+        audio_file = SimpleUploadedFile(
+            name=file_name,
+            content=placeholder_audio_file,
+            content_type="audio/mpeg")
+        database_audio_entry = Sound(sound_file=audio_file,
+                                     description=fake.text(999))
+        database_audio_entry.save()
+        return database_audio_entry, file_name
+
+    placeholder_audio_files = [
+            (
+                b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
+                b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
+                b'\x01\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00'
+                b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
+                b'\x00\x00\x00'
+            ),
+            (
+                b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
+                b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
+                b'\x01\x11\x03\x00\x00\x00\x01\x00\x01\x00\x00'
+                b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
+                b'\x00\x00\x00'
+            )
+        ]
 
     gifs = [
         (
@@ -78,41 +92,25 @@ class Helpers:
         )
     ]
 
+    def get_image_instance(self):
+        small_gif = self.gifs[0]
+        return self.get_instance_from_image(small_gif)
+
+    @staticmethod
+    def get_instance_from_image(image):
+        image = SimpleUploadedFile(name=fake.file_name(extension="gif"),
+                                   content=image,
+                                   content_type="image/gif")
+        image_in_database = Image(image=image,
+                                  description=fake.text(999))
+        image_in_database.save()
+        return image_in_database
+
     @staticmethod
     def get_random_gif():
         return (b'\x47\x49\x46\x38\x39\x61\x01\x00\x01'
                 + random.randbytes(23)
                 + b'\x02\x4c\x01\x00\x3b')
 
-    placeholder_audio_files = [
-        (
-            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
-            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
-            b'\x01\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00'
-            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
-            b'\x00\x00\x00'
-        ),
-        (
-            b'MM\x00*\x00\x00\x00\x08\x00\x03\x01\x00\x00'
-            b'\x03\x00\x00\x00\x01\x00\x01\x00\x00\x01'
-            b'\x01\x11\x03\x00\x00\x00\x01\x00\x01\x00\x00'
-            b'\x01\x11\x00\x03\x00\x00\x00\x01\x00'
-            b'\x00\x00\x00'
-        )
-    ]
 
-    @staticmethod
-    def add_soundfile_to_database(placeholder_audio_file):
-        file_name = fake.file_name(extension="mp3")
-        audio_file = SimpleUploadedFile(
-            name=file_name,
-            content=placeholder_audio_file,
-            content_type="audio/mpeg")
-        database_audio_entry = Sound(sound_file=audio_file,
-                                     description=fake.text(999))
-        database_audio_entry.save()
-        return database_audio_entry, file_name
-
-
-fake_objects = Helpers()
 fake_data_objects = FakeData()

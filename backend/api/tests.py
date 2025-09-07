@@ -22,7 +22,6 @@ if __name__ == "__main__" and __package__ is None:
 
 from rest_framework.test import APIClient
 from django.urls import reverse
-from cards.tests.fake_data import Helpers
 from cards.tests.fake_data import fake, fake_data_objects
 
 
@@ -51,19 +50,14 @@ def convert_zulu_timestamp(timestamp: str):
         timestamp.replace("Z", "+00:00").replace("T", " "))
 
 
-class ApiTestHelpers(Helpers, TestCase):
+class ApiTestHelpers(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = fake_data_objects.make_fake_user()
         self.client.force_authenticate(user=self.user)
 
 
-class ApiTestFakeUsersCardsMixin(ApiTestHelpers):
-    def setUp(self):
-        ApiTestHelpers.setUp(self)
-
-
-class TestBackendCards(ApiTestFakeUsersCardsMixin):
+class TestBackendCards(ApiTestHelpers):
     def test_list_of_cards_staff_forbidden(self):
         """Test if route is forbidden for unauthorized access.
         """
@@ -148,8 +142,9 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
         """Test if front and back images are correctly serialized.
         """
         card = fake_data_objects.make_fake_card()
-        first_image = self.get_image_instance()
-        second_image = self.get_instance_from_image(Helpers.gifs[1])
+        first_image = fake_data_objects.get_image_instance()
+        second_image = fake_data_objects.get_instance_from_image(
+            fake_data_objects.gifs[1])
         CardImage(card=card, image=first_image, side="front").save()
         CardImage(card=card, image=first_image, side="back").save()
         CardImage(card=card, image=second_image, side="back").save()
@@ -199,15 +194,15 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
                             categories_from_response[1]["title"])
 
 
-class UserCardsTests(ApiTestFakeUsersCardsMixin):
+class UserCardsTests(ApiTestHelpers):
     """Tests for cards with user data and rendered content.
     """
 
     def audio_testing(self):
-        self.sound_front, _ = self.add_soundfile_to_database(
-            self.placeholder_audio_files[0])
-        self.sound_back, _ = self.add_soundfile_to_database(
-            self.placeholder_audio_files[1])
+        self.sound_front, _ = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[0])
+        self.sound_back, _ = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[1])
         self.card = fake_data_objects.make_fake_card()
 
     def test_audio_fields_in_memorized_card(self):
@@ -602,7 +597,7 @@ class UserCardsTests(ApiTestFakeUsersCardsMixin):
                       card_body)
 
 
-class CardMemorization(ApiTestFakeUsersCardsMixin):
+class CardMemorization(ApiTestHelpers):
     def test_memorize_card_fake_card(self):
         fake_card_id = uuid.uuid4()
         response = self.client.put(
@@ -731,7 +726,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         self.assertEqual(expected_reason_phrase, response_reason_phrase)
 
 
-class ReviewingCard(ApiTestFakeUsersCardsMixin):
+class ReviewingCard(ApiTestHelpers):
     def test_review_forbidden_for_other_users(self):
         """Test if users cannot review each other's cards.
         """
@@ -2180,13 +2175,13 @@ class CategoryApi(ApiTestHelpers, TestCase):
         self.assertEqual(categories_ids, selected_categories_id)
 
 
-class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
+class Statistics(ApiTestHelpers, TestCase):
     """Test responses to requests sent to
     /api/users/{user_id}/cards/distribution
     """
 
     def setUp(self):
-        ApiTestFakeUsersCardsMixin.setUp(self)
+        ApiTestHelpers.setUp(self)
         self.selected_category = Category.objects.create(
             name="user selected category")
         self.user.selected_categories.set([self.selected_category])
@@ -2501,9 +2496,9 @@ class Statistics(ApiTestFakeUsersCardsMixin, TestCase):
         return url
 
 
-class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
+class GeneralStatistics(ApiTestHelpers, TestCase):
     def setUp(self):
-        ApiTestFakeUsersCardsMixin.setUp(self)
+        ApiTestHelpers.setUp(self)
         # deleting 3 extra cards that were added elsewhere
         # in the inheritance hierarchy
         Card.objects.all().delete()
@@ -2592,7 +2587,7 @@ class GeneralStatistics(ApiTestFakeUsersCardsMixin, TestCase):
         self.assertEqual(received_retention_score, expected_retention_score)
 
 
-class UtilsTests(ApiTestFakeUsersCardsMixin, TestCase):
+class UtilsTests(ApiTestHelpers, TestCase):
     def test_get_card_body_base_template(self):
         """get_card_body:
         test rendering template in database that extends base template.
