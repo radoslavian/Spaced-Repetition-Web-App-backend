@@ -35,13 +35,19 @@ class SoundFileModel(TestCase):
 
 class SoundsInCards(TestCase):
     def setUp(self):
+        self.add_placeholder_sounds()
+        self.add_cards()
+
+    def add_cards(self):
+        number_of_cards = 2
+        self.card_1, self.card_2 = fake_data_objects.make_fake_cards(
+            number_of_cards)
+
+    def add_placeholder_sounds(self):
         self.sound_entry_1 = fake_data_objects.add_sound_entry_to_database(
             fake_data_objects.placeholder_audio_files[0])[0]
         self.sound_entry_2 = fake_data_objects.add_sound_entry_to_database(
             fake_data_objects.placeholder_audio_files[1])[0]
-        number_of_cards = 2
-        self.card_1, self.card_2 = fake_data_objects.make_fake_cards(
-            number_of_cards)
 
     def tearDown(self):
         for Model in [Sound, Card]:
@@ -99,53 +105,64 @@ class SoundsInCards(TestCase):
         for card in (self.card_1, self.card_2,):
             card.save()
 
+
+class HandlingDeletions(TestCase):
+    def setUp(self):
+        self.add_placeholder_sounds()
+        self.card = fake_data_objects.make_fake_card()
+        self.card.front_audio = self.sound_entry_front
+        self.card.back_audio = self.sound_entry_back
+        self.card.save()
+
+    def add_placeholder_sounds(self):
+        self.sound_entry_front, self.sound_entry_back = [
+            fake_data_objects.add_sound_entry_to_database(placeholder)[0]
+            for placeholder in fake_data_objects.placeholder_audio_files
+        ]
+
+    def tearDown(self):
+        for Model in [Sound, Card]:
+            Model.objects.all().delete()
+
     def test_removing_sound_front(self):
         """
         Removing a sound entry attached to the card's front doesn't cause
         card's deletion.
         """
-        self.card_1.front_audio = self.sound_entry_1
-        self.card_1.save()
-        self.sound_entry_1.delete()
-        self.card_1.refresh_from_db()
+        self.sound_entry_front.delete()
+        self.card.refresh_from_db()
 
-        self.assertTrue(self.card_1.id)
+        self.assertTrue(self.card.id)
         # check if field definition's on_delete=models.SET_NULL works:
-        self.assertIsNone(self.card_1.front_audio)
+        self.assertIsNone(self.card.front_audio)
 
     def test_removing_sound_back(self):
         """
         Removing a sound entry attached to card's back doesn't delete the card.
         """
-        self.card_1.back_audio = self.sound_entry_1
-        self.card_1.save()
-        self.sound_entry_1.delete()
-        self.card_1.refresh_from_db()
+        self.sound_entry_back.delete()
+        self.card.refresh_from_db()
 
-        self.assertTrue(self.card_1.id)
+        self.assertTrue(self.card.id)
         # check if field definition's on_delete=models.SET_NULL works:
-        self.assertIsNone(self.card_1.back_audio)
+        self.assertIsNone(self.card.back_audio)
 
     def test_removing_card_front(self):
         """
         Removing a card doesn't cause deletion of a sound entry attached
         to the card's front.
         """
-        self.card_1.front_audio = self.sound_entry_1
-        self.card_1.save()
-        self.card_1.delete()
-        self.sound_entry_1.refresh_from_db()
+        self.card.delete()
+        self.sound_entry_front.refresh_from_db()
 
-        self.assertTrue(self.sound_entry_1.id)
+        self.assertIsNotNone(self.sound_entry_front.id)
 
     def test_removing_card_back(self):
         """
         Removing a card doesn't cause deletion of a sound entry attached
         to the card's back.
         """
-        self.card_1.back_audio = self.sound_entry_1
-        self.card_1.save()
-        self.card_1.delete()
-        self.sound_entry_1.refresh_from_db()
+        self.card.delete()
+        self.sound_entry_back.refresh_from_db()
 
-        self.assertTrue(self.sound_entry_1)
+        self.assertIsNotNone(self.sound_entry_back.id)
