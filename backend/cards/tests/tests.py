@@ -2,86 +2,13 @@ from hashlib import sha1
 from random import randint
 from unittest import skip
 from django.core.files import File
-from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.urls import reverse
 from cards.models import Card, Image, Sound
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cards.tests.fake_data import fake, fake_data_objects, Helpers
 
 make_fake_cards = fake_data_objects.make_fake_cards
-
-class FakeUsersCards(TestCase):
-    # TODO: Delete this whole class !!!
-    user_model = get_user_model()
-
-    def setUp(self):
-        self.add_fake_users()
-        self.add_fake_cards()
-
-    def get_cards(self):
-        """Returns three example cards.
-        """
-        card_1 = Card.objects.get(front=self.cards_data["first"]["front"])
-        card_2 = Card.objects.get(front=self.cards_data["second"]["front"])
-        card_3 = Card.objects.get(front=self.cards_data["third"]["front"])
-        return card_1, card_2, card_3
-
-    @classmethod
-    def get_users(cls):
-        """Returns two example users.
-        """
-        user_1 = cls.user_model.objects.get(username="first_user")
-        user_2 = cls.user_model.objects.get(username="second_user")
-        return user_1, user_2
-
-    @classmethod
-    def add_fake_users(cls):
-        user_1 = cls.user_model(username="first_user")
-        user_2 = cls.user_model(username="second_user")
-        user_1.save()
-        user_2.save()
-
-    def add_fake_cards(self):
-        self.cards_data = {
-            "first": self.fake_card_data(),
-            "second": self.fake_card_data(),
-            "third": self.fake_card_data()
-        }
-        for key in self.cards_data:
-            Card(**self.cards_data[key]).save()
-
-    @staticmethod
-    def fake_card_data():
-        fake_text_len = (30, 100,)
-        return {
-            "front": fake.text(randint(*fake_text_len)),
-            "back": fake.text(randint(*fake_text_len))
-        }
-
-    def get_card_user(self):
-        card, *_ = self.get_cards()
-        user, _ = self.get_users()
-        return card, user
-
-
-class AbsoluteUrls(Helpers, TestCase):
-    def setUp(self):
-        # this should be inherited from the ApiTestHelpersMixin
-        # which currently resides in api.tests
-        self.client = APIClient()
-        self.user = fake_data_objects.make_fake_user()
-        self.client.force_authenticate(user=self.user)
-        self.card = make_fake_cards(1)[0]
-
-    def test_card_user_data_canonical_url(self):
-        card_user_data = self.card.memorize(self.user)
-        canonical_url = reverse("memorized_card",
-                                kwargs={"pk": self.card.id,
-                                        "user_id": self.user.id})
-
-        self.assertEqual(card_user_data.get_absolute_url(), canonical_url)
 
 
 class SoundFiles(Helpers, TestCase):

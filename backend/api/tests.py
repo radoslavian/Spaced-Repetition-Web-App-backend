@@ -22,7 +22,6 @@ if __name__ == "__main__" and __package__ is None:
 
 from rest_framework.test import APIClient
 from django.urls import reverse
-from cards.tests import FakeUsersCards
 from cards.tests.fake_data import Helpers
 from cards.tests.fake_data import fake, fake_data_objects
 
@@ -59,9 +58,8 @@ class ApiTestHelpers(Helpers, TestCase):
         self.client.force_authenticate(user=self.user)
 
 
-class ApiTestFakeUsersCardsMixin(ApiTestHelpers, FakeUsersCards):
+class ApiTestFakeUsersCardsMixin(ApiTestHelpers):
     def setUp(self):
-        FakeUsersCards.setUp(self)
         ApiTestHelpers.setUp(self)
 
 
@@ -83,8 +81,8 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
     def test_list_of_cards_staff(self):
         """List of cards with no user data for staff viewing/editing.
         """
-        cards = self.get_cards()
-        number_of_cards = len(cards)
+        number_of_cards = 3
+        cards = fake_data_objects.make_fake_cards(number_of_cards)
         response = self.client.get(reverse("list_cards"))
         cards_in_json = response.json()["results"]
         selected_card = choice(cards_in_json)
@@ -119,7 +117,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
         self.assertEqual(response.status_code, 404)
 
     def test_single_card(self):
-        card, *_ = self.get_cards()
+        card = fake_data_objects.make_fake_card()
         response = self.client.get(reverse("single_card",
                                            kwargs={"pk": card.id}))
         post_response = self.client.post(reverse("single_card",
@@ -149,7 +147,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
     def test_serializing_images_in_cards(self):
         """Test if front and back images are correctly serialized.
         """
-        card, *_ = self.get_cards()
+        card = fake_data_objects.make_fake_card()
         first_image = self.get_image_instance()
         second_image = self.get_instance_from_image(Helpers.gifs[1])
         CardImage(card=card, image=first_image, side="front").save()
@@ -171,7 +169,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
             [image["id"] for image in response_data["front_images"]])
 
     def test_backend_card_single_category(self):
-        card, *_ = self.get_cards()
+        card = fake_data_objects.make_fake_card()
         category_name = fake.text(20)
         category = Category.objects.create(name=category_name)
         card.categories.add(category)
@@ -185,7 +183,7 @@ class TestBackendCards(ApiTestFakeUsersCardsMixin):
                          category_name)
 
     def test_card_multiple_categories(self):
-        card, *_ = self.get_cards()
+        card = fake_data_objects.make_fake_card()
         category_1 = fake_data_objects.make_fake_category()
         category_2 = fake_data_objects.make_fake_category()
         card.categories.add(category_1, category_2)
@@ -620,7 +618,7 @@ class CardMemorization(ApiTestFakeUsersCardsMixin):
         """Unauthorized attempt to memorize a card.
         """
         client = APIClient()
-        card, *_ = self.get_cards()
+        card = fake_data_objects.make_fake_card()
         response = client.patch(reverse("queued_card",
                                         kwargs={"pk": card.id,
                                                 "user_id": self.user.id}))

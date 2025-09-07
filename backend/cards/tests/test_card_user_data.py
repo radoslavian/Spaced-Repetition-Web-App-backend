@@ -7,6 +7,8 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.test import TestCase
 import time_machine
+from django.urls import reverse
+
 from cards.models import CardUserData
 from cards.tests.fake_data import fake, fake_data_objects
 from cards.utils.exceptions import CardReviewDataExists, ReviewBeforeDue
@@ -717,3 +719,20 @@ def raise_error(failing_transaction: Callable):
     """
     with transaction.atomic():
         failing_transaction()
+
+
+class AbsoluteUrls(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = fake_data_objects.make_fake_user()
+        cls.card = fake_data_objects.make_fake_card()
+
+    def setUp(self):
+        self.card_user_data = self.card.memorize(self.user)
+
+    def test_card_user_data_canonical_url(self):
+        canonical_url = reverse("memorized_card",
+                                kwargs={"pk": self.card.id,
+                                        "user_id": self.user.id})
+
+        self.assertEqual(self.card_user_data.get_absolute_url(), canonical_url)
