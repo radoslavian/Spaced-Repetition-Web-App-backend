@@ -1,8 +1,6 @@
 from hashlib import sha1
-from random import randint
 from unittest import skip
 from django.core.files import File
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from cards.models import Card, Image, Sound
 from django.core.files.uploadedfile import SimpleUploadedFile
