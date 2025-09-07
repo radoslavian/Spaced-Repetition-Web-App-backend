@@ -33,19 +33,12 @@ class SoundFileModel(TestCase):
                          sound_file_instance_in_db.sha1_digest)
 
 
-class SoundInCards(TestCase):
+class SoundsInCards(TestCase):
     def setUp(self):
-        sound_entries = []
-        # valid as long as .placeholder_audio_files has only two elements:
-        for placeholder_audio in fake_data_objects.placeholder_audio_files:
-            entry_in_db, name = fake_data_objects.add_sound_entry_to_database(
-                placeholder_audio)
-            sound_entries.append({
-                "entry": entry_in_db,
-                "name": name
-            })
-        self.sound_entry_1 = sound_entries[0]["entry"]
-        self.sound_entry_2 = sound_entries[1]["entry"]
+        self.sound_entry_1 = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[0])[0]
+        self.sound_entry_2 = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[1])[0]
         number_of_cards = 2
         self.card_1, self.card_2 = fake_data_objects.make_fake_cards(
             number_of_cards)
@@ -147,7 +140,7 @@ class SoundInCards(TestCase):
 
     def test_removing_card_back(self):
         """
-        Removing card doesn't cause deletion of a sound entry attached
+        Removing a card doesn't cause deletion of a sound entry attached
         to the card's back.
         """
         self.card_1.back_audio = self.sound_entry_1
