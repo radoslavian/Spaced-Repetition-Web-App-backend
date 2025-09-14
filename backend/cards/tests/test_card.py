@@ -14,6 +14,17 @@ class CardModel(TestCase):
     def setUp(self):
         self.card = Card.objects.create(**self.fake_card_data)
 
+    def test_images_getter_wrong_argument(self):
+        """
+        The _make_images_getter should only accept 'front' or 'back'
+        as a card side name.
+        """
+        def fail():
+            side = "incorrect_side"
+            self.card._make_images_getter(side)
+
+        self.assertRaises(ValueError, fail)
+
     def test_duplicate_card(self):
         def duplicate_card():
             card = Card.objects.create(**self.fake_card_data)
