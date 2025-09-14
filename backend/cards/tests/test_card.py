@@ -81,24 +81,33 @@ class CardRendering(TestCase):
     def tearDown(self):
         self.card.delete()
 
-    def test_get_card_body_base_template(self):
-        """get_card_body:
-        test rendering template in database that extends base template.
+    def test_base_template(self):
+        """
+        Should render a template in the database that extends
+        the base template.
         """
         self.card.template = self.template
         self.card.save()
         card_body = self.card.render({})
+        base_template_fragment = "<!-- base template for cards -->"
+        inheriting_template_fragment = ("<!-- database template"
+                                        " extending base template -->")
 
-        self.assertIn("<!-- base template for cards -->", card_body)
-        self.assertIn("<!-- database template extending base template -->",
-                        card_body)
+        self.assertIn(base_template_fragment, card_body)
+        self.assertIn(inheriting_template_fragment,card_body)
         self.assertIn(self.card.front, card_body)
         self.assertIn(self.card.back, card_body)
 
-    def test_get_card_body_fallback_template(self):
+    def test_fallback_template(self):
+        """
+        Should render a card using a fallback template - which, in turn,
+        inherits from the base (_base.html) template.
+        """
         card_body = self.card.render({})
+        base_template_fragment = "<!-- base template for cards -->"
+        fallback_template_fragment = "<!-- fallback card template -->"
 
-        self.assertIn("<!-- base template for cards -->", card_body)
-        self.assertIn("<!-- fallback card template -->", card_body)
+        self.assertIn(base_template_fragment, card_body)
+        self.assertIn(fallback_template_fragment, card_body)
         self.assertIn(self.card.front, card_body)
         self.assertIn(self.card.back, card_body)
