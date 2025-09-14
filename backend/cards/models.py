@@ -43,7 +43,8 @@ class CardUserData(models.Model):
                    self.current_real_interval,
                    self.reviews).review(grade)
 
-    def get_real_interval(self):
+    @property
+    def current_real_interval(self):
         real_interval = (date.today() - self.last_reviewed).days
         return real_interval
 
@@ -52,7 +53,6 @@ class CardUserData(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,
                              null=False)
     computed_interval = models.IntegerField(default=0)
-    current_real_interval = property(fget=get_real_interval)
     lapses = models.IntegerField(default=0)
 
     # total reviews - cumulative number of repetitions
