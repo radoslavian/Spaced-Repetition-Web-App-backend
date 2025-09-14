@@ -46,6 +46,9 @@ class General(TestCase):
                 CardUserData(user=self.user).save))
 
     def test_review_serialization(self):
+        """
+        Test the __str__ method output.
+        """
         expected_serialization = (
             'computed_interval: 1\n'
             'lapses: 0\n'
@@ -58,8 +61,19 @@ class General(TestCase):
             'easiness_factor: 2.5\n'
             'crammed: False\n'
             'comment: None')
+        received_serialization = str(self.review)
 
-        self.assertEqual(expected_serialization, str(self.review))
+        self.assertEqual(expected_serialization, received_serialization)
+
+    def test_review_representation(self):
+        """
+        Test the __repr__ method output.
+        """
+        expected_serialisation = f"CardUserData(user='{str(self.user)}' " \
+                                 f"card='{str(self.card)}')"
+        received_serialization = repr(self.review)
+
+        self.assertEqual(expected_serialisation, received_serialization)
 
 
 class CardUserDataMapping(TestCase):
