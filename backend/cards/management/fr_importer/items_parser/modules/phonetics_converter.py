@@ -208,8 +208,6 @@ TECHLAND_PHONETICS = [
                                 "ʒ - zh - as in vision, déjeuner")),
     ("C", phonetics_description("ɒ",
                                 "ɒ - о - as in pot, option")),
-    ("e", phonetics_description("e",
-                                "e - as in pet, ten"))
 ]
 
 
