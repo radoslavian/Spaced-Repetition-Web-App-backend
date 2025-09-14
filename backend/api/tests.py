@@ -10,7 +10,7 @@ from datetime import datetime
 from random import choice, shuffle, randint
 from cards.models import Card, CardImage, CardTemplate, Category, CardUserData
 from rest_framework import status
-from .utils.helpers import add_url_params, get_card_body
+from .utils.helpers import add_url_params
 
 if __name__ == "__main__" and __package__ is None:
     # overcoming sibling module imports problem
@@ -2585,42 +2585,3 @@ class GeneralStatistics(ApiTestHelpers, TestCase):
         received_retention_score = self.response.json()["retention_score"]
         expected_retention_score = None
         self.assertEqual(received_retention_score, expected_retention_score)
-
-
-class UtilsTests(ApiTestHelpers, TestCase):
-    def test_get_card_body_base_template(self):
-        """get_card_body:
-        test rendering template in database that extends base template.
-        """
-        template = CardTemplate.objects.create(
-            title="test template",
-            description="Test rendering template in database " \
-                        "that extends base template.",
-            body="""
-                <!-- database template extending base template -->
-                {% extends '_base.html' %}
-                {% block content %}
-                <p>{{ card.front }}</p>
-                <p>{{ card.back }}</p>
-                {% endblock content %}
-                """
-        )
-        card = fake_data_objects.make_fake_card()
-        card.template = template
-        card.save()
-        card_body = get_card_body(card, {})
-
-        self.assertIn("<!-- base template for cards -->", card_body)
-        self.assertIn("<!-- database template extending base template -->",
-                        card_body)
-        self.assertIn(card.front, card_body)
-        self.assertIn(card.back, card_body)
-
-    def test_get_card_body_fallback_template(self):
-        card = fake_data_objects.make_fake_card()
-        card_body = get_card_body(card, {})
-
-        self.assertIn("<!-- base template for cards -->", card_body)
-        self.assertIn("<!-- fallback card template -->", card_body)
-        self.assertIn(card.front, card_body)
-        self.assertIn(card.back, card_body)

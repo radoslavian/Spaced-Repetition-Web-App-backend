@@ -5,6 +5,8 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CheckConstraint, Q, F
+from django.template import Context, Template
+from django.template.loader import render_to_string
 from treebeard.al_tree import AL_Node
 from django.db.utils import IntegrityError
 from django.urls import reverse
@@ -371,6 +373,24 @@ class Card(models.Model):
                                      reviews=data.repetitions,
                                      review_date=data.review_date)
         return simulation
+
+    def render(self, request):
+        """
+        Renders body using fields: .front, .back and .template.
+        """
+        context_data = {
+            "card": self,
+            "request": request
+        }
+        if self.template:
+            context = Context(context_data)
+            template = Template(self.template.body, context)
+            card_rendering = template.render(context)
+        else:
+            fallback_template_name = "fallback.html"
+            card_rendering = render_to_string(fallback_template_name,
+                                              context_data)
+        return card_rendering
 
     def __str__(self):
         MAX_LEN = (25, 25,)  # for question and answer

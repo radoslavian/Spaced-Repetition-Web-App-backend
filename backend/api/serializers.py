@@ -2,9 +2,7 @@ from django.urls import reverse
 from rest_framework.serializers import CharField, ModelSerializer, \
     SerializerMethodField, DateTimeField
 from rest_framework_recursive.fields import RecursiveField
-from api.utils.helpers import get_card_body
 from cards.models import Card, Image, CardUserData, Category
-
 
 class ImageSerializer(ModelSerializer):
     class Meta:
@@ -64,7 +62,7 @@ class CrammedCardReviewDataSerializer(ModelSerializer):
 
     def get_body(self, obj):
         request = self.context.get("request")
-        return get_card_body(obj.card, request)
+        return obj.card.render(request)
 
     @staticmethod
     def get_cram_link(obj):
@@ -106,9 +104,9 @@ class CardUserNoReviewDataSerializer(ModelSerializer):
     back_audio = SerializerMethodField()
     body = SerializerMethodField()
 
-    def get_body(self, obj):
+    def get_body(self, card):
         request = self.context.get("request")
-        return get_card_body(obj, request)
+        return card.render(request)
 
     @staticmethod
     def get_front_audio(obj):
