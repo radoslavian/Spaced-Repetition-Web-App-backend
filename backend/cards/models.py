@@ -44,8 +44,6 @@ class CardUserData(models.Model):
                    self.reviews).review(grade)
 
     def get_real_interval(self):
-        if not self.last_reviewed:
-            return 0
         real_interval = (date.today() - self.last_reviewed).days
         return real_interval
 
