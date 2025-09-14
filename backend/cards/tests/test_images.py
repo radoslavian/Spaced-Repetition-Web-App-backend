@@ -1,8 +1,13 @@
+from hashlib import sha1
+
 import django.db.utils
+from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
 from django.test import TestCase
-from cards.models import CardImage
-from cards.tests.fake_data import fake_data_objects
+from cards.models import CardImage, Image
+from cards.tests.fake_data import fake_data_objects, fake
+
 
 class CardImageCase(TestCase):
     def setUp(self):
@@ -79,3 +84,23 @@ class CardImageCase(TestCase):
                       side="fff").save)
 
         self.assertRaises(django.db.utils.IntegrityError, save_card_image)
+
+
+class ImageModel(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.small_gif = SimpleUploadedFile(
+            name=fake.file_name(extension="gif"),
+            content=fake_data_objects.gifs[0],
+            content_type="image/gif")
+        cls.image_in_db = Image(image=File(cls.small_gif))
+        cls.small_gif_sha1_digest = sha1(
+            cls.small_gif.open().read()).hexdigest()
+        cls.image_in_db.save()
+
+    def test_image_exists(self):
+        self.assertTrue(self.image_in_db.id)
+
+    def test_image_hash_validity(self):
+        self.assertEqual(self.small_gif_sha1_digest,
+                         self.image_in_db.sha1_digest)
