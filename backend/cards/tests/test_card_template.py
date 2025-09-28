@@ -2,8 +2,6 @@ import django.db.utils
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
-from lxml.html.defs import top_level_tags
-
 from cards.models import Card, CardTemplate
 from cards.tests.fake_data import fake_data_objects
 
