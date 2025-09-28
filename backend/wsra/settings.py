@@ -90,7 +90,6 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
-        # 'APP_DIRS': True,  # shouldn't be set if 'loaders' are defined
         'OPTIONS': {
             'loaders': [
                 'cards.card_template_loader.CardTemplateLoader',
