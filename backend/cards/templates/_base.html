@@ -21,7 +21,8 @@
       background-image: linear-gradient(to right, #ccc, #333, #ccc);
   }
 
-  .card-body .question-hidden-letter {
+  .card-body .question-hidden-letter,
+  span.hidden-word > span {
       background: #fae396;
       margin: 1px;
       border-radius: 3px;
@@ -29,7 +30,8 @@
 
   .card-body .question-hidden-letter:hover,
   .card-body .highlighted-text:hover,
-  .card-body .highlighted-dotted-text:hover {
+  .card-body .highlighted-dotted-text:hover,
+  span.hidden-word > span:hover {
       background: yellow;
   }
 
@@ -75,7 +77,8 @@
       line-height: 14pt
   }
 
-  .card-body .phonetic-entity:hover {
+  .card-body .phonetic-entity:hover,
+  .phonetic-spelling span:hover {
       color: red;
   }
 
