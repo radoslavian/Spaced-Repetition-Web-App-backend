@@ -2,6 +2,8 @@ import django.db.utils
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
+from lxml.html.defs import top_level_tags
+
 from cards.models import Card, CardTemplate
 from cards.tests.fake_data import fake_data_objects
 
@@ -104,3 +106,43 @@ class TemplateCardRelationship(TestCase):
         self.assertRaises(
             ObjectDoesNotExist,
             lambda: CardTemplate.objects.get(title=template_title))
+
+
+class DatabaseTemplateImport(TestCase):
+    """
+    Including a database template into another one using a custom template
+    loader.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.top_level_template_title = "top-level template"
+        cls.partial_template_title = "partial template"
+        cls.top_level_template_src = f"""
+        <!-- {cls.top_level_template_title} -->"
+        {{% include "{cls.partial_template_title}" %}}  
+        """
+        cls.partial_template_src = (f"<!-- {cls.partial_template_title} -->\n"
+                                    '<p id="card-front">{{ card.front }}</p>\n'
+                                    '<p id="card-back">{{ card.back }}</p>')
+
+        cls.top_level_template = CardTemplate.objects.create(
+            title=cls.top_level_template_title,
+            body=cls.top_level_template_src)
+        cls.partial_template = CardTemplate.objects.create(
+            title=cls.partial_template_title,
+            body=cls.partial_template_src)
+
+        cls.card_front = "card front"
+        cls.card_back = "card back"
+        cls.card = Card.objects.create(front=cls.card_front,
+                                       back=cls.card_back,
+                                       template=cls.top_level_template)
+        cls.card_rendering = cls.card.render({})
+
+    def test_full_template_rendered(self):
+        self.assertIn(self.top_level_template_title, self.card_rendering)
+
+    def test_partial_template_rendered(self):
+        self.assertIn(self.partial_template_title, self.card_rendering)
+        self.assertIn(self.card_front, self.card_rendering)
+        self.assertIn(self.card_back, self.card_rendering)
