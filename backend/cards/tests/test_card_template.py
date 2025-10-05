@@ -106,23 +106,30 @@ class TemplateCardRelationship(TestCase):
             lambda: CardTemplate.objects.get(title=template_title))
 
 
-class DatabaseTemplateImport(TestCase):
+class StaticDatabaseTemplateImport(TestCase):
     """
-    Including a database template into another one using a custom template
-    loader.
+    Using a custom template loader to get template source.
+    Should combine two locations for loading template source:
+    * App directory
+    * Partial templates in the database.
     """
     @classmethod
     def setUpTestData(cls):
-        cls.top_level_template_title = "top-level template"
-        cls.partial_template_title = "partial template"
-        cls.top_level_template_src = f"""
-        <!-- {cls.top_level_template_title} -->"
-        {{% include "{cls.partial_template_title}" %}}  
-        """
-        cls.partial_template_src = (f"<!-- {cls.partial_template_title} -->\n"
-                                    '<p id="card-front">{{ card.front }}</p>\n'
-                                    '<p id="card-back">{{ card.back }}</p>')
+        cls.prepare_template_sources()
+        cls.prepare_templates()
+        cls.prepare_card()
+        cls.card_rendering = cls.card.render({})
 
+    @classmethod
+    def prepare_card(cls):
+        cls.card_front = "card front"
+        cls.card_back = "card back"
+        cls.card = Card.objects.create(front=cls.card_front,
+                                       back=cls.card_back,
+                                       template=cls.top_level_template)
+
+    @classmethod
+    def prepare_templates(cls):
         cls.top_level_template = CardTemplate.objects.create(
             title=cls.top_level_template_title,
             body=cls.top_level_template_src)
@@ -130,17 +137,53 @@ class DatabaseTemplateImport(TestCase):
             title=cls.partial_template_title,
             body=cls.partial_template_src)
 
-        cls.card_front = "card front"
-        cls.card_back = "card back"
-        cls.card = Card.objects.create(front=cls.card_front,
-                                       back=cls.card_back,
-                                       template=cls.top_level_template)
-        cls.card_rendering = cls.card.render({})
+    @classmethod
+    def prepare_template_sources(cls):
+        cls.top_level_template_title = "top-level template"
+        cls.partial_template_title = "partial template"
+        cls.top_level_template_src = \
+        f"""{{% extends "extending_template_test.html" %}}
+        {{% block general %}}
+        <!-- {cls.top_level_template_title} -->"
+        <!--
+        here should go a partial database template with fields for
+        card question and answer
+        -->
+        {{% include "{cls.partial_template_title}" %}}
+        <!-- end of the partial database template -->  
+        <!-- 
+        here should go a static template for embedding a question image
+        --> 
+        {{% include "_card_question_image.html" %}}
+        <!-- end of question image -->
+        {{% endblock general %}}  
+        """
+        cls.partial_template_src = (f"<!-- {cls.partial_template_title} -->\n"
+                                    '<p id="card-front">{{ card.front }}</p>\n'
+                                    '<p id="card-back">{{ card.back }}</p>')
 
     def test_full_template_rendered(self):
         self.assertIn(self.top_level_template_title, self.card_rendering)
 
-    def test_partial_template_rendered(self):
+    def test_extending_static_template(self):
+        """
+        The loader should extend from a static template.
+        """
+        static_template_text = "static extending template"
+        self.assertIn(static_template_text, self.card_rendering)
+
+    def test_including_database_template(self):
         self.assertIn(self.partial_template_title, self.card_rendering)
         self.assertIn(self.card_front, self.card_rendering)
         self.assertIn(self.card_back, self.card_rendering)
+
+    def test_including_static_template(self):
+        """
+        The loader should try to load a static template, then go for the db.
+        If importing a static template fails, the loader should look
+        for a template source in a database, and only then (if the lookup
+        fails) raise "TemplateDoesNotExist".
+        Tests the 'include' tag directive.
+        """
+        static_template_text = "card-question-image"
+        self.assertIn(static_template_text, self.card_rendering)
