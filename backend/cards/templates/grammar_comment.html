@@ -7,6 +7,19 @@
       background-color: #f7f7f7;
       padding: 5px;
   }
+
+  .card-body #commentary-main-header {
+      padding-left: 0px;
+  }
+
+  .card-body #commentary-body {
+      text-align: left;
+      font-weight: normal;
+      font-size: 15px;
+      line-height: 19px;
+      margin-left: 5px;
+      padding-right: 5px;
+  }
 {% endblock styles %}
   {% block content %}
     <div id="grammar-commentary">
@@ -18,7 +31,7 @@
           </p>
         </div>
 
-        <div class="card-question-example" id="commentary-body">
+        <div id="commentary-body">
           {% block commentary_body %}
           {% endblock commentary_body %}
         </div>
