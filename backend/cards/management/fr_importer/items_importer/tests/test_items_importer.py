@@ -122,23 +122,6 @@ class ItemsImporterTests(TestCase):
             self.assertEqual(card.template.title,
                              self.template.title)
 
-    def test_adding_template_by_title_error(self):
-        """
-        Should raise error if there are several templates with the same title.
-        """
-        second_template = CardTemplate(
-            title=self.template_title,
-            description=self.fake.text(200),
-            body=self.fake.text(100)
-        )
-        second_template.save()
-        expected_error_message = ("get() returned more than one"
-                                  " CardTemplate -- it returned 2!")
-
-        with self.assertRaisesMessage(MultipleObjectsReturned,
-                                      expected_error_message):
-            self.items_importer.set_template_by_title(self.template_title)
-
     def test_card_multiple_categories(self):
         # one by id, another by Category object
         categories = [self.categories[0].id, self.categories[1]]

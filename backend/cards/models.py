@@ -36,11 +36,10 @@ class CardTemplate(models.Model):
         editable=False
     )
 
-    class Meta:
-        unique_together = ("title", "description", "body",)
-
     last_modified = models.DateTimeField(auto_now=True)
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100,
+                             unique=True,
+                             null=False)
     description = models.TextField()
     body = models.TextField()
 

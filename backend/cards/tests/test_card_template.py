@@ -15,8 +15,14 @@ class CreatingTemplate(TestCase):
         self.template = CardTemplate.objects.create(**self.template_data)
 
     def test_template_duplication(self):
+        """
+        Should raise an error if creating another template with the same title.
+        """
         def duplicate_template():
-            template = CardTemplate.objects.create(**self.template_data)
+            template = CardTemplate.objects.create(
+                title=self.template_data["title"],
+                description="",
+                body="")
             template.save()
 
         self.assertRaises(django.db.utils.IntegrityError, duplicate_template)
