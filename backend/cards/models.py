@@ -19,6 +19,15 @@ from .utils.supermemo2 import SM2
 encoding = CardsConfig.default_encoding
 max_comment_len = CardsConfig.max_comment_len
 
+grades = {
+    "ideal": 5,
+    "good": 4,
+    "pass": 3,
+    "fail": 2,
+    "bad": 1,
+    "null": 0
+}
+
 
 class CardTemplate(models.Model):
     id = models.UUIDField(
@@ -314,10 +323,6 @@ class Card(models.Model):
         and put it into CardUserData.
         """
         validate_grade(grade)
-        if grade < 4:
-            crammed = True
-        else:
-            crammed = False
         first_review = SM2.first_review(grade)
         review_data = CardUserData(
             card=self,
@@ -325,8 +330,13 @@ class Card(models.Model):
             easiness_factor=first_review.easiness,
             computed_interval=first_review.interval,
             reviews=first_review.repetitions,
-            crammed=crammed,
             grade=grade)
+
+        if grade < grades["good"]:
+            review_data.crammed = True
+        if grade < grades["pass"]:
+            review_data.lapses = 1
+
         optimal_date = review_data.schedule_date_for_review(
             review_date=first_review.review_date, days_range=3)
         review_data.review_date = optimal_date

@@ -257,8 +257,11 @@ class MemorizeForgetCard(TestCase):
         cls.user = fake_data_objects.make_fake_user()
 
     def setUp(self):
+        self.memorize_card(5)
+
+    def memorize_card(self, grade=5):
         with time_machine.travel(self.target_date):
-            self.review = self.card.memorize(self.user, grade=5)
+            self.review = self.card.memorize(self.user, grade=grade)
 
     def tearDown(self):
         self.review.delete()
@@ -352,6 +355,16 @@ class MemorizeForgetCard(TestCase):
             IntegrityError,
             lambda: raise_error(
                 CardUserData(card=self.card, user=self.user).save))
+
+    def test_memorize_lapse(self):
+        """
+        Grading the memorization < 3 should result in an increase in number
+        of lapses.
+        """
+        self.card.forget(self.user)
+        self.memorize_card(grade=2)
+        expected_lapses = 1
+        self.assertEqual(self.review.lapses, expected_lapses)
 
 
 class Backrefs(TestCase):
