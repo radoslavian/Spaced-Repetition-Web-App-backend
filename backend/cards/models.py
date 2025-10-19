@@ -367,7 +367,7 @@ class Card(models.Model):
         daily burden (number of reviews already scheduled for a particular
         day).
         """
-        grades = range(6)  # 0-5
+        valid_grades = range(6)  # 0-5
         review_data = CardUserData.objects.filter(user=user, card=self).first()
 
         if not user or review_data is None:
@@ -376,7 +376,7 @@ class Card(models.Model):
             review_fn = review_data.new_review
 
         simulation = {}
-        for grade in grades:
+        for grade in valid_grades:
             data = review_fn(grade)
             simulation[grade] = dict(easiness=data.easiness,
                                      interval=data.interval,
