@@ -28,15 +28,10 @@ class FileAppender:
 
     @property
     def file_instance(self):
-        fetch_from_db = False
+        self._file_instance = self._get_file_by_hash()
         if self._file_instance is None:
             with transaction.atomic():
-                try:
-                    self.save_file()
-                except IntegrityError:
-                    fetch_from_db = True
-        if fetch_from_db:
-            self._file_instance = self._get_file_by_hash()
+                self.save_file()
         return self._file_instance
 
     def save_file(self):
@@ -56,8 +51,9 @@ class FileAppender:
     def _get_file_by_hash(self) -> Model:
         with open(self._file_path, "rb") as file:
             file_hash_digest = get_file_hash(File(file))
-        search_parameter = {self.hash_field: file_hash_digest}
-        return self.DatabaseFileModel.objects.get(**search_parameter)
+        search_parameter = {f'{self.hash_field}__exact': file_hash_digest}
+        return self.DatabaseFileModel.objects.filter(
+            **search_parameter).first()
 
 
 class ImageFileAppender(FileAppender):
