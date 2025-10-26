@@ -279,6 +279,11 @@ class Card(models.Model):
                                  null=True,
                                  blank=True,
                                  related_name="cards")
+    note = models.ForeignKey("card_types.CardNote",
+                                  on_delete=models.CASCADE,
+                                  null=True,
+                                  blank=True,
+                                  related_name="cards")
     categories = models.ManyToManyField("cards.Category",
                                         related_name="cards")
     images = models.ManyToManyField(

@@ -1,4 +1,3 @@
-from unittest import skip
 from django.test import TestCase
 from cards.models import  Card
 from card_types.models import CardNote
@@ -29,7 +28,6 @@ class NewCardNote(TestCase):
         self.assertFalse(self.card_note_1.card_type)
 
 
-@skip
 class CardReference(TestCase):
     """
     Default behaviour for a Card to CardNote relationship.
@@ -42,34 +40,54 @@ class CardReference(TestCase):
                            'back': 'card 2 answer'}
 
     def setUp(self):
-        self.card_note = CardNote()
+        self.card_note = CardNote.objects.create()
         self.card_1 = Card.objects.create(**self.card_1_data,
                                           note=self.card_note)
         self.card_2 = Card.objects.create(**self.card_2_data,
                                           note=self.card_note)
 
+    def tearDown(self):
+        # deleting a note results in dropping related cards
+        self.card_note.id and self.card_note.delete()
+
     def test_note_to_card_reference(self):
         """
         The CardNote instance should reference (show) managed cards.
         """
-        pass
+        cards = self.card_note.cards.all()
+        self.assertIn(self.card_1, cards)
+        self.assertIn(self.card_2, cards)
 
     def test_card_to_note_reference(self):
         """
         The Card instance should reference a note.
         """
-        pass
+        self.assertIs(self.card_1.note, self.card_note)
+        self.assertIs(self.card_2.note, self.card_note)
 
-    def test_deleting_card(self):
+    def test_deleting_cards(self):
         """
         Deleting both of the related to the note cards shouldn't cause
         deletion of the note.
         """
-        pass
+        self._delete_cards()
+        self.card_note.refresh_from_db()
+        self.assertTrue(self.card_note.id)
+
+    def _delete_cards(self):
+        for card in self.card_1, self.card_2:
+            card.id and card.delete()
+
+    def test_deleting_card(self):
+        self.card_1.delete()
+        expected_number = 1
+        received_number = self.card_note.cards.count()
+        self.assertEqual(expected_number, received_number)
 
     def test_deleting_note(self):
         """
-        Deleting the note shouldn't cause deletion of cards.
-        References should be set to None.
+        Deleting a note should cause deletion of related cards.
         """
-        pass
+        self.card_note.delete()
+        expected_number = 0
+        self.assertEqual(Card.objects.count(), expected_number)
