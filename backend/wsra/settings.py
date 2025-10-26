@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'cards.apps.CardsConfig',
     'api.apps.ApiConfig',
     'react_app.apps.ReactAppConfig',
+    'card_types.apps.CardTypesConfig',
 ]
 
 AUTH_USER_MODEL = 'users.User'
