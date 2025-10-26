@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile-dev
     command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
     volumes:
       - .:/wsra
       - /wsra/media/images
