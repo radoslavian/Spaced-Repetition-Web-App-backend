@@ -119,7 +119,7 @@ class SavingCards(TestCase):
         The class instance constructor specified in the card_type field
         receives an instance of the CardNote model.
         """
-        with patch("card_types.models.type_managers", self.fake_type_managers):
+        with self._patch_managers():
             self.note.save_cards()
             self.test_card_type.assert_called_once_with(self.note)
 
@@ -127,7 +127,7 @@ class SavingCards(TestCase):
         """
         .save_cards() must be called on an instance from the card_type field.
         """
-        with patch("card_types.models.type_managers", self.fake_type_managers):
+        with self._patch_managers():
             self.note.save_cards()
             self.test_card_type.return_value.save_cards.assert_called_once()
 
@@ -137,5 +137,9 @@ class SavingCards(TestCase):
         """
         self.note.card_type = "invalid-card-type"
         self.note.save()
-        with patch("card_types.models.type_managers", self.fake_type_managers):
+        with self._patch_managers():
             self.assertRaises(InvalidCardType, self.note.save_cards)
+
+    def _patch_managers(self):
+        return patch("card_types.models.type_managers",
+                     self.fake_type_managers)
