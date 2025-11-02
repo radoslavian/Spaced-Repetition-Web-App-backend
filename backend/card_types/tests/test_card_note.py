@@ -1,4 +1,7 @@
+from unittest.mock import Mock, patch
 from django.test import TestCase
+
+from card_types.card_managers.exceptions import InvalidCardType
 from cards.models import  Card
 from card_types.models import CardNote
 
@@ -91,3 +94,48 @@ class CardReference(TestCase):
         self.card_note.delete()
         expected_number = 0
         self.assertEqual(Card.objects.count(), expected_number)
+
+
+class SavingCards(TestCase):
+    """
+    Creating/updating cards using a selected card manager.
+    Using a card manager specified in the card_type field for creating new
+    cards or updating existing ones.
+    """
+    def setUp(self):
+        self.note = CardNote.objects.create(card_type="test_type")
+        self.test_card_type = Mock()
+        self.test_card_type.return_value.save_cards = Mock()
+        self.fake_type_managers = {"test_type": self.test_card_type}
+
+    def tearDown(self):
+        self.note.delete()
+        del self.fake_type_managers
+        del self.test_card_type
+
+    def test_receiving_note_instance(self):
+        """
+        The constructor receives an instance of the CardNote.
+        The class instance constructor specified in the card_type field
+        receives an instance of the CardNote model.
+        """
+        with patch("card_types.models.type_managers", self.fake_type_managers):
+            self.note.save_cards()
+            self.test_card_type.assert_called_once_with(self.note)
+
+    def test_saving_note(self):
+        """
+        .save_cards() must be called on an instance from the card_type field.
+        """
+        with patch("card_types.models.type_managers", self.fake_type_managers):
+            self.note.save_cards()
+            self.test_card_type.return_value.save_cards.assert_called_once()
+
+    def test_incorrect_type_name(self):
+        """
+        An attempt to invoke an undefined card type name should raise an error.
+        """
+        self.note.card_type = "invalid-card-type"
+        self.note.save()
+        with patch("card_types.models.type_managers", self.fake_type_managers):
+            self.assertRaises(InvalidCardType, self.note.save_cards)
