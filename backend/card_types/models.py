@@ -13,12 +13,20 @@ class CardNote(models.Model):
     metadata = models.TextField()
     card_type = models.CharField(max_length=100)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.save_cards()
+
     @property
     def card_type_instance(self):
+        if not self.card_type:
+            return None
         cls = type_managers.get(self.card_type)
         if not cls:
             raise InvalidCardType
         return cls(self)
 
     def save_cards(self):
-        self.card_type_instance.save_cards()
+        card_type_instance = self.card_type_instance
+        if card_type_instance:
+            card_type_instance.save_cards()

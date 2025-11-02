@@ -103,13 +103,15 @@ class SavingCards(TestCase):
     cards or updating existing ones.
     """
     def setUp(self):
-        self.note = CardNote.objects.create(card_type="test_type")
         self.test_card_type = Mock()
         self.test_card_type.return_value.save_cards = Mock()
         self.fake_type_managers = {"test_type": self.test_card_type}
+        with self._patch_managers():
+            self.note = CardNote.objects.create(card_type="test_type")
 
     def tearDown(self):
         self.note.delete()
+        Card.objects.all().delete()
         del self.fake_type_managers
         del self.test_card_type
 
@@ -119,16 +121,13 @@ class SavingCards(TestCase):
         The class instance constructor specified in the card_type field
         receives an instance of the CardNote model.
         """
-        with self._patch_managers():
-            self.note.save_cards()
-            self.test_card_type.assert_called_once_with(self.note)
+        self.test_card_type.assert_called_once_with(self.note)
 
     def test_saving_note(self):
         """
         .save_cards() must be called on an instance from the card_type field.
         """
         with self._patch_managers():
-            self.note.save_cards()
             self.test_card_type.return_value.save_cards.assert_called_once()
 
     def test_incorrect_type_name(self):
@@ -136,10 +135,26 @@ class SavingCards(TestCase):
         An attempt to invoke an undefined card type name should raise an error.
         """
         self.note.card_type = "invalid-card-type"
-        self.note.save()
         with self._patch_managers():
-            self.assertRaises(InvalidCardType, self.note.save_cards)
+            self.assertRaises(InvalidCardType, self.note.save)
 
     def _patch_managers(self):
         return patch("card_types.models.type_managers",
                      self.fake_type_managers)
+
+    def test_updating_note(self):
+        """
+        Updating a note should update attached cards.
+        """
+        self.note.save_cards = Mock()
+        self.note.card_description = "new value"
+        self.note.save()
+        self.note.save_cards.assert_called_once()
+
+    def test_empty_card_type(self):
+        """
+        Not-None .card_type_instance is required to update associated cards.
+        If it is None, no cards are updated.
+        """
+        note = CardNote.objects.create()
+        self.assertIsNone(note.card_type_instance)
