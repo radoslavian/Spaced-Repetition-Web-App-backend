@@ -14,8 +14,8 @@ class CardNote(models.Model):
     card_type = models.CharField(max_length=100)
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         self.save_cards()
+        super().save(*args, **kwargs)
 
     @property
     def card_type_instance(self):
