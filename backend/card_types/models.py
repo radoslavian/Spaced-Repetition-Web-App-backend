@@ -27,6 +27,10 @@ class CardNote(models.Model):
         return cls(self)
 
     def save_cards(self):
+        """
+        Update cards attached to a note.
+        Requires invoking .save() of the model if called manually.
+        """
         card_type_instance = self.card_type_instance
         if card_type_instance:
             card_type_instance.save_cards()
