@@ -201,7 +201,7 @@ class RecreatingCards(TestCase):
         self.assertEqual(expected_number, received_number)
 
 
-class CreatingCardsFromWithFields(TestCase):
+class CreatingCardsFromNoteWithFields(TestCase):
     """
     Creating cards with fields other than front and back text.
     """
@@ -238,7 +238,7 @@ class CreatingCardsFromWithFields(TestCase):
 
     def test_template_cards(self):
         """
-        Cards created from the card should reference a template.
+        Cards created from the note should reference a template.
         """
         for card in Card.objects.all():
             self.assertTrue(card.template)
