@@ -2,7 +2,7 @@ import json
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from cards.models import CardTemplate
+from cards.models import CardTemplate, Sound
 
 
 class CardManager(ABC):
@@ -30,3 +30,8 @@ class CardManager(ABC):
     def get_template(self):
         return CardTemplate.objects.filter(
             id__exact=self.card_description.get("template")).first()
+
+    @staticmethod
+    def get_sound_from(description_fragment: Dict):
+        audio_id = description_fragment.get("audio", None)
+        return audio_id and Sound.objects.filter(id__exact=audio_id).first()

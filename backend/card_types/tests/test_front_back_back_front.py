@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from card_types.models import CardNote
 from cards.models import Card, CardTemplate
+from cards.tests.fake_data import fake_data_objects
 
 
 class CreatingCardsFromNote(TestCase):
@@ -214,16 +215,36 @@ class CreatingCardsFromNoteWithFields(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls._prepare_template()
+        cls._prepare_audio_entries()
         cls.cards_description = {
             "front": {
-                "text": "some front text"
+                "text": "some front text",
+                "audio": cls.front_audio.id.hex
             },
             "back": {
-                "text": "some back text"
+                "text": "some back text",
+                "audio": cls.back_audio.id.hex
             },
             "template": cls.template.id.hex
         }
         cls._create_note()
+        cls._get_cards()
+
+    @classmethod
+    def _prepare_audio_entries(cls):
+        cls.front_audio, _ = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[0])
+        cls.back_audio, _ = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[1])
+
+    @classmethod
+    def _get_cards(cls):
+        front_back_card_id = json.loads(
+            cls.note.metadata)["front-back-card-id"]
+        cls.front_back_card = Card.objects.get(id__exact=front_back_card_id)
+        back_front_card_id = json.loads(
+            cls.note.metadata)["back-front-card-id"]
+        cls.back_front_card = Card.objects.get(id__exact=back_front_card_id)
 
     @classmethod
     def _prepare_template(cls):
@@ -243,3 +264,35 @@ class CreatingCardsFromNoteWithFields(TestCase):
         for card in Card.objects.all():
             self.assertTrue(card.template)
             self.assertEqual(card.template.id, self.template.id)
+
+    def test_front_audio_front_back(self):
+        """
+        Front audio reference on a front-back card.
+        """
+        self.assertTrue(self.front_back_card.front_audio)
+        self.assertEqual(self.front_back_card.front_audio.id,
+                         self.front_audio.id)
+
+    def test_front_audio_back_front(self):
+        """
+        Front audio reference on a back-front card.
+        """
+        self.assertTrue(self.back_front_card.front_audio)
+        self.assertEqual(self.back_front_card.front_audio.id,
+                         self.back_audio.id)
+
+    def test_back_audio_front_back(self):
+        """
+        Back audio reference on a front-back card.
+        """
+        self.assertTrue(self.front_back_card.back_audio)
+        self.assertEqual(self.front_back_card.back_audio.id,
+                         self.back_audio.id)
+
+    def test_back_audio_back_front(self):
+        """
+        Back audio reference on a back-front card.
+        """
+        self.assertTrue(self.back_front_card.back_audio)
+        self.assertEqual(self.back_front_card.back_audio.id,
+                         self.front_audio.id)
