@@ -155,3 +155,44 @@ class UpdatingNote(TestCase):
         """
         card = Card.objects.get(id=self.back_front_card_id)
         self.assertEqual(card.id.hex, self.original_back_front_card_id)
+
+
+class RecreatingCards(TestCase):
+    """
+    Recreating deleted cards from the note.
+    """
+    card_description = {
+        "front": {
+            "text": "some front text"
+        },
+        "back": {
+            "text": "some back text"
+        }
+    }
+
+    def setUp(self):
+        self.note = CardNote.objects.create(
+            card_description=json.dumps(self.card_description),
+            card_type="front-back-back-front")
+        self.metadata = json.loads(self.note.metadata)
+
+    def tearDown(self):
+        self.note.delete()
+
+    def test_deleting_single_card(self):
+        front_back_card = Card.objects.get(
+            id=self.metadata["front-back-card-id"])
+        front_back_card.delete()
+        self.note.save_cards()
+
+        expected_number = 2
+        received_number = Card.objects.count()
+        self.assertEqual(expected_number, received_number)
+
+    def test_deleting_both_cards(self):
+        Card.objects.all().delete()
+        self.note.save_cards()
+
+        expected_number = 2
+        received_number = Card.objects.count()
+        self.assertEqual(expected_number, received_number)
