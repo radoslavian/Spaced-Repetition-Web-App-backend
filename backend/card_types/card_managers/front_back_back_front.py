@@ -1,7 +1,7 @@
 import json
 from typing import Dict
 
-from cards.models import Card
+from cards.models import Card, CardTemplate
 from .manager_abc import CardManager
 
 
@@ -42,8 +42,13 @@ class FrontBackBackFront(CardManager):
         card.front = front.get("text")
         card.back = back.get("text")
         card.note = self.card_note
+        card.template = self.get_template()
         card.save()
         return card
+
+    def get_template(self):
+        return CardTemplate.objects.filter(
+            id__exact=self.card_description.get("template")).first()
 
     @property
     def card_description(self):

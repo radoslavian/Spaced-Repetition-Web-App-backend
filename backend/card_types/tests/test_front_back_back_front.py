@@ -4,10 +4,13 @@ from unittest import skip
 from django.test import TestCase
 
 from card_types.models import CardNote
-from cards.models import Card
+from cards.models import Card, CardTemplate
 
 
 class CreatingCardsFromNote(TestCase):
+    """
+    Creating a basic card from the note (with text fields only).
+    """
     @classmethod
     def setUpTestData(cls):
         note = {
@@ -196,3 +199,47 @@ class RecreatingCards(TestCase):
         expected_number = 2
         received_number = Card.objects.count()
         self.assertEqual(expected_number, received_number)
+
+
+class CreatingCardsFromWithFields(TestCase):
+    """
+    Creating cards with fields other than front and back text.
+    """
+    template_description = {
+        "title": "example template",
+        "description": "template for testing",
+        "body": '{% extends  "fallback.html" %}'
+    }
+
+    @classmethod
+    def setUpTestData(cls):
+        cls._prepare_template()
+        cls.cards_description = {
+            "front": {
+                "text": "some front text"
+            },
+            "back": {
+                "text": "some back text"
+            },
+            "template": cls.template.id.hex
+        }
+        cls._create_note()
+
+    @classmethod
+    def _prepare_template(cls):
+        cls.template = CardTemplate.objects.create(**cls.template_description)
+
+    @classmethod
+    def _create_note(cls):
+        card_description = json.dumps(cls.cards_description)
+        cls.note = CardNote.objects.create(
+            card_description=card_description,
+            card_type="front-back-back-front")
+
+    def test_template_cards(self):
+        """
+        Cards created from the card should reference a template.
+        """
+        for card in Card.objects.all():
+            self.assertTrue(card.template)
+            self.assertEqual(card.template.id, self.template.id)
