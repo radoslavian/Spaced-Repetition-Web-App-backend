@@ -4,7 +4,7 @@ from unittest import skip
 from django.test import TestCase
 
 from card_types.models import CardNote
-from cards.models import Card, CardTemplate
+from cards.models import Card, CardTemplate, CardImage
 from cards.tests.fake_data import fake_data_objects
 
 
@@ -296,3 +296,169 @@ class CreatingCardsFromNoteWithFields(TestCase):
         self.assertTrue(self.back_front_card.back_audio)
         self.assertEqual(self.back_front_card.back_audio.id,
                          self.front_audio.id)
+
+
+class ImageTestData:
+    @classmethod
+    def prepare_images(cls):
+        cls.front_image = fake_data_objects.get_instance_from_image(
+            fake_data_objects.gifs[0])
+        cls.back_image = fake_data_objects.get_instance_from_image(
+            fake_data_objects.gifs[1])
+
+    @classmethod
+    def add_note_description(cls):
+        cls.card_description = {
+            "front": {
+                "text": "some front text",
+                "images": [cls.front_image.id.hex]
+            },
+            "back": {
+                "text": "some back text",
+                "images": [cls.back_image.id.hex]
+            },
+        }
+
+    def create_note(self):
+        note_description = json.dumps(self.card_description)
+        self.note = CardNote.objects.create(
+            card_description=note_description,
+            card_type="front-back-back-front")
+
+    def load_cards(self):
+        note_metadata = json.loads(self.note.metadata)
+        self.front_back_card = self.note.cards.get(
+            id__exact=note_metadata["front-back-card-id"])
+        self.back_front_card = self.note.cards.get(
+            id__exact=note_metadata["back-front-card-id"])
+
+
+reason = "must be implemented"
+
+
+class ImageEntry(TestCase, ImageTestData):
+    @classmethod
+    def setUpTestData(cls):
+        cls.prepare_images()
+        cls.add_note_description()
+
+    def setUp(self):
+        self.create_note()
+        self.load_cards()
+
+    def tearDown(self):
+        self.note.delete()
+
+    def test_number_of_entries(self):
+        """
+        Should create 4 entries in CardImage (2 entries for each card).
+        """
+        expected_single_card_number = 2
+        expected_total_number = 4
+        front_back_card_number = self.front_back_card.images.count()
+        back_front_card_number = self.back_front_card.images.count()
+        total_number = CardImage.objects.count()
+
+        self.assertEqual(front_back_card_number, expected_single_card_number)
+        self.assertEqual(back_front_card_number, expected_single_card_number)
+        self.assertEqual(expected_total_number, total_number)
+
+    def test_front_back_entries(self):
+        front_image = self.get_front_image(self.front_back_card)
+        back_image = self.get_back_image(self.front_back_card)
+
+        self.assertTrue(all([front_image, back_image]))
+        self.assertEqual(front_image.id, self.front_image.id)
+        self.assertEqual(back_image.id, self.back_image.id)
+
+    def test_back_front_entries(self):
+        front_image = self.get_front_image(self.back_front_card)
+        back_image = self.get_back_image(self.back_front_card)
+
+        self.assertEqual(front_image, self.back_image)
+        self.assertEqual(back_image, self.front_image)
+
+    @staticmethod
+    def get_image(card, side):
+        return CardImage.objects.filter(
+            card=card, side__exact=side).first().image
+
+    def get_front_image(self, card):
+        return self.get_image(card, side="front")
+
+    def get_back_image(self, card):
+        return self.get_image(card, side="back")
+
+
+class NoteWithImagesUpdate(TestCase, ImageTestData):
+    @classmethod
+    def setUpTestData(cls):
+        cls.prepare_images()
+        cls.add_note_description()
+        front = {**cls.card_description["front"],
+                 "images": [cls.front_image.id.hex,
+                            cls.back_image.id.hex]}
+        cls.updated_card_description = {
+            "front": front,
+            "back": {
+                "text": "some back text"
+            },
+        }
+
+    def setUp(self):
+        self.create_note()
+        self.load_cards()
+
+    def create_note(self):
+        super().create_note()
+        self.note.card_description = json.dumps(self.updated_card_description)
+        self.note.save()
+
+    def tearDown(self):
+        self.note.delete()
+
+    def test_number_images(self):
+        """
+        Number of created image entries.
+        Should remain the same after a note update.
+        """
+        expected_number_of_image_entries = 4
+        received_number_of_image_entries = CardImage.objects.count()
+        self.assertEqual(expected_number_of_image_entries,
+                         received_number_of_image_entries)
+
+    def test_number_images_front_back(self):
+        expected_number_of_front_images = 2
+        expected_number_of_back_images = 0
+        received_number_of_front_images = self.count_front_images(
+            self.front_back_card)
+        received_number_of_back_images = self.count_back_images(
+            self.front_back_card)
+
+        self.assertEqual(expected_number_of_front_images,
+                         received_number_of_front_images)
+        self.assertEqual(expected_number_of_back_images,
+                         received_number_of_back_images)
+
+    def test_number_images_back_front(self):
+        expected_number_of_front_images = 0
+        expected_number_of_back_images = 2
+        received_number_of_front_images = self.count_front_images(
+            self.back_front_card)
+        received_number_of_back_images = self.count_back_images(
+            self.back_front_card)
+
+        self.assertEqual(expected_number_of_front_images,
+                         received_number_of_front_images)
+        self.assertEqual(expected_number_of_back_images,
+                         received_number_of_back_images)
+
+    @staticmethod
+    def count_images(card, side):
+        return CardImage.objects.filter(card=card, side__exact=side).count()
+
+    def count_front_images(self, card):
+        return self.count_images(card, "front")
+
+    def count_back_images(self, card):
+        return self.count_images(card, "back")

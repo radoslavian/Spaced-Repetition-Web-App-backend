@@ -1,7 +1,7 @@
 import json
 from typing import Dict
 
-from cards.models import Card
+from cards.models import Card, CardImage, Image
 from .manager_abc import CardManager
 
 
@@ -36,8 +36,27 @@ class FrontBackBackFront(CardManager):
         card.back_audio = self.get_sound_from(back)
         card.template = self.get_template()
         card.note = self.card_note
+        self._save_front_images(card, front)
+        self._save_back_images(card, back)
         card.save()
         return card
+
+    @staticmethod
+    def _save_images(card, card_side, side):
+        CardImage.objects.filter(card=card, side=side).delete()
+        image_ids = card_side.get("images")
+        if not image_ids:
+            return
+
+        for image_id in image_ids:
+            image = Image.objects.get(id__exact=image_id)
+            CardImage.objects.create(card=card, image=image, side=side)
+
+    def _save_front_images(self, card, card_side):
+        self._save_images(card=card, card_side=card_side, side="front")
+
+    def _save_back_images(self, card, card_side):
+        self._save_images(card=card, card_side=card_side, side="back")
 
     def _save_metadata(self):
         if not all([self.front_back_card, self.back_front_card]):
