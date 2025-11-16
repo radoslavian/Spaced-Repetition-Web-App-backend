@@ -4,7 +4,7 @@ from unittest import skip
 from django.test import TestCase
 
 from card_types.models import CardNote
-from cards.models import Card, CardTemplate, CardImage
+from cards.models import Card, CardTemplate, CardImage, Category
 from cards.tests.fake_data import fake_data_objects
 
 
@@ -333,9 +333,6 @@ class ImageTestData:
             id__exact=note_metadata["back-front-card-id"])
 
 
-reason = "must be implemented"
-
-
 class ImageEntry(TestCase, ImageTestData):
     @classmethod
     def setUpTestData(cls):
@@ -462,3 +459,54 @@ class NoteWithImagesUpdate(TestCase, ImageTestData):
 
     def count_back_images(self, card):
         return self.count_images(card, "back")
+
+
+class CategoriesInDescription(TestCase):
+    """
+    Adding categories to double-sided cards.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.categories = [Category.objects.create(name=category_name)
+                          for category_name in ("category 1", "category 2",)]
+        cls.card_description = json.dumps({
+            "front": {
+                "text": "some front text"
+            },
+            "back": {
+                "text": "some back text"
+            },
+            "categories": [category.id.hex for category in cls.categories]
+        })
+        cls.note = CardNote.objects.create(
+            card_description=cls.card_description,
+            card_type="front-back-back-front")
+
+    def test_front_back_card(self):
+        """
+        Front-back card is created with categories.
+        """
+        front_back_card_id = json.loads(
+            self.note.metadata)["front-back-card-id"]
+        front_back_card = Card.objects.get(id__exact=front_back_card_id)
+
+        self._assert_categories_in(front_back_card)
+
+    def test_back_front_card(self):
+        """
+        Back-front card is created with categories.
+        """
+        back_front_card_id = json.loads(
+            self.note.metadata)["back-front-card-id"]
+        back_front_card = Card.objects.get(id__exact=back_front_card_id)
+
+        self._assert_categories_in(back_front_card)
+
+    def _assert_categories_in(self, card):
+        expected_no_categories = 2
+        received_no_categories = card.categories.count()
+        expected_categories = {category.id for category in self.categories}
+        received_categories = {category.id for category in
+                               card.categories.all()}
+        self.assertEqual(received_no_categories, expected_no_categories)
+        self.assertSetEqual(received_categories, expected_categories)

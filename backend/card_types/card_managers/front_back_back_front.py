@@ -1,7 +1,7 @@
 import json
-from typing import Dict
+from typing import Dict, List
 
-from cards.models import Card, CardImage, Image
+from cards.models import Card, CardImage, Image, Category
 from .manager_abc import CardManager
 
 
@@ -36,6 +36,9 @@ class FrontBackBackFront(CardManager):
         card.back_audio = self.get_sound_from(back)
         card.template = self.get_template()
         card.note = self.card_note
+
+        card_categories = self.get_categories()
+        card.categories.set(card_categories)
         self._save_front_images(card, front)
         self._save_back_images(card, back)
         card.save()
@@ -66,3 +69,8 @@ class FrontBackBackFront(CardManager):
             "back-front-card-id": self.back_front_card.id.hex
         }
         self.card_note.metadata = json.dumps(metadata)
+
+    def get_categories(self) -> List:
+        return [Category.objects.get(id__exact=category_id)
+                for category_id in
+                self.card_description.get("categories", [])]
