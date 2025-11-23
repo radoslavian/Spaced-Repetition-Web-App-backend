@@ -406,6 +406,29 @@ class Card(models.Model):
                                               context_data)
         return card_rendering
 
+    def __getitem__(self, key):
+        return dict(zip(self.keys(), self.values()))[key]
+
+    @staticmethod
+    def keys():
+        keys = ["id", "created_on", "last_modified", "front", "back",
+                "template", "note", "categories"]
+        return keys
+
+    def values(self):
+        front = {"text": self.front,
+                 "images": self.front_images,
+                 "audio": self.front_audio
+        }
+        back = {"text": self.back,
+                "images": self.back_images,
+                "audio": self.back_audio
+        }
+        categories = list(self.categories.all())
+        values = [self.id, self.created_on, self.last_modified, front,
+                  back, self.template, self.note, categories]
+        return values
+
     def __str__(self):
         MAX_LEN = (25, 25,)  # for question and answer
         question = (self.front[:MAX_LEN[0]] + " ..."
