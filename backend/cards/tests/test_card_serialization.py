@@ -63,19 +63,16 @@ class DictSerializationEmptyOptionalFields(TestCase):
         self.assertListEqual(self.mapped_card["categories"], [])
 
 
-class DictSerializationWithOptionalFields(TestCase):
-    """
-    Optional fields are filled with data.
-    """
+class SerializationSetup:
     @classmethod
-    def setUpTestData(cls):
+    def setup_test_data(cls):
         cls.card = fake_data_objects.make_fake_card()
         cls.set_template()
         cls.set_images()
         cls.set_sound_fields()
         cls.card.note = CardNote.objects.create()
         cls.card.categories.set([fake_data_objects.make_fake_category()
-                               for _ in range(2)])
+                                 for _ in range(2)])
         cls.card.save()
         cls.mapped_card = dict(cls.card)
 
@@ -85,6 +82,13 @@ class DictSerializationWithOptionalFields(TestCase):
             fake_data_objects.placeholder_audio_files[0])[0]
         cls.card.back_audio = fake_data_objects.add_sound_entry_to_database(
             fake_data_objects.placeholder_audio_files[1])[0]
+
+    @classmethod
+    def set_card_side_images(cls, images, side="front"):
+        for image in images:
+            CardImage.objects.create(image=image,
+                                     card=cls.card,
+                                     side=side)
 
     @classmethod
     def set_images(cls):
@@ -100,17 +104,19 @@ class DictSerializationWithOptionalFields(TestCase):
         cls.set_card_side_images(cls.back_images, "back")
 
     @classmethod
-    def set_card_side_images(cls, images, side="front"):
-        for image in images:
-            CardImage.objects.create(image=image,
-                                     card=cls.card,
-                                     side=side)
-
-    @classmethod
     def set_template(cls):
         cls.template = CardTemplate.objects.create(
             **fake_data_objects.get_fake_template_data())
         cls.card.template = cls.template
+
+
+class DictSerializationWithOptionalFields(TestCase, SerializationSetup):
+    """
+    Optional fields are filled with data.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.setup_test_data()
 
     def test_template(self):
         self.assertEqual(self.card.template, self.mapped_card["template"])
