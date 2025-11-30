@@ -420,19 +420,29 @@ class Card(models.Model):
         return keys
 
     def values(self):
-        front = {"text": self.front,
-                 "images": self.front_image_ids_hex,
-                 "audio": self.front_audio_id_hex}
-        back = {"text": self.back,
+        return [self.id.hex, self.created_on_iso, self.last_modified_iso,
+                self.front_fields, self.back_fields, self.template_id_hex,
+                self.note_id_hex, self.categories_ids_hex]
+
+    @property
+    def last_modified_iso(self):
+        return self.last_modified.isoformat()
+
+    @property
+    def created_on_iso(self):
+        return self.created_on.isoformat()
+
+    @property
+    def front_fields(self):
+        return {"text": self.front,
+                "images": self.front_image_ids_hex,
+                "audio": self.front_audio_id_hex}
+
+    @property
+    def back_fields(self):
+        return {"text": self.back,
                 "images": self.back_image_ids_hex,
                 "audio": self.get_back_audio_id_hex}
-        created_on = self.created_on.isoformat()
-        last_modified = self.last_modified.isoformat()
-
-        values = [self.id.hex, created_on, last_modified, front,
-                  back, self.template_id_hex, self.note_id_hex,
-                  self.categories_ids_hex]
-        return values
 
     @property
     def note_id_hex(self):
