@@ -22,7 +22,7 @@ class CardModel(TestCase):
         """
         def fail():
             side = "incorrect_side"
-            self.card._make_images_getter(side)
+            self.card.get_images(side)
 
         self.assertRaises(ValueError, fail)
 

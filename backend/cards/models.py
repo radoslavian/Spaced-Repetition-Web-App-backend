@@ -301,27 +301,6 @@ class Card(models.Model):
     class Meta:
         unique_together = ("front", "back",)
 
-    @staticmethod
-    def _make_images_getter(side: str):
-        """Returns function for getting front or back images from
-        the properties.
-        """
-        if side not in ("front", "back",):
-            raise ValueError("The 'side' parameter must be either 'front' "
-                             "or 'back'.")
-
-        def getter(self):
-            card_images = CardImage.objects.filter(card=self, side=side) \
-                              .all().order_by('created')[
-                          :Card.images_number_limit_in_query]
-            images = [card_image.image for card_image in card_images]
-            return images
-
-        return getter
-
-    front_images = property(fget=_make_images_getter("front"))
-    back_images = property(fget=_make_images_getter("back"))
-
     def memorize(self, user, grade: int = 4) -> CardUserData:
         """
         Generate initial review data for a particular user and (this) card
@@ -467,6 +446,28 @@ class Card(models.Model):
     @staticmethod
     def get_image_ids_hex(images):
         return [image.id.hex for image in images]
+
+    @property
+    def front_images(self):
+        return self.get_images("front")
+
+    @property
+    def back_images(self):
+        return self.get_images("back")
+
+    def get_images(self, side: str):
+        """
+        Get images for a particular side of the card.
+        """
+        if side not in ("front", "back",):
+            raise ValueError("The 'side' parameter must be either 'front' "
+                             "or 'back'.")
+
+        card_images = CardImage.objects.filter(card=self, side=side) \
+                          .all().order_by('created')[
+                      :Card.images_number_limit_in_query]
+        images = [card_image.image for card_image in card_images]
+        return images
 
     @property
     def front_audio_id_hex(self):
