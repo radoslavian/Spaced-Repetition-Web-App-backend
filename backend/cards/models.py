@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import json
 import uuid
 from datetime import date
 from django.contrib.auth import get_user_model
@@ -280,10 +281,10 @@ class Card(models.Model):
                                  blank=True,
                                  related_name="cards")
     note = models.ForeignKey("card_types.CardNote",
-                                  on_delete=models.CASCADE,
-                                  null=True,
-                                  blank=True,
-                                  related_name="cards")
+                             on_delete=models.CASCADE,
+                             null=True,
+                             blank=True,
+                             related_name="cards")
     categories = models.ManyToManyField("cards.Category",
                                         related_name="cards")
     images = models.ManyToManyField(
@@ -406,6 +407,9 @@ class Card(models.Model):
                                               context_data)
         return card_rendering
 
+    def jsonify(self):
+        return json.dumps(dict(self))
+
     def __getitem__(self, key):
         return dict(zip(self.keys(), self.values()))[key]
 
@@ -417,17 +421,50 @@ class Card(models.Model):
 
     def values(self):
         front = {"text": self.front,
-                 "images": self.front_images,
-                 "audio": self.front_audio
-        }
+                 "images": self.get_front_image_ids(),
+                 "audio": self.get_front_audio_id()}
         back = {"text": self.back,
-                "images": self.back_images,
-                "audio": self.back_audio
-        }
-        categories = list(self.categories.all())
-        values = [self.id, self.created_on, self.last_modified, front,
-                  back, self.template, self.note, categories]
+                "images": self.get_back_image_ids(),
+                "audio": self.get_back_audio_id()}
+        values = [self.id.hex, self.created_on.isoformat(),
+                  self.last_modified.isoformat(), front,
+                  back, self.template_hex_id, self.get_note_id(),
+                  self.categories_ids]
         return values
+
+    def get_note_id(self):
+        return self.note and self.note.id.hex
+
+    @property
+    def template_hex_id(self):
+        return self.template and self.template.id.hex
+
+    @property
+    def categories_ids(self):
+        return [category.id.hex for category in self.categories.all()]
+
+    def get_back_image_ids(self):
+        return self.get_image_ids(self.back_images)
+
+    def get_front_image_ids(self):
+        return self.get_image_ids(self.front_images)
+
+    @staticmethod
+    def get_image_ids(images):
+        return [image.id.hex for image in images]
+
+    def get_front_audio_id(self):
+        return self.get_audio_id(self.front_audio)
+
+    def get_back_audio_id(self):
+        return self.get_audio_id(self.back_audio)
+
+    @staticmethod
+    def get_audio_id(audio):
+        """
+        Returns hexadecimal string for *audio.id (id itself being UUIDv4).
+        """
+        return audio and audio.id.hex
 
     def __str__(self):
         MAX_LEN = (25, 25,)  # for question and answer
@@ -469,6 +506,7 @@ class Category(AL_Node):
 def get_random_sha1():
     return hashlib.sha1(
         bytes(str(uuid.uuid4()), "utf-8")).hexdigest()
+
 
 class Image(models.Model):
     id = models.UUIDField(
