@@ -421,46 +421,53 @@ class Card(models.Model):
 
     def values(self):
         front = {"text": self.front,
-                 "images": self.get_front_image_ids(),
-                 "audio": self.get_front_audio_id()}
+                 "images": self.front_image_ids_hex,
+                 "audio": self.front_audio_id_hex}
         back = {"text": self.back,
-                "images": self.get_back_image_ids(),
-                "audio": self.get_back_audio_id()}
-        values = [self.id.hex, self.created_on.isoformat(),
-                  self.last_modified.isoformat(), front,
-                  back, self.template_hex_id, self.get_note_id(),
-                  self.categories_ids]
+                "images": self.back_image_ids_hex,
+                "audio": self.get_back_audio_id_hex}
+        created_on = self.created_on.isoformat()
+        last_modified = self.last_modified.isoformat()
+
+        values = [self.id.hex, created_on, last_modified, front,
+                  back, self.template_id_hex, self.note_id_hex,
+                  self.categories_ids_hex]
         return values
 
-    def get_note_id(self):
+    @property
+    def note_id_hex(self):
         return self.note and self.note.id.hex
 
     @property
-    def template_hex_id(self):
+    def template_id_hex(self):
         return self.template and self.template.id.hex
 
     @property
-    def categories_ids(self):
+    def categories_ids_hex(self):
         return [category.id.hex for category in self.categories.all()]
 
-    def get_back_image_ids(self):
-        return self.get_image_ids(self.back_images)
+    @property
+    def back_image_ids_hex(self):
+        return self.get_image_ids_hex(self.back_images)
 
-    def get_front_image_ids(self):
-        return self.get_image_ids(self.front_images)
+    @property
+    def front_image_ids_hex(self):
+        return self.get_image_ids_hex(self.front_images)
 
     @staticmethod
-    def get_image_ids(images):
+    def get_image_ids_hex(images):
         return [image.id.hex for image in images]
 
-    def get_front_audio_id(self):
-        return self.get_audio_id(self.front_audio)
+    @property
+    def front_audio_id_hex(self):
+        return self.get_audio_id_hex(self.front_audio)
 
-    def get_back_audio_id(self):
-        return self.get_audio_id(self.back_audio)
+    @property
+    def get_back_audio_id_hex(self):
+        return self.get_audio_id_hex(self.back_audio)
 
     @staticmethod
-    def get_audio_id(audio):
+    def get_audio_id_hex(audio):
         """
         Returns hexadecimal string for *audio.id (id itself being UUIDv4).
         """
