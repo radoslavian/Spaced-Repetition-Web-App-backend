@@ -34,3 +34,9 @@ class CardNote(models.Model):
         card_type_instance = self.card_type_instance
         if card_type_instance:
             card_type_instance.save_cards()
+
+    @classmethod
+    def from_card(cls, card, card_type):
+        card_note = CardNote(card_type=card_type)
+        card_note.card_type_instance.from_card(card)
+        return card_note

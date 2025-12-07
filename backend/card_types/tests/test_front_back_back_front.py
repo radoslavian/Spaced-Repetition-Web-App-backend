@@ -510,3 +510,48 @@ class CategoriesInDescription(TestCase):
                                card.categories.all()}
         self.assertEqual(received_no_categories, expected_no_categories)
         self.assertSetEqual(received_categories, expected_categories)
+
+
+class SingleSidedToTwoSided(TestCase):
+    """
+    Creating a two-sided card from a single-sided one.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.card = fake_data_objects.make_fake_card()
+        cls.front = cls.card.front
+        cls.back = cls.card.back
+        cls.card_original_id = cls.card.id.hex
+        cls.note = CardNote.from_card(cls.card, "front-back-back-front")
+        cls.card.refresh_from_db()
+
+    def test_note_created(self):
+        self.assertTrue(self.note.id)
+
+    def test_source_card_unchanged(self):
+        """
+        The source card shouldn't be overwritten.
+        """
+        self.assertEqual(self.card.id.hex, self.card_original_id)
+        self.assertEqual(self.card.front, self.front)
+        self.assertEqual(self.card.back, self.back)
+
+    def test_source_card_references_note(self):
+        self.assertEqual(self.card.note.id, self.note.id)
+
+    def test_number_attached_cards(self):
+        """
+        Test number of cards attached to the note.
+        """
+        expected_value = 2
+        value_received_from_note = self.note.cards.count()
+        value_received_from_db = Card.objects.count()
+
+        self.assertEqual(expected_value, value_received_from_note)
+        self.assertEqual(expected_value, value_received_from_db)
+
+    def test_back_front_card_exists(self):
+        back_front_card = self.note.cards.exclude(
+            id__exact=self.card_original_id).first()
+        self.assertNotEqual(back_front_card.id, self.card.id)
+        self.assertTrue(back_front_card.id)

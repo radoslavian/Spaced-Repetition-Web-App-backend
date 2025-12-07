@@ -62,11 +62,11 @@ class FrontBackBackFront(CardManager):
         self._save_images(card=card, card_side=card_side, side="back")
 
     def _save_metadata(self):
-        if not all([self.front_back_card, self.back_front_card]):
-            return
         metadata = {
-            "front-back-card-id": self.front_back_card.id.hex,
-            "back-front-card-id": self.back_front_card.id.hex
+            "front-back-card-id": self.front_back_card
+                                  and self.front_back_card.id.hex,
+            "back-front-card-id": self.back_front_card
+                                  and self.back_front_card.id.hex
         }
         self.card_note.metadata = json.dumps(metadata)
 
@@ -74,3 +74,12 @@ class FrontBackBackFront(CardManager):
         return [Category.objects.get(id__exact=category_id)
                 for category_id in
                 self.card_description.get("categories", [])]
+
+    def from_card(self, card):
+        required_fields = ["front", "back", "template", "categories"]
+        self.card_note.card_description = card.jsonify(fields=required_fields)
+        self.front_back_card = card
+        card.note = self.card_note
+        card.save()
+        self._save_metadata()
+        self.card_note.save()

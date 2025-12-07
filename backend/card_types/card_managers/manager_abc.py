@@ -13,6 +13,10 @@ class CardManager(ABC):
     def save_cards(self):
         pass
 
+    @abstractmethod
+    def from_card(self, card):
+        pass
+
     @property
     def note_metadata(self) -> Dict:
         if self.card_note.metadata:
