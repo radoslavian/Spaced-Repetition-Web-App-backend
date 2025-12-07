@@ -251,6 +251,7 @@ class CardToDict(SerializationWithOptionalFields):
 class CardToJson(SerializationWithOptionalFields):
     """
     Card to json serialization with optional fields filled with data.
+    .jsonify() receives no arguments.
     """
     @classmethod
     def setUpTestData(cls):
@@ -271,3 +272,61 @@ class CardToJson(SerializationWithOptionalFields):
 
     def test_categories(self):
         self._test_categories()
+
+
+class JsonifySpecificFields(TestCase):
+    """
+    Jsonifying fields specified in the 'fields' argument.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.card = fake_data_objects.make_fake_card()
+        number_of_categories = 2
+        cls.categories = fake_data_objects.make_fake_categories(
+            number_of_categories)
+        cls.template = fake_data_objects.make_fake_template()
+        cls.card.template = cls.template
+        cls.card.categories.set(cls.categories)
+        cls.card.save()
+
+    def test_front(self):
+        jsonified = json.loads(self.card.jsonify(fields=["front"]))
+        number_of_keys = len(jsonified.keys())
+        expected_no_keys = 1
+        self.assertEqual(number_of_keys, expected_no_keys)
+        self.assertEqual(jsonified["front"]["text"], self.card.front)
+
+    def test_plain_field(self):
+        """
+        Single-value field (template in this instance).
+        """
+        jsonified = json.loads(self.card.jsonify(fields=["template"]))
+        self.assertEqual(jsonified["template"], self.card.template_id_hex)
+
+    def test_list_values(self):
+        """
+        Should output list of values (categories in this case).
+        """
+        jsonified = json.loads(self.card.jsonify(fields=["categories"]))
+        self.assertListEqual(jsonified["categories"],
+                             self.card.categories_ids_hex)
+
+    def test_invalid_fields(self):
+        """
+        All requested fields are invalid.
+        """
+        invalid_fields = ["invalid_1", "invalid_2"]
+        expected_message = "Invalid card fields: ['invalid_1', 'invalid_2']"
+
+        with self.assertRaisesMessage(KeyError, expected_message):
+            self.card.jsonify(fields=invalid_fields)
+
+    def test_valid_invalid_field(self):
+        """
+        One out of two of the requested fields is invalid.
+        """
+        requested_fields = ["note", "invalid_field"]
+        expected_message = "Invalid card fields: ['invalid_field']"
+
+        with self.assertRaisesMessage(KeyError, expected_message):
+            self.card.jsonify(fields=requested_fields)

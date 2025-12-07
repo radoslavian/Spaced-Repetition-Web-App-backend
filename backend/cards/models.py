@@ -386,8 +386,30 @@ class Card(models.Model):
                                               context_data)
         return card_rendering
 
-    def jsonify(self):
-        return json.dumps(dict(self))
+    def jsonify(self, fields=[]):
+        """
+        Card-to-json serializer.
+        fields: list of field names to serialize. All fields are dumped
+        if empty.
+        """
+        all_fields = dict(self)
+        if not fields:
+            return json.dumps(all_fields)
+        return json.dumps(self.get_selected_fields(fields))
+
+    def get_selected_fields(self, fields):
+        self._validate_fields(fields)
+        return {field: self[field] for field in fields}
+
+    def _validate_fields(self, fields):
+        """
+        Field validation for the json serializer method - .jsonify().
+        """
+        valid_fields = self.keys()
+        invalid_fields = [field for field in fields
+                          if field not in valid_fields]
+        if invalid_fields:
+            raise KeyError(f"Invalid card fields: {invalid_fields}")
 
     def __getitem__(self, key):
         return dict(zip(self.keys(), self.values()))[key]
