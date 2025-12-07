@@ -2,7 +2,7 @@ import random
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
-from cards.models import Card, Image, Category, Sound
+from cards.models import Card, Image, Category, Sound, CardTemplate
 
 fake = Faker()
 User = get_user_model()
@@ -15,6 +15,9 @@ class FakeData:
             "front": fake.text(100),
             "back": fake.text(100)
         }
+
+    def make_fake_template(self):
+        return CardTemplate.objects.create(**self.get_fake_template_data())
 
     @staticmethod
     def get_fake_template_data():
@@ -30,6 +33,9 @@ class FakeData:
     @staticmethod
     def make_fake_card():
         return Card.objects.create(front=fake.text(20), back=fake.text(20))
+
+    def make_fake_categories(self, number=2):
+        return [self.make_fake_category() for _ in range(number)]
 
     @staticmethod
     def make_fake_category(category_name=None):
