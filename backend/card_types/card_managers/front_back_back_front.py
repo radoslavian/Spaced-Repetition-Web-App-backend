@@ -14,8 +14,8 @@ class FrontBackBackFront(CardManager):
             self.note_metadata.get("back-front-card-id"))
 
     def save_cards(self):
-        front = self.card_description.get("front", {})
-        back = self.card_description.get("back", {})
+        front = self.card_description.get("_front", {})
+        back = self.card_description.get("_back", {})
 
         front_back_card = self.front_back_card or Card()
         self.front_back_card = self._save_card(card=front_back_card,
@@ -32,11 +32,14 @@ class FrontBackBackFront(CardManager):
     def _save_card(self, card: Card, front: Dict, back: Dict):
         card.front = front.get("text")
         card.back = back.get("text")
+        if not card.id:
+            # a card must be present in the database
+            # before using any foreign keys
+            card.save()
         card.front_audio = self.get_sound_from(front)
         card.back_audio = self.get_sound_from(back)
         card.template = self.get_template()
         card.note = self.card_note
-
         card_categories = self.get_categories()
         card.categories.set(card_categories)
         self._save_front_images(card, front)
@@ -76,7 +79,7 @@ class FrontBackBackFront(CardManager):
                 self.card_description.get("categories", [])]
 
     def from_card(self, card):
-        required_fields = ["front", "back", "template", "categories"]
+        required_fields = ["_front", "_back", "template", "categories"]
         self.card_note.card_description = card.jsonify(fields=required_fields)
         self.front_back_card = card
         card.note = self.card_note

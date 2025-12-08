@@ -416,7 +416,9 @@ class Card(models.Model):
 
     @staticmethod
     def keys():
-        keys = ["id", "created_on", "last_modified", "front", "back",
+        # front and back had to be renamed to avoid clashes with attribute
+        # lookups in django templates
+        keys = ["id", "created_on", "last_modified", "_front", "_back",
                 "template", "note", "categories"]
         return keys
 

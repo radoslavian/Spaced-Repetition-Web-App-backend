@@ -15,10 +15,10 @@ class CreatingCardsFromNote(TestCase):
     @classmethod
     def setUpTestData(cls):
         note = {
-            "front": {
+            "_front": {
                 "text": "some front text"
             },
-            "back": {
+            "_back": {
                 "text": "some back text"
             }
         }
@@ -51,8 +51,8 @@ class CreatingCardsFromNote(TestCase):
         """
         front_back_card = Card.objects.get(
             id=self.note_metadata["front-back-card-id"])
-        front = json.loads(self.note.card_description)["front"]["text"]
-        back = json.loads(self.note.card_description)["back"]["text"]
+        front = json.loads(self.note.card_description)["_front"]["text"]
+        back = json.loads(self.note.card_description)["_back"]["text"]
 
         self.assertEqual(front_back_card.front, front)
         self.assertEqual(front_back_card.back, back)
@@ -63,8 +63,8 @@ class CreatingCardsFromNote(TestCase):
         """
         back_front_card = Card.objects.get(
             id=self.note_metadata["back-front-card-id"])
-        front = json.loads(self.note.card_description)["back"]["text"]
-        back = json.loads(self.note.card_description)["front"]["text"]
+        front = json.loads(self.note.card_description)["_back"]["text"]
+        back = json.loads(self.note.card_description)["_front"]["text"]
 
         self.assertEqual(back_front_card.front, front)
         self.assertEqual(back_front_card.back, back)
@@ -72,18 +72,18 @@ class CreatingCardsFromNote(TestCase):
 
 class UpdatingNote(TestCase):
     card_description = {
-        "front": {
+        "_front": {
             "text": "some front text"
         },
-        "back": {
+        "_back": {
             "text": "some back text"
         }
     }
     updated_description = {
-        "front": {
+        "_front": {
             "text": "altered front text"
         },
-        "back": {
+        "_back": {
             "text": "altered back text"
         }
     }
@@ -132,16 +132,16 @@ class UpdatingNote(TestCase):
 
     def test_front_back_text(self):
         card = Card.objects.get(id=self.front_back_card_id)
-        expected_front_text = self.updated_description["front"]["text"]
-        expected_back_text = self.updated_description["back"]["text"]
+        expected_front_text = self.updated_description["_front"]["text"]
+        expected_back_text = self.updated_description["_back"]["text"]
 
         self.assertEqual(card.front, expected_front_text)
         self.assertEqual(card.back, expected_back_text)
 
     def test_back_front_text(self):
         card = Card.objects.get(id=self.back_front_card_id)
-        expected_front_text = self.updated_description["back"]["text"]
-        expected_back_text = self.updated_description["front"]["text"]
+        expected_front_text = self.updated_description["_back"]["text"]
+        expected_back_text = self.updated_description["_front"]["text"]
 
         self.assertEqual(card.front, expected_front_text)
         self.assertEqual(card.back, expected_back_text)
@@ -166,10 +166,10 @@ class RecreatingCards(TestCase):
     Recreating deleted cards from the note.
     """
     card_description = {
-        "front": {
+        "_front": {
             "text": "some front text"
         },
-        "back": {
+        "_back": {
             "text": "some back text"
         }
     }
@@ -217,11 +217,11 @@ class CreatingCardsFromNoteWithFields(TestCase):
         cls._prepare_template()
         cls._prepare_audio_entries()
         cls.cards_description = {
-            "front": {
+            "_front": {
                 "text": "some front text",
                 "audio": cls.front_audio.id.hex
             },
-            "back": {
+            "_back": {
                 "text": "some back text",
                 "audio": cls.back_audio.id.hex
             },
@@ -309,11 +309,11 @@ class ImageTestData:
     @classmethod
     def add_note_description(cls):
         cls.card_description = {
-            "front": {
+            "_front": {
                 "text": "some front text",
                 "images": [cls.front_image.id.hex]
             },
-            "back": {
+            "_back": {
                 "text": "some back text",
                 "images": [cls.back_image.id.hex]
             },
@@ -392,12 +392,12 @@ class NoteWithImagesUpdate(TestCase, ImageTestData):
     def setUpTestData(cls):
         cls.prepare_images()
         cls.add_note_description()
-        front = {**cls.card_description["front"],
+        front = {**cls.card_description["_front"],
                  "images": [cls.front_image.id.hex,
                             cls.back_image.id.hex]}
         cls.updated_card_description = {
-            "front": front,
-            "back": {
+            "_front": front,
+            "_back": {
                 "text": "some back text"
             },
         }
@@ -470,10 +470,10 @@ class CategoriesInDescription(TestCase):
         cls.categories = [Category.objects.create(name=category_name)
                           for category_name in ("category 1", "category 2",)]
         cls.card_description = json.dumps({
-            "front": {
+            "_front": {
                 "text": "some front text"
             },
-            "back": {
+            "_back": {
                 "text": "some back text"
             },
             "categories": [category.id.hex for category in cls.categories]

@@ -29,24 +29,24 @@ class SerializationEmptyOptionalFields(TestCase):
                          self.card.last_modified.isoformat())
 
     def _test_front_text(self):
-        self.assertEqual(self.mapped_card["front"]["text"],
+        self.assertEqual(self.mapped_card["_front"]["text"],
                          self.card.front)
 
     def _test_front_images(self):
-        self.assertListEqual(self.mapped_card["front"]["images"], [])
+        self.assertListEqual(self.mapped_card["_front"]["images"], [])
 
     def _test_front_audio(self):
-        self.assertIsNone(self.mapped_card["front"]["audio"])
+        self.assertIsNone(self.mapped_card["_front"]["audio"])
 
     def _test_back_text(self):
-        self.assertEqual(self.mapped_card["back"]["text"],
+        self.assertEqual(self.mapped_card["_back"]["text"],
                          self.card.back)
 
     def _test_back_images(self):
-        self.assertListEqual(self.mapped_card["back"]["images"], [])
+        self.assertListEqual(self.mapped_card["_back"]["images"], [])
 
     def _test_back_audio(self):
-        self.assertIsNone(self.mapped_card["back"]["audio"])
+        self.assertIsNone(self.mapped_card["_back"]["audio"])
 
     def _test_template(self):
         self.assertIsNone(self.mapped_card["template"])
@@ -205,14 +205,14 @@ class SerializationWithOptionalFields(TestCase):
     def _test_images(self):
         front_images = [image.id.hex for image in self.front_images]
         back_images = [image.id.hex for image in self.back_images]
-        self.assertEqual(front_images, self.card["front"]["images"])
-        self.assertEqual(back_images, self.card["back"]["images"])
+        self.assertEqual(front_images, self.card["_front"]["images"])
+        self.assertEqual(back_images, self.card["_back"]["images"])
 
     def _test_audio(self):
         self.assertEqual(self.card.front_audio.id.hex,
-                         self.card["front"]["audio"])
+                         self.card["_front"]["audio"])
         self.assertEqual(self.card.back_audio.id.hex,
-                         self.card["back"]["audio"])
+                         self.card["_back"]["audio"])
 
     def _test_note(self):
         self.assertEqual(self.card.note.id.hex, self.card["note"])
@@ -290,11 +290,11 @@ class JsonifySpecificFields(TestCase):
         cls.card.save()
 
     def test_front(self):
-        jsonified = json.loads(self.card.jsonify(fields=["front"]))
+        jsonified = json.loads(self.card.jsonify(fields=["_front"]))
         number_of_keys = len(jsonified.keys())
         expected_no_keys = 1
         self.assertEqual(number_of_keys, expected_no_keys)
-        self.assertEqual(jsonified["front"]["text"], self.card.front)
+        self.assertEqual(jsonified["_front"]["text"], self.card.front)
 
     def test_plain_field(self):
         """
