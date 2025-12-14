@@ -4,6 +4,7 @@ from django.test import TestCase
 from card_types.card_managers.exceptions import InvalidCardType
 from cards.models import  Card
 from card_types.models import CardNote
+from cards.tests.fake_data import fake_data_objects
 
 
 class NewCardNote(TestCase):
@@ -134,9 +135,15 @@ class SavingCards(TestCase):
         """
         An attempt to invoke an undefined card type name should raise an error.
         """
+        self.note.delete()
         self.note.card_type = "invalid-card-type"
         with self._patch_managers():
             self.assertRaises(InvalidCardType, self.note.save)
+
+        notes_created = 0
+        cards_in_db = 0
+        self.assertEqual(notes_created, CardNote.objects.count())
+        self.assertEqual(cards_in_db, Card.objects.count())
 
     def _patch_managers(self):
         return patch("card_types.models.type_managers",
@@ -158,3 +165,26 @@ class SavingCards(TestCase):
         """
         note = CardNote.objects.create()
         self.assertIsNone(note.card_type_instance)
+
+
+class NoteFromCardFromNote(TestCase):
+    def setUp(self):
+        self.card = fake_data_objects.make_fake_card()
+
+    def tearDown(self):
+        Card.objects.all().delete()
+        CardNote.objects.all().delete()
+
+    def test_invalid_card_type(self):
+        """
+        No new cards and notes should be created if an exception occurs.
+        """
+        notes_created = 0
+        cards_in_db = 1
+        self.assertRaises(InvalidCardType, self._note_from_with_invalid_card_type)
+        self.assertEqual(notes_created, CardNote.objects.count())
+        self.assertEqual(cards_in_db, Card.objects.count())
+
+    def _note_from_with_invalid_card_type(self):
+        invalid_card_type = "invalid-card-type"
+        CardNote.from_card(self.card, invalid_card_type)

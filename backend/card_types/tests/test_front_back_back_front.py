@@ -3,6 +3,7 @@ from unittest import skip
 
 from django.test import TestCase
 
+from card_types.card_managers.exceptions import InvalidCardType
 from card_types.models import CardNote
 from cards.models import Card, CardTemplate, CardImage, Category
 from cards.tests.fake_data import fake_data_objects
@@ -515,6 +516,7 @@ class CategoriesInDescription(TestCase):
 class SingleSidedToTwoSided(TestCase):
     """
     Creating a two-sided card from a single-sided one.
+    Test case for the CardNote.from_card() method.
     """
     @classmethod
     def setUpTestData(cls):
@@ -523,10 +525,10 @@ class SingleSidedToTwoSided(TestCase):
         cls.back = cls.card.back
         cls.card_original_id = cls.card.id.hex
         cls.note = CardNote.from_card(cls.card, "front-back-back-front")
-        cls.card.refresh_from_db()
 
     def test_note_created(self):
         self.assertTrue(self.note.id)
+        self.assertEqual(1, CardNote.objects.count())
 
     def test_source_card_unchanged(self):
         """
