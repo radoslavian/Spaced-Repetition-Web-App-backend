@@ -32,10 +32,9 @@ class FrontBackBackFront(CardManager):
     def _save_card(self, card: Card, front: Dict, back: Dict):
         card.front = front.get("text")
         card.back = back.get("text")
-        if not card.id:
-            # a card must be present in the database
-            # before using any foreign keys
-            card.save()
+        # a card must be present in the database
+        # before using any foreign keys
+        card.save()
         card.front_audio = self.get_sound_from(front)
         card.back_audio = self.get_sound_from(back)
         card.template = self.get_template()
@@ -85,4 +84,3 @@ class FrontBackBackFront(CardManager):
         card.note = self.card_note
         card.save()
         self._save_metadata()
-        self.card_note.save()

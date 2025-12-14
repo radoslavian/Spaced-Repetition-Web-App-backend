@@ -1,5 +1,5 @@
 import uuid
-from django.db import models
+from django.db import models, transaction
 from .card_managers import type_managers
 from .card_managers.exceptions import InvalidCardType
 
@@ -14,8 +14,9 @@ class CardNote(models.Model):
     card_type = models.CharField(max_length=100)
 
     def save(self, *args, **kwargs):
+        super(CardNote, self).save(*args, **kwargs)
         self.save_cards()
-        super().save(*args, **kwargs)
+        super(CardNote, self).save()
 
     @property
     def card_type_instance(self):
@@ -37,6 +38,9 @@ class CardNote(models.Model):
 
     @classmethod
     def from_card(cls, card, card_type):
-        card_note = CardNote(card_type=card_type)
-        card_note.card_type_instance.from_card(card)
+        card_note = cls(card_type=card_type)
+        with transaction.atomic():
+            super(cls, card_note).save()
+            card_note.card_type_instance.from_card(card)
+            card_note.save()
         return card_note
