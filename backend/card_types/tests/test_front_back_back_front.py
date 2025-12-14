@@ -557,3 +557,84 @@ class SingleSidedToTwoSided(TestCase):
             id__exact=self.card_original_id).first()
         self.assertNotEqual(back_front_card.id, self.card.id)
         self.assertTrue(back_front_card.id)
+
+
+class NoteFolding(TestCase):
+    def setUp(self):
+        self.front_back_card = fake_data_objects.make_fake_card()
+        self.back = self.front_back_card.front
+        self.front = self.front_back_card.back
+        self.note = CardNote.from_card(self.front_back_card,
+                                      "front-back-back-front")
+
+    def tearDown(self):
+        CardNote.objects.all().delete()
+        Card.objects.all().delete()
+
+class FoldingIntoCardSuccess(NoteFolding):
+    """
+    Folding a note referencing card into a single-sided one.
+    Should also delete remaining cards.
+    """
+    def setUp(self):
+        super().setUp()
+        self.back_front_card = Card.objects.exclude(
+            id__exact=self.front_back_card.id).first()
+        self.note.fold_into(self.back_front_card)
+        self.back_front_card.refresh_from_db()
+
+    def test_note_unreferenced(self):
+        self.assertIsNone(self.back_front_card.note)
+
+    def test_cards_count(self):
+        expected_cards_count = 1
+        self.assertEqual(expected_cards_count, Card.objects.count())
+
+    def test_card_contents(self):
+        self.assertEqual(self.front, self.back_front_card.front)
+        self.assertEqual(self.back, self.back_front_card.back)
+
+
+class FoldingUnreferencedCard(NoteFolding):
+    def setUp(self):
+        super().setUp()
+        self.another_note = CardNote.objects.create()
+        self.unreferenced_card = fake_data_objects.make_fake_card()
+        self.unreferenced_card.note = self.another_note
+        self.unreferenced_card.save()
+        self.unreferenced_card_no_note = fake_data_objects.make_fake_card()
+
+    def test_exception_no_note(self):
+        """
+        Should raise an exception in an attempt to fold note into an
+        unreferenced card with no note attached.
+        """
+        self.assertRaises(ValueError, self._fold_into_unreferenced_no_note)
+
+    def test_exception(self):
+        """
+        Should raise an exception in an attempt to fold note into an
+        unreferenced card.
+        """
+        self.assertRaises(ValueError, self._fold_into_unreferenced)
+
+    def test_cards_number(self):
+        self._fold_into_unreferenced_mute_e()
+        number_of_cards = 2
+        self.assertEqual(number_of_cards, self.note.cards.count())
+
+    def test_note_exists(self):
+        note = CardNote.objects.first()
+        self.assertIsNotNone(note.id)
+
+    def _fold_into_unreferenced(self):
+        self.note.fold_into(self.unreferenced_card)
+
+    def _fold_into_unreferenced_no_note(self):
+        self.note.fold_into(self.unreferenced_card_no_note)
+
+    def _fold_into_unreferenced_mute_e(self):
+        try:
+            self._fold_into_unreferenced()
+        except ValueError:
+            pass

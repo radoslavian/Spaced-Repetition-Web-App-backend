@@ -45,3 +45,19 @@ class CardNote(models.Model):
             card_note.card_type_instance.from_card(card)
         card_note.save()
         return card_note
+
+    def fold_into(self, card):
+        """
+        Keep a single card created from the note and delete remaining.
+        """
+        self._validate_referenced_card_note_id(card)
+        card.note = None
+        card.save()
+        self.delete()
+
+    def _validate_referenced_card_note_id(self, card):
+        try:
+            if not card.note.id == self.id:
+                raise ValueError
+        except AttributeError:
+            raise ValueError
