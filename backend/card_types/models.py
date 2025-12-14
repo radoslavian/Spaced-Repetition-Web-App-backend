@@ -43,5 +43,5 @@ class CardNote(models.Model):
         with transaction.atomic():
             super(cls, card_note).save()
             card_note.card_type_instance.from_card(card)
-            card_note.save()
+        card_note.save()
         return card_note
