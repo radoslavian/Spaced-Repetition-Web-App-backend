@@ -1,4 +1,3 @@
-import json
 from abc import ABC, abstractmethod
 from typing import Dict
 
@@ -20,14 +19,9 @@ class CardManager(ABC):
     def _get_card_by_id(self, card_id):
         return self.card_note.cards.filter(id=card_id).first()
 
-    @property
-    def card_description(self):
-        return (self.card_note.card_description and
-                json.loads(self.card_note.card_description))
-
     def get_template(self):
         return CardTemplate.objects.filter(
-            id__exact=self.card_description.get("template")).first()
+            id__exact=self.card_note.card_description.get("template")).first()
 
     @staticmethod
     def get_sound_from(description_fragment: Dict):

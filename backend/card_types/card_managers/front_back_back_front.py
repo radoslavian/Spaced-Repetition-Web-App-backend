@@ -13,8 +13,8 @@ class FrontBackBackFront(CardManager):
             self.card_note.metadata.get("back-front-card-id"))
 
     def save_cards(self):
-        front = self.card_description.get("_front", {})
-        back = self.card_description.get("_back", {})
+        front = self.card_note.card_description.get("_front", {})
+        back = self.card_note.card_description.get("_back", {})
 
         front_back_card = self.front_back_card or Card()
         self.front_back_card = self._save_card(card=front_back_card,
@@ -73,11 +73,12 @@ class FrontBackBackFront(CardManager):
     def get_categories(self) -> List:
         return [Category.objects.get(id__exact=category_id)
                 for category_id in
-                self.card_description.get("categories", [])]
+                self.card_note.card_description.get("categories", [])]
 
     def from_card(self, card):
         required_fields = ["_front", "_back", "template", "categories"]
-        self.card_note.card_description = card.jsonify(fields=required_fields)
+        self.card_note.card_description = {field: card[field]
+                                           for field in required_fields}
         self.front_back_card = card
         card.note = self.card_note
         card.save()

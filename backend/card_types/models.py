@@ -9,7 +9,7 @@ class CardNote(models.Model):
         primary_key=True,
         default=uuid.uuid4,
         editable=False)
-    card_description = models.TextField()
+    card_description = models.JSONField(null=True, blank=True, default=dict)
     metadata = models.JSONField(null=True, blank=True, default=dict)
     card_type = models.CharField(max_length=100)
 

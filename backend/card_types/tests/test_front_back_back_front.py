@@ -1,9 +1,7 @@
-import json
 from unittest import skip
 
 from django.test import TestCase
 
-from card_types.card_managers.exceptions import InvalidCardType
 from card_types.models import CardNote
 from cards.models import Card, CardTemplate, CardImage, Category
 from cards.tests.fake_data import fake_data_objects
@@ -15,7 +13,7 @@ class CreatingCardsFromNote(TestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        note = {
+        card_description = {
             "_front": {
                 "text": "some front text"
             },
@@ -23,7 +21,6 @@ class CreatingCardsFromNote(TestCase):
                 "text": "some back text"
             }
         }
-        card_description = json.dumps(note)
         cls.note = CardNote.objects.create(card_description=card_description,
                                            card_type="front-back-back-front")
 
@@ -51,8 +48,8 @@ class CreatingCardsFromNote(TestCase):
         """
         front_back_card = Card.objects.get(
             id=self.note.metadata["front-back-card-id"])
-        front = json.loads(self.note.card_description)["_front"]["text"]
-        back = json.loads(self.note.card_description)["_back"]["text"]
+        front = self.note.card_description["_front"]["text"]
+        back = self.note.card_description["_back"]["text"]
 
         self.assertEqual(front_back_card.front, front)
         self.assertEqual(front_back_card.back, back)
@@ -63,8 +60,8 @@ class CreatingCardsFromNote(TestCase):
         """
         back_front_card = Card.objects.get(
             id=self.note.metadata["back-front-card-id"])
-        front = json.loads(self.note.card_description)["_back"]["text"]
-        back = json.loads(self.note.card_description)["_front"]["text"]
+        front = self.note.card_description["_back"]["text"]
+        back = self.note.card_description["_front"]["text"]
 
         self.assertEqual(back_front_card.front, front)
         self.assertEqual(back_front_card.back, back)
@@ -110,13 +107,13 @@ class UpdatingNote(TestCase):
 
     @classmethod
     def _create_note(cls):
-        card_description = json.dumps(cls.card_description)
-        cls.note = CardNote.objects.create(card_description=card_description,
-                                           card_type="front-back-back-front")
+        cls.note = CardNote.objects.create(
+            card_description=cls.card_description,
+            card_type="front-back-back-front")
 
     @classmethod
     def _update_note(cls):
-        cls.note.card_description = json.dumps(cls.updated_description)
+        cls.note.card_description = cls.updated_description
         cls.note.save()
 
     def test_number_of_cards(self):
@@ -174,7 +171,7 @@ class RecreatingCards(TestCase):
 
     def setUp(self):
         self.note = CardNote.objects.create(
-            card_description=json.dumps(self.card_description),
+            card_description=self.card_description,
             card_type="front-back-back-front")
         self.metadata = self.note.metadata
 
@@ -248,7 +245,7 @@ class CreatingCardsFromNoteWithFields(TestCase):
 
     @classmethod
     def _create_note(cls):
-        card_description = json.dumps(cls.cards_description)
+        card_description = cls.cards_description
         cls.note = CardNote.objects.create(
             card_description=card_description,
             card_type="front-back-back-front")
@@ -316,9 +313,8 @@ class ImageTestData:
         }
 
     def create_note(self):
-        note_description = json.dumps(self.card_description)
         self.note = CardNote.objects.create(
-            card_description=note_description,
+            card_description=self.card_description,
             card_type="front-back-back-front")
 
     def load_cards(self):
@@ -403,7 +399,7 @@ class NoteWithImagesUpdate(TestCase, ImageTestData):
 
     def create_note(self):
         super().create_note()
-        self.note.card_description = json.dumps(self.updated_card_description)
+        self.note.card_description = self.updated_card_description
         self.note.save()
 
     def tearDown(self):
@@ -464,7 +460,7 @@ class CategoriesInDescription(TestCase):
     def setUpTestData(cls):
         cls.categories = [Category.objects.create(name=category_name)
                           for category_name in ("category 1", "category 2",)]
-        cls.card_description = json.dumps({
+        cls.card_description = {
             "_front": {
                 "text": "some front text"
             },
@@ -472,7 +468,7 @@ class CategoriesInDescription(TestCase):
                 "text": "some back text"
             },
             "categories": [category.id.hex for category in cls.categories]
-        })
+        }
         cls.note = CardNote.objects.create(
             card_description=cls.card_description,
             card_type="front-back-back-front")
