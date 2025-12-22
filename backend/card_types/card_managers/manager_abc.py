@@ -17,12 +17,6 @@ class CardManager(ABC):
     def from_card(self, card):
         pass
 
-    @property
-    def note_metadata(self) -> Dict:
-        if self.card_note.metadata:
-            return json.loads(self.card_note.metadata)
-        return {}
-
     def _get_card_by_id(self, card_id):
         return self.card_note.cards.filter(id=card_id).first()
 

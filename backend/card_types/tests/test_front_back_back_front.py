@@ -26,7 +26,6 @@ class CreatingCardsFromNote(TestCase):
         card_description = json.dumps(note)
         cls.note = CardNote.objects.create(card_description=card_description,
                                            card_type="front-back-back-front")
-        cls.note_metadata = json.loads(cls.note.metadata)
 
     def test_backref(self):
         """
@@ -51,7 +50,7 @@ class CreatingCardsFromNote(TestCase):
         Metadata should store front-back card id.
         """
         front_back_card = Card.objects.get(
-            id=self.note_metadata["front-back-card-id"])
+            id=self.note.metadata["front-back-card-id"])
         front = json.loads(self.note.card_description)["_front"]["text"]
         back = json.loads(self.note.card_description)["_back"]["text"]
 
@@ -63,7 +62,7 @@ class CreatingCardsFromNote(TestCase):
         Metadata should store back-front card id.
         """
         back_front_card = Card.objects.get(
-            id=self.note_metadata["back-front-card-id"])
+            id=self.note.metadata["back-front-card-id"])
         front = json.loads(self.note.card_description)["_back"]["text"]
         back = json.loads(self.note.card_description)["_front"]["text"]
 
@@ -99,17 +98,15 @@ class UpdatingNote(TestCase):
 
     @classmethod
     def _save_updated_card_ids(cls):
-        cls.front_back_card_id = json.loads(
-            cls.note.metadata)["front-back-card-id"]
-        cls.back_front_card_id = json.loads(
-            cls.note.metadata)["back-front-card-id"]
+        cls.front_back_card_id = cls.note.metadata["front-back-card-id"]
+        cls.back_front_card_id = cls.note.metadata["back-front-card-id"]
 
     @classmethod
     def _save_original_card_ids(cls):
-        cls.original_back_front_card_id = json.loads(
-            cls.note.metadata)["back-front-card-id"]
-        cls.original_front_back_card_id = json.loads(
-            cls.note.metadata)["front-back-card-id"]
+        cls.original_back_front_card_id = cls.note.metadata[
+            "back-front-card-id"]
+        cls.original_front_back_card_id = cls.note.metadata[
+            "front-back-card-id"]
 
     @classmethod
     def _create_note(cls):
@@ -179,7 +176,7 @@ class RecreatingCards(TestCase):
         self.note = CardNote.objects.create(
             card_description=json.dumps(self.card_description),
             card_type="front-back-back-front")
-        self.metadata = json.loads(self.note.metadata)
+        self.metadata = self.note.metadata
 
     def tearDown(self):
         self.note.delete()
@@ -240,11 +237,9 @@ class CreatingCardsFromNoteWithFields(TestCase):
 
     @classmethod
     def _get_cards(cls):
-        front_back_card_id = json.loads(
-            cls.note.metadata)["front-back-card-id"]
+        front_back_card_id = cls.note.metadata["front-back-card-id"]
         cls.front_back_card = Card.objects.get(id__exact=front_back_card_id)
-        back_front_card_id = json.loads(
-            cls.note.metadata)["back-front-card-id"]
+        back_front_card_id = cls.note.metadata["back-front-card-id"]
         cls.back_front_card = Card.objects.get(id__exact=back_front_card_id)
 
     @classmethod
@@ -327,11 +322,10 @@ class ImageTestData:
             card_type="front-back-back-front")
 
     def load_cards(self):
-        note_metadata = json.loads(self.note.metadata)
         self.front_back_card = self.note.cards.get(
-            id__exact=note_metadata["front-back-card-id"])
+            id__exact=self.note.metadata["front-back-card-id"])
         self.back_front_card = self.note.cards.get(
-            id__exact=note_metadata["back-front-card-id"])
+            id__exact=self.note.metadata["back-front-card-id"])
 
 
 class ImageEntry(TestCase, ImageTestData):
@@ -487,8 +481,7 @@ class CategoriesInDescription(TestCase):
         """
         Front-back card is created with categories.
         """
-        front_back_card_id = json.loads(
-            self.note.metadata)["front-back-card-id"]
+        front_back_card_id = self.note.metadata["front-back-card-id"]
         front_back_card = Card.objects.get(id__exact=front_back_card_id)
 
         self._assert_categories_in(front_back_card)
@@ -497,8 +490,7 @@ class CategoriesInDescription(TestCase):
         """
         Back-front card is created with categories.
         """
-        back_front_card_id = json.loads(
-            self.note.metadata)["back-front-card-id"]
+        back_front_card_id = self.note.metadata["back-front-card-id"]
         back_front_card = Card.objects.get(id__exact=back_front_card_id)
 
         self._assert_categories_in(back_front_card)

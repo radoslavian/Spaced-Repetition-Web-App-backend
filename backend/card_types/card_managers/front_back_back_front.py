@@ -1,4 +1,3 @@
-import json
 from typing import Dict, List
 
 from cards.models import Card, CardImage, Image, Category
@@ -9,9 +8,9 @@ class FrontBackBackFront(CardManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.front_back_card = self._get_card_by_id(
-            self.note_metadata.get("front-back-card-id"))
+            self.card_note.metadata.get("front-back-card-id"))
         self.back_front_card = self._get_card_by_id(
-            self.note_metadata.get("back-front-card-id"))
+            self.card_note.metadata.get("back-front-card-id"))
 
     def save_cards(self):
         front = self.card_description.get("_front", {})
@@ -64,13 +63,12 @@ class FrontBackBackFront(CardManager):
         self._save_images(card=card, card_side=card_side, side="back")
 
     def _save_metadata(self):
-        metadata = {
+        self.card_note.metadata = {
             "front-back-card-id": self.front_back_card
                                   and self.front_back_card.id.hex,
             "back-front-card-id": self.back_front_card
                                   and self.back_front_card.id.hex
         }
-        self.card_note.metadata = json.dumps(metadata)
 
     def get_categories(self) -> List:
         return [Category.objects.get(id__exact=category_id)
