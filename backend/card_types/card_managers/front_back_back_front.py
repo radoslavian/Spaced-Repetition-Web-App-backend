@@ -29,11 +29,23 @@ class FrontBackBackFront(CardManager):
         self._save_metadata()
 
     def _save_card(self, card: Card, front: Dict, back: Dict):
+        # a card must be saved to be present in the database
+        # before using any foreign keys
+        for update in (self._update_text_fields,
+                       self._update_referencing_fields):
+            update(card, back, front)
+            card.save()
+        return card
+
+    @staticmethod
+    def _update_text_fields(card, back, front):
         card.front = front.get("text")
         card.back = back.get("text")
-        # a card must be present in the database
-        # before using any foreign keys
-        card.save()
+
+    def _update_referencing_fields(self, card, back, front):
+        """
+        Saves foreign keys to the card.
+        """
         card.front_audio = self.get_sound_from(front)
         card.back_audio = self.get_sound_from(back)
         card.template = self.get_template()
@@ -42,8 +54,6 @@ class FrontBackBackFront(CardManager):
         card.categories.set(card_categories)
         self._save_front_images(card, front)
         self._save_back_images(card, back)
-        card.save()
-        return card
 
     @staticmethod
     def _save_images(card, card_side, side):
