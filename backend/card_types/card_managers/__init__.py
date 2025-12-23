@@ -1,9 +1,12 @@
 from .front_back_back_front import FrontBackBackFront, DoubleSidedFormatted
+from .vocabulary import FormattedVocabulary
 
-__all__ = ["type_managers"]
 
+__all__ = ["type_managers", FrontBackBackFront, DoubleSidedFormatted,
+           FormattedVocabulary]
 
 type_managers = {
     "front-back-back-front": FrontBackBackFront,
-    "double-sided-formatted": DoubleSidedFormatted
+    "double-sided-formatted": DoubleSidedFormatted,
+    "formatted-vocabulary": FormattedVocabulary
 }
