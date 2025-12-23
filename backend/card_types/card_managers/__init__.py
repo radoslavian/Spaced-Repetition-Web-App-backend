@@ -1,4 +1,5 @@
-from .front_back_back_front import FrontBackBackFront, DoubleSidedFormatted
+from .front_back_back_front import FrontBackBackFront
+from .double_sided_formatted import DoubleSidedFormatted
 from .vocabulary import FormattedVocabulary
 
 
