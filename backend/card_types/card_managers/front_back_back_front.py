@@ -1,6 +1,8 @@
 from typing import Dict, List
 
-from cards.models import Card, CardImage, Image, Category
+from django.template import Context, Template
+
+from cards.models import Card, CardImage, Image, Category, CardTemplate
 from .manager_abc import CardManager
 
 
@@ -93,3 +95,38 @@ class FrontBackBackFront(CardManager):
         card.note = self.card_note
         card.save()
         self._save_metadata()
+
+
+class DoubleSidedFormatted(FrontBackBackFront):
+    default_template_string = "<h3>{{ side.text|safe }}</h3>"
+
+    def _update_text_fields(self, card, back, front):
+        template_string = self._get_formatting_template_string()
+        card.front = self._render_side(front, template_string)
+        card.back = self._render_side(back, template_string)
+
+    def _get_formatting_template_string(self):
+        formatting_template_string_db = self._get_db_formatting_template()
+        formatting_template_string = self.card_note.card_description.get(
+            "formatting_template_string")
+        template_string = (formatting_template_string_db
+                           or formatting_template_string
+                           or self.default_template_string)
+        return template_string
+
+    def _get_db_formatting_template(self):
+        db_template_title = self.card_note.card_description.get(
+            "formatting_template_db")
+        template_body = CardTemplate.objects.get(
+            title__exact=db_template_title).body if db_template_title else None
+        return template_body
+
+    @staticmethod
+    def _render_side(side, template_string):
+        context_data = {
+            "request": {},
+            "side": side
+        }
+        context = Context(context_data)
+        template = Template(template_string=template_string)
+        return template.render(context)
