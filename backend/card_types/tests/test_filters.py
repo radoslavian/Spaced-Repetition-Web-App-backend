@@ -10,7 +10,7 @@ class AsciiPhoneticsFilter(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.template_string = """
-        {% load phonetics_ascii %}
+        {% load phonetics_converter %}
         {{ "a2(r)"|convert_ascii_phonetics|safe }}
         """
         cls.render_template()
