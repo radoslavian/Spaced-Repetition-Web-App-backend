@@ -87,8 +87,8 @@ class FrontBackBackFront(CardManager):
 
     def from_card(self, card):
         required_fields = ["_front", "_back", "template", "categories"]
-        self.card_note.card_description = {field: card[field]
-                                           for field in required_fields}
+        self.card_note.card_description = card.get_selected_fields(
+            required_fields)
         self.front_back_card = card
         card.note = self.card_note
         card.save()
