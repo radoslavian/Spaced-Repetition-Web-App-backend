@@ -46,14 +46,17 @@ class FrontBackBackFront(CardManager):
         """
         Saves foreign keys to the card.
         """
-        card.front_audio = self.get_sound_from(front)
-        card.back_audio = self.get_sound_from(back)
+        self._update_audio_fields(card, back, front)
         card.template = self.get_template()
         card.note = self.card_note
         card_categories = self.get_categories()
         card.categories.set(card_categories)
         self._save_front_images(card, front)
         self._save_back_images(card, back)
+
+    def _update_audio_fields(self, card, back, front):
+        card.front_audio = self.get_sound_from(front)
+        card.back_audio = self.get_sound_from(back)
 
     @staticmethod
     def _save_images(card, card_side, side):

@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from card_types.models import CardNote
 from cards.models import CardTemplate
+from cards.tests.fake_data import fake_data_objects
 
 
 class TestData(TestCase):
@@ -98,6 +99,9 @@ class ExtraContent(TestData):
     @classmethod
     def setUpTestData(cls):
         cls._setUpTestData()
+        cls.extra_audio, _ = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[0])
+
         cls.card_description = {**cls.card_description,
             'extra_content': {
                 'phonetics': {
@@ -107,6 +111,7 @@ class ExtraContent(TestData):
                     'format': 'ASCII',
                     'value': 'I'  # actual phonetic string
                 },
+                'audio': cls.extra_audio.id.hex,
                 'example_sentences': [
                     'example sentence 1',
                     'example sentence 2'
@@ -156,3 +161,9 @@ class ExtraContent(TestData):
     def test_example_sentences(self):
         self.assertIn("<p>example sentence 1</p>", self.front_back_card.back)
         self.assertIn("<p>example sentence 2</p>", self.front_back_card.back)
+
+    def test_extra_audio(self):
+        self.assertEqual(self.extra_audio.id.hex,
+                         self.front_back_card.back_audio.id.hex)
+        self.assertEqual(self.extra_audio.id.hex,
+                         self.back_front_card.back_audio.id.hex)
