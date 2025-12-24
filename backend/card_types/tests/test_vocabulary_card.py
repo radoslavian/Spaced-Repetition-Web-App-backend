@@ -15,8 +15,8 @@ class TestData(TestCase):
                 'text': ''
             },
             'extra_content': {
-                'phonetics_key': '',
                 'phonetics': {
+                    'phonetics_key': '',
                     'format': '',
                     # valid values are 'IPA' or 'ASCII' (Techland)
                     'value': ''  # actual phonetic string
@@ -51,7 +51,6 @@ class BasicFieldsRendering(TestData):
         cls._setUpTestData()
         cls.extra_content_text = "extra content goes here"
         cls.template_string = ("""
-                {% load %}
                 {{ side.text }}
                 {% if extra_content %}
                  """ + cls.extra_content_text + """
