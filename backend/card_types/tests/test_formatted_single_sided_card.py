@@ -95,29 +95,6 @@ class SpecificFields(TestCase):
         card_front = self.note.cards.first().front
         self.assertIn(self.question_definition, card_front)
 
-    @skip("Requires non-nullable Card.front field; will be updated in "
-          "a different branch.")
-    def test_empty_front(self):
-        """
-        Should fail if no definition is given.
-        """
-        card_description = {
-            **self.card_description,
-            "_front": {}
-        }
-        self.note.card_description = card_description
-        self.assertRaises(IntegrityError, self.note.save)
-
-    @skip("Requires non-nullable Card.back field; will be updated in "
-          "a different branch.")
-    def test_empty_back(self):
-        card_description = {
-            **self.card_description,
-            "_back": {}
-        }
-        self.note.card_description = card_description
-        self.assertRaises(IntegrityError, self.note.save)
-
     def test_question_example_sentences(self):
         """
         Should render one or more example sentences under the definition.
