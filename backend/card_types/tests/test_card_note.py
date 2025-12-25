@@ -167,7 +167,7 @@ class SavingCards(TestCase):
         self.assertIsNone(note.card_type_instance)
 
 
-class NoteFromCardFromNote(TestCase):
+class NoteFromCard(TestCase):
     def setUp(self):
         self.card = fake_data_objects.make_fake_card()
 
