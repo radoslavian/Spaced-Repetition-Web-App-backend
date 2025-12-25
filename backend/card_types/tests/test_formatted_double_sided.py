@@ -100,3 +100,41 @@ class DatabaseTemplate(RenderingDoubleSided):
         expected = ("<p id='db-template-formatting-string'>"
                     f"{self.card_description['_back']['text']}</p>")
         self.assertEqual(expected, self.front_back_card.back)
+
+
+class CardTemplateByName(RenderingDoubleSided):
+    """
+    Fetching a card template by its title rather than uuid.
+    Getting a template by name looks cleaner and is more human-readable,
+    though it may fail unexpectedly if the name is changed.
+    Card template - is referenced in card.template and is responsible for
+    rendering a card to a user (not to be confused with card-side formatting
+    template, used in card notes).
+    """
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.expected_text = "expected text"
+        cls._create_objects()
+
+    @classmethod
+    def _create_objects(cls):
+        template_title = "named template"
+        card_type = "double-sided-formatted"
+        cls.template = CardTemplate.objects.create(title=template_title,
+                                                   body=cls.expected_text)
+        cls.card_description = {**cls.card_description,
+                                "formatting_template_db": None,
+                                "template_title": template_title}
+        cls.note = CardNote.objects.create(
+            card_description=cls.card_description,
+            card_type=card_type)
+
+    def test_card_template_by_name(self):
+        front_back_card = self.note.cards.get(
+            id=self.note.metadata["front-back-card-id"])
+        back_front_card = self.note.cards.get(
+            id=self.note.metadata["back-front-card-id"])
+
+        self.assertIn(self.expected_text, front_back_card.render({}))
+        self.assertIn(self.expected_text, back_front_card.render({}))

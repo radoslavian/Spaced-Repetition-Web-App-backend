@@ -20,8 +20,17 @@ class CardManager(ABC):
         return self.card_note.cards.filter(id=card_id).first()
 
     def get_template(self):
-        return CardTemplate.objects.filter(
-            id__exact=self.card_note.card_description.get("template")).first()
+        template_id = self.card_note.card_description.get("template")
+        template_title = self.card_note.card_description.get("template_title")
+        get_db_template = CardTemplate.objects.get
+
+        if template_title:
+            return get_db_template(title__exact=template_title)
+        elif template_id:
+            return get_db_template(id__exact=template_id)
+        else:
+            return None
+
 
     @staticmethod
     def get_sound_from(description_fragment: Dict):
