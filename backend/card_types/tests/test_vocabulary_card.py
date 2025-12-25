@@ -15,15 +15,6 @@ class TestData(TestCase):
             '_back': {
                 'text': ''
             },
-            'extra_content': {
-                'phonetics': {
-                    'phonetics_key': '',
-                    'format': '',
-                    # valid values are 'IPA' or 'ASCII' (Techland)
-                    'value': ''  # actual phonetic string
-                },
-                'example_sentences': []
-            },
             # template used to render each side
             "formatting_template_db": 'vocabulary_with_extra_content',
             'template': None,  # should use fallback
@@ -50,6 +41,12 @@ class BasicFieldsRendering(TestData):
     @classmethod
     def setUpTestData(cls):
         cls._setUpTestData()
+        cls.card_description = {**cls.card_description,
+            'extra_content': {
+                'phonetics': {},
+                'example_sentences': []
+            },
+        }
         cls.extra_content_text = "extra content goes here"
         cls.template_string = ("""
                 {{ side.text }}
