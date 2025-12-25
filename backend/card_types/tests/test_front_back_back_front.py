@@ -501,24 +501,25 @@ class CategoriesInDescription(TestCase):
         self.assertSetEqual(received_categories, expected_categories)
 
 
-class SingleSidedToTwoSided(TestCase):
-    """
-    Creating a two-sided card from a single-sided one.
-    Test case for the CardNote.from_card() method.
-    """
+class NoteFromCard(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.card = fake_data_objects.make_fake_card()
         cls.front = cls.card.front
         cls.back = cls.card.back
         cls.card_original_id = cls.card.id.hex
-        cls.note = CardNote.from_card(cls.card, "front-back-back-front")
+        cls.note = None
+        cls._create_note()
 
-    def test_note_created(self):
+    @classmethod
+    def _create_note(cls):
+        pass
+
+    def _test_note_created(self):
         self.assertTrue(self.note.id)
         self.assertEqual(1, CardNote.objects.count())
 
-    def test_source_card_unchanged(self):
+    def _test_source_card_unchanged(self):
         """
         The source card shouldn't be overwritten.
         """
@@ -526,8 +527,30 @@ class SingleSidedToTwoSided(TestCase):
         self.assertEqual(self.card.front, self.front)
         self.assertEqual(self.card.back, self.back)
 
-    def test_source_card_references_note(self):
+    def _test_source_card_references_note(self):
         self.assertEqual(self.card.note.id, self.note.id)
+
+
+class SingleSidedToTwoSided(NoteFromCard):
+    """
+    Creating a two-sided card from a single-sided one.
+    Test case for the CardNote.from_card() method.
+    """
+    @classmethod
+    def _create_note(cls):
+        cls.note = CardNote.from_card(cls.card, "front-back-back-front")
+
+    def test_note_created(self):
+        self._test_note_created()
+
+    def test_source_card_unchanged(self):
+        """
+        The source card shouldn't be overwritten.
+        """
+        self._test_source_card_unchanged()
+
+    def test_source_card_references_note(self):
+        self._test_source_card_references_note()
 
     def test_number_attached_cards(self):
         """
