@@ -5,9 +5,6 @@ from cards.models import Card
 
 
 class SingleSidedFormatted(CardManager):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def save_cards(self):
         front = self.card_note.card_description.get("_front", {})
         back = self.card_note.card_description.get("_back", {})
