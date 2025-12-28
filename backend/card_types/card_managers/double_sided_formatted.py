@@ -1,7 +1,6 @@
 from django.template import Context, Template
 
 from card_types.card_managers import FrontBackBackFront
-from cards.models import CardTemplate
 
 
 class DoubleSidedFormatted(FrontBackBackFront):
