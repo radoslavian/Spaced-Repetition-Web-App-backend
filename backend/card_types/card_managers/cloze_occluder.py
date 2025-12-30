@@ -9,13 +9,9 @@ class ClozeOccluder:
     def __init__(self, description_text):
         self.bs = BeautifulSoup(description_text, features="lxml")
         self.clozes = self.bs.findAll("cloze")
-        self.cards = []
 
     def get_cards(self):
-        for cloze in self.clozes:
-            card_details = self.get_card_for_cloze(cloze)
-            self.cards.append(card_details)
-        return self.cards
+        return [self.get_card_for_cloze(cloze) for cloze in self.clozes]
 
     def get_card_for_cloze(self, cloze):
         question = BeautifulSoup(str(self.bs), features="lxml")
