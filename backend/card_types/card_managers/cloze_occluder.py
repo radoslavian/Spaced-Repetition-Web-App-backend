@@ -43,9 +43,9 @@ class ClozeOccluder:
         for cloze in clozes:
             cloze.replace_with(self.occluded_gap)
 
-    def unwrap_items(self, items):
+    def unwrap_items(self, items, tags=("html", "body")):
         for item in items:
-            self.unwrap_tags(item)
+            self.unwrap_tags(item, tags)
 
     @staticmethod
     def unwrap_tags(item, tags=("html", "body")):
