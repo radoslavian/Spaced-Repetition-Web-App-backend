@@ -12,26 +12,28 @@ class OccludedClozeDeletion(CardManager):
         managed_cards_mapping = [self._add_card(card_details)
                                  for card_details in cards_details]
         card_note_metadata = {
-            "managed-cards-mapping": []
+            "managed-cards-mapping": managed_cards_mapping
         }
 
-        for card_details in cards_details:
-            card = self.get_card_by_cloze_id(card_details) or Card()
-            self._save_card(card,
-                            {"text": card_details["front"]},
-                            {"text": card_details["back"]})
-            card_note_metadata["managed-cards-mapping"].append(
-                {
-                    "card-id": card["id"],
-                    "cloze-id": card_details["cloze-id"]
-                }
-            )
         self.card_note.metadata = card_note_metadata
         self._synchronize_cards_with_clozes(card_note_metadata)
 
+    def _add_card(self, card_details):
+        card = self.get_card_by_cloze_id(card_details) or Card()
+        front = {**self.card_note.card_description.get("front", {}),
+                 "text": card_details["front"]}
+        back = {**self.card_note.card_description.get("back", {}),
+                "text": card_details["back"]}
+        self._save_card(card, front, back)
+
+        return {
+            "card-id": card["id"],
+            "cloze-id": card_details["cloze-id"]
+        }
+
     def _synchronize_cards_with_clozes(self, current_metadata):
         """
-        Removes cards for which clozes had been removed.
+        Drops cards for which clozes had been removed.
         """
         metadata_card_ids = [card_details["card-id"] for card_details
                              in current_metadata["managed-cards-mapping"]]
