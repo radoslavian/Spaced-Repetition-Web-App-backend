@@ -25,6 +25,17 @@ class OccludedClozeDeletion(CardManager):
                 }
             )
         self.card_note.metadata = card_note_metadata
+        self._synchronize_cards_with_clozes(card_note_metadata)
+
+    def _synchronize_cards_with_clozes(self, current_metadata):
+        """
+        Removes cards for which clozes had been removed.
+        """
+        metadata_card_ids = [card_details["card-id"] for card_details
+                             in current_metadata["managed-cards-mapping"]]
+        for card in self.card_note.cards.all():
+            if card["id"] not in metadata_card_ids:
+                card.delete()
 
     def get_card_by_cloze_id(self, card_details):
         cloze_id = card_details["cloze-id"]

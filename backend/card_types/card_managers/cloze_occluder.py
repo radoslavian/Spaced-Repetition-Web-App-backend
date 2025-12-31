@@ -9,11 +9,33 @@ class ClozeOccluder:
     def __init__(self, description_text):
         self.bs = BeautifulSoup(description_text, features="lxml")
         self.clozes = self.bs.findAll("cloze")
+        self._check_for_id_collisions()
+
+    def _check_for_id_collisions(self):
+        """
+        Raises an exception if there are several cloze ids with the same value.
+        """
+        cloze_ids = self._get_cloze_ids()
+        for cloze_id in cloze_ids:
+            cloze_id_count = cloze_ids.count(cloze_id)
+            if cloze_id_count > 1:
+                exception_message = ('<cloze> id collision detected: '
+                                     'the "{0}" count is "{1}"')
+                raise ValueError(exception_message.format(cloze_id,
+                                                          cloze_id_count))
+
+    def _get_cloze_ids(self):
+        try:
+            clozes = [cloze["id"] for cloze in self.clozes]
+        except KeyError:
+            raise KeyError("One or more clozes has no id.")
+        return clozes
 
     def get_cards(self):
-        return [self.get_card_for_cloze(cloze) for cloze in self.clozes]
+        return [self._get_card_details_for_cloze(cloze)
+                for cloze in self.clozes]
 
-    def get_card_for_cloze(self, cloze):
+    def _get_card_details_for_cloze(self, cloze):
         question = BeautifulSoup(str(self.bs), features="lxml")
         answer = BeautifulSoup(str(self.bs), features="lxml")
         self.unwrap_items([answer, question])
