@@ -197,15 +197,36 @@ class RecreatingCards(TestCase):
         self.assertEqual(expected_number, received_number)
 
 
-class CreatingCardsFromNoteWithFields(TestCase):
-    """
-    Creating cards with fields other than front and back text.
-    """
+class RelatedFieldsTestData:
     template_description = {
         "title": "example template",
         "description": "template for testing",
         "body": '{% extends  "fallback.html" %}'
     }
+
+    @classmethod
+    def _prepare_audio_entries(cls):
+        cls.front_audio, _ = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[0])
+        cls.back_audio, _ = fake_data_objects.add_sound_entry_to_database(
+            fake_data_objects.placeholder_audio_files[1])
+
+    @classmethod
+    def _prepare_template(cls):
+        cls.template = CardTemplate.objects.create(**cls.template_description)
+
+    @classmethod
+    def _prepare_images(cls):
+        cls.front_image = fake_data_objects.get_instance_from_image(
+            fake_data_objects.gifs[0])
+        cls.back_image = fake_data_objects.get_instance_from_image(
+            fake_data_objects.gifs[1])
+
+
+class CreatingCardsFromNoteWithFields(TestCase, RelatedFieldsTestData):
+    """
+    Creating cards with fields other than front and back text.
+    """
 
     @classmethod
     def setUpTestData(cls):
@@ -226,22 +247,11 @@ class CreatingCardsFromNoteWithFields(TestCase):
         cls._get_cards()
 
     @classmethod
-    def _prepare_audio_entries(cls):
-        cls.front_audio, _ = fake_data_objects.add_sound_entry_to_database(
-            fake_data_objects.placeholder_audio_files[0])
-        cls.back_audio, _ = fake_data_objects.add_sound_entry_to_database(
-            fake_data_objects.placeholder_audio_files[1])
-
-    @classmethod
     def _get_cards(cls):
         front_back_card_id = cls.note.metadata["front-back-card-id"]
         cls.front_back_card = Card.objects.get(id__exact=front_back_card_id)
         back_front_card_id = cls.note.metadata["back-front-card-id"]
         cls.back_front_card = Card.objects.get(id__exact=back_front_card_id)
-
-    @classmethod
-    def _prepare_template(cls):
-        cls.template = CardTemplate.objects.create(**cls.template_description)
 
     @classmethod
     def _create_note(cls):
@@ -291,14 +301,7 @@ class CreatingCardsFromNoteWithFields(TestCase):
                          self.front_audio.id)
 
 
-class ImageTestData:
-    @classmethod
-    def prepare_images(cls):
-        cls.front_image = fake_data_objects.get_instance_from_image(
-            fake_data_objects.gifs[0])
-        cls.back_image = fake_data_objects.get_instance_from_image(
-            fake_data_objects.gifs[1])
-
+class FieldsWithDescription(RelatedFieldsTestData):
     @classmethod
     def add_note_description(cls):
         cls.card_description = {
@@ -324,10 +327,11 @@ class ImageTestData:
             id__exact=self.note.metadata["back-front-card-id"])
 
 
-class ImageEntry(TestCase, ImageTestData):
+
+class ImageEntry(TestCase, FieldsWithDescription):
     @classmethod
     def setUpTestData(cls):
-        cls.prepare_images()
+        cls._prepare_images()
         cls.add_note_description()
 
     def setUp(self):
@@ -378,10 +382,10 @@ class ImageEntry(TestCase, ImageTestData):
         return self.get_image(card, side="back")
 
 
-class NoteWithImagesUpdate(TestCase, ImageTestData):
+class NoteWithImagesUpdate(TestCase, FieldsWithDescription):
     @classmethod
     def setUpTestData(cls):
-        cls.prepare_images()
+        cls._prepare_images()
         cls.add_note_description()
         front = {**cls.card_description["_front"],
                  "images": [cls.front_image.id.hex,
