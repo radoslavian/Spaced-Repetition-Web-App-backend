@@ -9,6 +9,8 @@ class OccludedClozeDeletion(CardManager):
     def save_cards(self):
         cloze_occluder = self.Occluder(self.card_note.card_description["text"])
         cards_details = cloze_occluder.get_cards()
+        managed_cards_mapping = [self._add_card(card_details)
+                                 for card_details in cards_details]
         card_note_metadata = {
             "managed-cards-mapping": []
         }
