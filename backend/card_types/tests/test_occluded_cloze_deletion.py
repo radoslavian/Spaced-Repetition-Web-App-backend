@@ -1,5 +1,6 @@
 from django.test import TestCase
 from card_types.models import CardNote
+from card_types.tests.test_front_back_back_front import RelatedFieldsTestData
 from cards.models import Card
 
 
@@ -141,7 +142,7 @@ class NoteUpdate(TestCase):
         self.assertEqual(expected_number, received_number)
 
 
-class UpdatingCardDescription(TestCase):
+class ManagingClozes(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.cloze_id = "one"
@@ -217,3 +218,72 @@ class UpdatingCardDescription(TestCase):
 
         with self.assertRaisesMessage(KeyError, expected_exception_message):
             self.card_note.save()
+
+
+class ReferencedFields(TestCase, RelatedFieldsTestData):
+    """
+    Audio, images; template.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls._prepare_images()
+        cls._prepare_audio_entries()
+        cls._prepare_template()
+        cls.card_description = {
+            "text": '<cloze id="one">cloze one</cloze>'
+                    '<cloze id="two">cloze two</cloze>',
+            "front": {
+                "audio": cls.front_audio.id.hex,
+                "images": [cls.front_image.id.hex]
+            },
+            "back": {
+                "audio": cls.back_audio.id.hex,
+                "images": [cls.back_image.id.hex]
+            },
+            "template_title": cls.template_description["title"]
+        }
+        card_note_details = dict(card_description=cls.card_description,
+                                 card_type="occluded-cloze-deletion")
+        cls.card_note = CardNote.objects.create(**card_note_details)
+
+        cls.card1: Card = cls.card_note.cards.all()[0]
+        cls.card2: Card = cls.card_note.cards.all()[1]
+
+    def test_front_audio(self):
+        """
+        Both cards should reference the same front audio entry.
+        """
+        self.assertEqual(self.card1.front_audio.id.hex,
+                         self.front_audio.id.hex)
+        self.assertEqual(self.card2.front_audio.id.hex,
+                         self.front_audio.id.hex)
+
+    def test_back_audio(self):
+        """
+        Both cards should reference the same back audio entry.
+        """
+        self.assertEqual(self.card1.back_audio.id.hex,
+                         self.back_audio.id.hex)
+        self.assertEqual(self.card2.back_audio.id.hex,
+                         self.back_audio.id.hex)
+
+    def test_front_image(self):
+        expected_number = 1
+        self.assertEqual(len(self.card1.front_images), expected_number)
+        self.assertEqual(len(self.card2.front_images), expected_number)
+        self.assertEqual(self.card1.front_images[0].id.hex,
+                         self.front_image.id.hex)
+        self.assertEqual(self.card2.front_images[0].id.hex,
+                         self.front_image.id.hex)
+
+    def test_back_image(self):
+        expected_number = 1
+        self.assertEqual(len(self.card1.back_images), expected_number)
+        self.assertEqual(len(self.card2.back_images), expected_number)
+        self.assertEqual(self.card1.back_images[0].id.hex,
+                         self.back_image.id.hex)
+        self.assertEqual(self.card2.back_images[0].id.hex,
+                         self.back_image.id.hex)
+
+    def test_template(self):
+        self.assertEqual(self.card1.template, self.template)
