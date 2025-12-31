@@ -38,7 +38,7 @@ class ClozeOccluder:
     def _get_card_details_for_cloze(self, cloze):
         question = BeautifulSoup(str(self.bs), features="lxml")
         answer = BeautifulSoup(str(self.bs), features="lxml")
-        self.unwrap_items([answer, question])
+        self.unwrap_tags_in_items([answer, question])
 
         question_cloze = question.find("cloze", {"id": cloze["id"]})
         question_cloze.replace_with(self.occluded_question)
@@ -61,12 +61,12 @@ class ClozeOccluder:
         for cloze in clozes:
             cloze.replace_with(self.occluded_gap)
 
-    def unwrap_items(self, items, tags=("html", "body")):
+    def unwrap_tags_in_items(self, items, tags=("html", "body")):
         for item in items:
-            self.unwrap_tags(item, tags)
+            self.unwrap_tags_in_item(item, tags)
 
     @staticmethod
-    def unwrap_tags(item, tags=("html", "body")):
+    def unwrap_tags_in_item(item, tags=("html", "body")):
         for tag in tags:
             item.find(tag).unwrap()
 
