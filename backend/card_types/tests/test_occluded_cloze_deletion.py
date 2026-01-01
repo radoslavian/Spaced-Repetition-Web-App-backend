@@ -1,3 +1,5 @@
+from unittest import skip
+
 from django.test import TestCase
 from card_types.models import CardNote
 from card_types.tests.test_front_back_back_front import RelatedFieldsTestData
@@ -287,3 +289,33 @@ class ReferencedFields(TestCase, RelatedFieldsTestData):
 
     def test_template(self):
         self.assertEqual(self.card1.template, self.template)
+
+
+class FormattedDeletion(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.cloze_id_one = "one"
+        cls.cloze_id_two = "two"
+        cls.cloze_one_text = "cloze one"
+        card_description = {"text": f'<cloze id="{cls.cloze_id_one}">'
+                                    f'{cls.cloze_one_text}</cloze>'
+                                    f'<cloze id="{cls.cloze_id_two}">'
+                                    'cloze two</cloze>'}
+        cls.card_note = CardNote.objects.create(
+            card_description=card_description,
+            card_type="formatted-occluded-cloze-deletion")
+        cls.card = cls.card_note.card_type_instance.get_card_by_cloze_id(
+            cls.cloze_id_one)
+
+    def test_question_gap(self):
+        expected = '<span class="highlighted-text">[&hellip;]</span>'
+        self.assertIn(expected, self.card.front)
+
+    def test_occluded_gap(self):
+        expected = '<span class="toned-down-text">[&hellip;]</span>'
+        self.assertIn(expected, self.card.front)
+
+    def test_answer(self):
+        expected = ('<span class="highlighted-text">'
+                    f'[{self.cloze_one_text}]</span>')
+        self.assertIn(expected, self.card.back)
